@@ -16,7 +16,7 @@ spoofaxLanguageProject {
       .defaultBasePackageId("mb.spt"),
 
     parser = ParserCompiler.LanguageProjectInput.builder()
-      .startSymbol("Module"),
+      .startSymbol("TestSuite"),
     styler = StylerCompiler.LanguageProjectInput.builder(),
     completer = CompleterCompiler.LanguageProjectInput.builder(),
     strategoRuntime = StrategoRuntimeCompiler.LanguageProjectInput.builder()

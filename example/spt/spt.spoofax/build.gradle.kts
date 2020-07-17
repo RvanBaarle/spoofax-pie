@@ -37,9 +37,9 @@ spoofaxAdapterProject {
 
       val builder = AdapterProjectCompiler.Input.builder()
 
-//      builder.classKind(ClassKind.Extended)
-//      builder.genComponent(packageId, "GeneratedStrategoComponent")
-//      builder.manualComponent(packageId, "StrategoComponent")
+      builder.classKind(ClassKind.Extended)
+      builder.genComponent(packageId, "GeneratedSptComponent")
+      builder.manualComponent(packageId, "SptComponent")
 
       builder
     }
