@@ -60,3 +60,12 @@ fun String.includeProject(id: String, path: String = "$this/$id") {
   includeProject("stratego.eclipse")
   includeProject("stratego.intellij")
 }
+
+"spt".run {
+  includeProject("spt")
+  includeProject("spt.spoofax")
+  includeProject("spt.cli")
+  includeProject("spt.eclipse.externaldeps")
+  includeProject("spt.eclipse")
+  includeProject("spt.intellij")
+}
