@@ -37,6 +37,10 @@ spoofaxAdapterProject {
 
       val builder = AdapterProjectCompiler.Input.builder()
 
+      // Utility task definitions
+      val desugar = TypeInfo.of(taskPackageId, "SptDesugar")
+      builder.addTaskDefs(desugar)
+
       builder.classKind(ClassKind.Extended)
       builder.genComponent(packageId, "GeneratedSptComponent")
       builder.manualComponent(packageId, "SptComponent")

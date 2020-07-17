@@ -19,6 +19,7 @@ import mb.resource.text.TextResource;
 import mb.resource.text.TextResourceRegistry;
 import mb.spoofax.core.platform.LoggerFactoryModule;
 import mb.spoofax.core.platform.PlatformPieModule;
+import mb.spt.spoofax.task.SptDesugar;
 import mb.spt.spoofax.task.SptParse;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -44,6 +45,7 @@ public class TestBase {
         .platformComponent(platformComponent)
         .build();
     public final SptParse parse = languageComponent.getSptParse();
+    public final SptDesugar desugar = languageComponent.getSptDesugar();
     public final Pie pie = languageComponent.getPie();
 
 
@@ -73,6 +75,15 @@ public class TestBase {
 
     public Supplier<? extends Result<IStrategoTerm, ?>> parsedAstSupplier(Resource resource) {
         return parsedAstSupplier(resource.getKey());
+    }
+
+
+    public Supplier<Result<IStrategoTerm, ?>> desugarSupplier(ResourceKey resourceKey) {
+        return desugar.createSupplier(parsedAstSupplier(resourceKey));
+    }
+
+    public Supplier<Result<IStrategoTerm, ?>> desugarSupplier(Resource resource) {
+        return desugarSupplier(resource.getKey());
     }
 
 

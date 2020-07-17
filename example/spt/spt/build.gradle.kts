@@ -20,10 +20,10 @@ spoofaxLanguageProject {
     styler = StylerCompiler.LanguageProjectInput.builder(),
     completer = CompleterCompiler.LanguageProjectInput.builder(),
     strategoRuntime = StrategoRuntimeCompiler.LanguageProjectInput.builder()
-      .addInteropRegisterersByReflection("org.metaborg.meta.lang.spt.trans.InteropRegisterer")
+      .addInteropRegisterersByReflection("org.metaborg.meta.lang.spt.strategies.InteropRegisterer")
       .enableNaBL2(false)
       .enableStatix(false)
-      .copyCTree(false)
+      .copyCTree(true)
       .copyClasses(true),
 
     builder = run {
