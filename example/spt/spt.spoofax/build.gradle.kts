@@ -11,6 +11,7 @@ plugins {
 dependencies {
   // Required because @Nullable has runtime retention (which includes classfile retention), and the Java compiler requires access to it.
   compileOnly("com.google.code.findbugs:jsr305")
+  implementation(project(":sdf3.spoofax"))
 
   testAnnotationProcessor(platform("$group:spoofax.depconstraints:$version"))
   testImplementation("org.metaborg:log.backend.slf4j")
@@ -44,6 +45,8 @@ spoofaxAdapterProject {
       builder.classKind(ClassKind.Extended)
       builder.genComponent(packageId, "GeneratedSptComponent")
       builder.manualComponent(packageId, "SptComponent")
+      builder.genModule(packageId, "GeneratedSptModule")
+      builder.manualModule(packageId, "SptModule")
 
       builder
     }
