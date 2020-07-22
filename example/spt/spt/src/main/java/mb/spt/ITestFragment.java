@@ -4,6 +4,7 @@ import mb.common.region.Region;
 import mb.common.util.ListView;
 import mb.resource.Resource;
 import org.apache.commons.vfs2.FileObject;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +28,9 @@ public interface ITestFragment {
     /**
      * Gets the region of the entire test fragment.
      *
-     * @return the region
+     * @return the region; or {@code null}
      */
-    Region getRegion();
+    @Nullable Region getRegion();
 
     /**
      * Gets the selections of the fragment.

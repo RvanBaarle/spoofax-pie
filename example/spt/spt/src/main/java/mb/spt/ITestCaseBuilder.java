@@ -33,6 +33,8 @@ public interface ITestCaseBuilder extends ITestSuiteElementBuilder {
      */
     ITestCaseBuilder addTestExpectation(ITestExpectation testExpectation);
 
+    @Override ITestCaseBuilder withFragment(ITestFragment fragment);
+
     /**
      * Builds the test case.
      *

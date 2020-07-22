@@ -16,11 +16,11 @@ public interface ITestSuiteElement {
      */
     ITestFragment getFragment();
 
-    /**
-     * Gets the resource of the test suite from which the element was extracted.
-     *
-     * @return the resource
-     */
-    Resource getResource();
+//    /**
+//     * Gets the resource of the test suite from which the element was extracted.
+//     *
+//     * @return the resource
+//     */
+//    Resource getResource();
 
 }

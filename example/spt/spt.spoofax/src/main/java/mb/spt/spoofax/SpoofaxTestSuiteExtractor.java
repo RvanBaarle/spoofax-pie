@@ -15,6 +15,7 @@ import mb.spt.ITestSuite;
 import mb.spt.expectations.ITestExpectationExtractor;
 import mb.spt.expectations.UnknownTestExpectation;
 import mb.spt.expectations.spoofax.ISpoofaxTestExpectationExtractor;
+import mb.spt.extract.ITestSuiteExtractor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 /**
  * Extracts a Spoofax {@link ITestSuite} class.
  */
-public final class SpoofaxTestSuiteExtractor {
+public final class SpoofaxTestSuiteExtractor implements ITestSuiteExtractor<IStrategoTerm> {
 
     // Constructor names
     private static final String TESTSUITE_CONS = "TestSuite";

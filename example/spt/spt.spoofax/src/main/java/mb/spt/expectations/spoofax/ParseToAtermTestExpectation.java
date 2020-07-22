@@ -98,6 +98,8 @@ public final class ParseToAtermTestExpectation extends TestExpectation {
         private static final String PARSETOATERM_CONS = "ParseToAterm";
         private static final String TOATERM_CONS = "ToAterm";
 
+        @Inject public Extractor() {}
+
         @Override public boolean canExtract(IStrategoTerm expectationTerm) {
             return TermUtils.isAppl(expectationTerm, PARSETOATERM_CONS, 1)
                 && TermUtils.isApplAt(expectationTerm, 0, TOATERM_CONS, 1);

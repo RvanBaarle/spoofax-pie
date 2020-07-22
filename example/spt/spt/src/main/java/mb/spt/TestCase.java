@@ -8,12 +8,12 @@ import mb.spt.expectations.ITestExpectation;
 /**
  * Implementation of {@link ITestCase}.
  */
-public final class TestCase implements ITestCase {
+public class TestCase implements ITestCase {
 
     private final String description;
     private final Region descriptionRegion;
     private final ITestFragment fragment;
-    private final Resource resource;
+//    private final Resource resource;
     private final ListView<ITestExpectation> expectations;
 
     /**
@@ -25,17 +25,17 @@ public final class TestCase implements ITestCase {
      * @param resource the resource of the test suite from which this test case was extracted
      * @param expectations the test expectations for this test case
      */
-    public TestCase(
+    protected TestCase(
         String description,
         Region descriptionRegion,
         ITestFragment fragment,
-        Resource resource,
+//        Resource resource,
         ListView<ITestExpectation> expectations
     ) {
         this.description = description;
         this.descriptionRegion = descriptionRegion;
         this.fragment = fragment;
-        this.resource = resource;
+//        this.resource = resource;
         this.expectations = expectations;
     }
 
@@ -54,10 +54,10 @@ public final class TestCase implements ITestCase {
         return fragment;
     }
 
-    @Override
-    public Resource getResource() {
-        return resource;
-    }
+//    @Override
+//    public Resource getResource() {
+//        return resource;
+//    }
 
     @Override
     public ListView<ITestExpectation> getExpectations() {
