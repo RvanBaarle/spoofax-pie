@@ -4,6 +4,9 @@ import mb.common.region.Region;
 import mb.common.util.ListView;
 import mb.resource.Resource;
 import mb.spt.expectations.ITestExpectation;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.Objects;
 
 /**
  * Implementation of {@link ITestCase}.
@@ -11,9 +14,8 @@ import mb.spt.expectations.ITestExpectation;
 public class TestCase implements ITestCase {
 
     private final String description;
-    private final Region descriptionRegion;
+    private final @Nullable Region descriptionRegion;
     private final ITestFragment fragment;
-//    private final Resource resource;
     private final ListView<ITestExpectation> expectations;
 
     /**
@@ -25,42 +27,66 @@ public class TestCase implements ITestCase {
      * @param resource the resource of the test suite from which this test case was extracted
      * @param expectations the test expectations for this test case
      */
-    protected TestCase(
+    public TestCase(
         String description,
-        Region descriptionRegion,
+        @Nullable Region descriptionRegion,
         ITestFragment fragment,
-//        Resource resource,
         ListView<ITestExpectation> expectations
     ) {
+        assert description != null;
+        assert fragment != null;
+        assert expectations != null;
+
         this.description = description;
         this.descriptionRegion = descriptionRegion;
         this.fragment = fragment;
-//        this.resource = resource;
         this.expectations = expectations;
     }
 
-    @Override
-    public String getDescription() {
+    @Override public String getDescription() {
         return description;
     }
 
-    @Override
-    public Region getDescriptionRegion() {
+    @Override public @Nullable Region getDescriptionRegion() {
         return descriptionRegion;
     }
 
-    @Override
-    public ITestFragment getFragment() {
+    @Override public ITestFragment getFragment() {
         return fragment;
     }
 
-//    @Override
-//    public Resource getResource() {
-//        return resource;
-//    }
+    @Override public ListView<ITestExpectation> getExpectations() {
+        return expectations;
+    }
+
+    @Override public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        TestCase other = (TestCase)o;
+        return this.description.equals(other.description)
+            && Objects.equals(this.descriptionRegion, other.descriptionRegion)
+            && this.fragment.equals(other.fragment)
+            && this.expectations.equals(other.expectations);
+    }
 
     @Override
-    public ListView<ITestExpectation> getExpectations() {
-        return expectations;
+    public int hashCode() {
+        return Objects.hash(
+            description,
+            descriptionRegion,
+            fragment,
+            expectations
+        ) + super.hashCode();
+    }
+
+    @Override public String toString() {
+        return "TestCase{" + fieldsToString() + "}";
+    }
+
+    protected String fieldsToString() {
+        return "description='" + description + "', " +
+                "descriptionRegion=" + descriptionRegion + ", " +
+                "fragment=" + fragment + "', " +
+                "expectations=" + expectations;
     }
 }

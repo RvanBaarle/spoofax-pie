@@ -5,6 +5,8 @@ import mb.common.util.ListView;
 import mb.resource.Resource;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.util.Objects;
+
 /**
  * Implementation of {@link TestFragment}.
  */
@@ -12,7 +14,6 @@ public class TestFragment implements ITestFragment {
 
     private final @Nullable Region region;
     private final ListView<Region> selections;
-//    private final Resource resource;
     private final ListView<FragmentPiece> pieces;
 
     /**
@@ -23,15 +24,16 @@ public class TestFragment implements ITestFragment {
      * @param resource the source file of the test suite from which this fragment was extracted
      * @param text the text of this selection
      */
-    protected TestFragment(
+    public TestFragment(
         @Nullable Region region,
         ListView<Region> selections,
-//        Resource resource,
         ListView<FragmentPiece> pieces
     ) {
+        assert selections != null;
+        assert pieces != null;
+
         this.region = region;
         this.selections = selections;
-//        this.resource = resource;
         this.pieces = pieces;
     }
 
@@ -47,8 +49,27 @@ public class TestFragment implements ITestFragment {
         return pieces;
     }
 
-//    @Override public Resource getResource() {
-//        return resource;
-//    }
+    @Override public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        TestFragment that = (TestFragment)o;
+        return Objects.equals(region, that.region) &&
+            selections.equals(that.selections) &&
+            pieces.equals(that.pieces);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(region, selections, pieces);
+    }
+
+    @Override public String toString() {
+        return "TestFragment{" + fieldsToString() + "}";
+    }
+
+    protected String fieldsToString() {
+        return "region=" + region + ", " +
+            "selections=" + selections + ", " +
+            "pieces=" + pieces;
+    }
 }

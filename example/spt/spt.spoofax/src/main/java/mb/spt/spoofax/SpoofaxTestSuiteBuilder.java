@@ -40,10 +40,9 @@ public class SpoofaxTestSuiteBuilder extends TestSuiteBuilder implements ISpoofa
     }
 
     @Override public ISpoofaxTestSuite build() {
-        checkFieldNotNull("startSymbol", startSymbol);
         checkFieldNotNull("languageName", languageName);
 
-        return new SpoofaxTestSuite(startSymbol, languageName, name, ListView.of(testElements));
+        return new SpoofaxTestSuite(languageName, startSymbol, name, ListView.of(testElements));
     }
 
     @Override public ISpoofaxTestSuiteBuilder reset() {

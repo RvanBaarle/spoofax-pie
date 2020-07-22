@@ -8,6 +8,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A fragment represents a piece of code within an SPT test suite, written in another language.
@@ -39,6 +40,7 @@ public interface ITestFragment {
      *
      * @return the selections
      */
+    // TODO: Make this a list of Selection objects?
     ListView<Region> getSelections();
 
 //    /**
@@ -79,7 +81,7 @@ public interface ITestFragment {
      */
     public static class FragmentPiece {
 
-        private final Region region;
+        private final @Nullable Region region;
         private final String text;
 
         /**
@@ -88,7 +90,7 @@ public interface ITestFragment {
          * @param region the region of the fragment piece
          * @param text the text of the fragment piece
          */
-        public FragmentPiece(Region region, String text) {
+        public FragmentPiece(@Nullable Region region, String text) {
             this.text = text;
             this.region = region;
         }
@@ -98,7 +100,7 @@ public interface ITestFragment {
          *
          * @return the region
          */
-        public Region getRegion() {
+        public @Nullable Region getRegion() {
             return region;
         }
 
@@ -111,6 +113,25 @@ public interface ITestFragment {
             return text;
         }
 
+        @Override public boolean equals(Object o) {
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            FragmentPiece that = (FragmentPiece)o;
+            return Objects.equals(region, that.region)
+                && text.equals(that.text);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(region, text);
+        }
+
+        @Override public String toString() {
+            return "FragmentPiece{" +
+                "region=" + region + "', " +
+                "text='" + text + "'" +
+                '}';
+        }
     }
 
 }

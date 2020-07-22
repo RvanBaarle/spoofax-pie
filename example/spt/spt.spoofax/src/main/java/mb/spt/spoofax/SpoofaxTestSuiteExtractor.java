@@ -56,7 +56,7 @@ public final class SpoofaxTestSuiteExtractor implements ITestSuiteExtractor<IStr
 
     private final Logger log;
     private final ITermTracer termTracer;
-    private final Set<ISpoofaxTestExpectationExtractor> expectationExtractors;
+    private final Set<ITestExpectationExtractor<IStrategoTerm>> expectationExtractors;
 
     /**
      * Initializes a new instance of the {@link SpoofaxTestSuiteExtractor} class.
@@ -65,7 +65,7 @@ public final class SpoofaxTestSuiteExtractor implements ITestSuiteExtractor<IStr
         // TODO: Ensure these can be injected
         LoggerFactory loggerFactory,
         ITermTracer termTracer,
-        Set<ISpoofaxTestExpectationExtractor> expectationExtractors,
+        Set<ITestExpectationExtractor<IStrategoTerm>> expectationExtractors,
         ISpoofaxTestSuiteBuilder testSuiteBuilder,
         ITestCaseBuilder testCaseBuilder,
         ITestFragmentBuilder testFragmentBuilder,
