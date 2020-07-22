@@ -212,6 +212,11 @@ spoofaxAdapterProject {
         )
       )
 
+
+      builder.classKind(ClassKind.Extended)
+      builder.genComponent(packageId, "GeneratedSdf3Component")
+      builder.manualComponent(packageId, "Sdf3Component")
+
       builder
     }
   ))
