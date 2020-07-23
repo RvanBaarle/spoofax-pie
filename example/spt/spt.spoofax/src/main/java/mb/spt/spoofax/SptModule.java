@@ -14,6 +14,7 @@ import mb.spt.TestFragmentBuilder;
 import mb.spt.TestSuiteBuilder;
 import mb.spt.expectations.ITestExpectation;
 import mb.spt.expectations.ITestExpectationBuilder;
+import mb.spt.expectations.ITestExpectationExtractor;
 import mb.spt.expectations.spoofax.ISpoofaxTestExpectationExtractor;
 import mb.spt.expectations.spoofax.ParseSucceedsExpectation;
 import mb.spt.expectations.spoofax.ParseToAtermTestExpectation;
@@ -49,11 +50,11 @@ public abstract class SptModule extends GeneratedSptModule {
         return new TestFragmentBuilder();
     }
 
-    @Provides @IntoSet static ISpoofaxTestExpectationExtractor provideParseToAtermTestExpectation(ParseToAtermTestExpectation.Extractor e) {
+    @Provides @IntoSet static ITestExpectationExtractor<IStrategoTerm> provideParseToAtermTestExpectation(ParseToAtermTestExpectation.Extractor e) {
         return e;
     }
 
-    @Provides @IntoSet static ISpoofaxTestExpectationExtractor provideParseSucceedsExpectation(ParseSucceedsExpectation.Extractor e) {
+    @Provides @IntoSet static ITestExpectationExtractor<IStrategoTerm> provideParseSucceedsExpectation(ParseSucceedsExpectation.Extractor e) {
         return e;
     }
 

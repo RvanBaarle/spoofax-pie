@@ -27,9 +27,9 @@ public final class ExtractTestSuiteTask implements TaskDef<ExtractTestSuiteTask.
      */
     public static class Input implements Serializable {
         public final ResourceKey resourceKey;
-        public final Supplier<IStrategoTerm> desugaredAstSupplier;
+        public final Supplier<Result<IStrategoTerm, ?>> desugaredAstSupplier;
 
-        public Input(ResourceKey resourceKey, Supplier<IStrategoTerm> desugaredAstSupplier) {
+        public Input(ResourceKey resourceKey, Supplier<Result<IStrategoTerm, ?>> desugaredAstSupplier) {
             this.resourceKey = resourceKey;
             this.desugaredAstSupplier = desugaredAstSupplier;
         }
@@ -69,14 +69,17 @@ public final class ExtractTestSuiteTask implements TaskDef<ExtractTestSuiteTask.
     }
 
     @Override public Result<ITestSuite, ?> exec(ExecContext context, Input input) throws Exception {
-        final IStrategoTerm desugaredAst = context.require(input.desugaredAstSupplier);
-
-        try {
-            final ITestSuite testSuite = testSuiteExtractor.extract(desugaredAst);
-            return Result.ofOk(testSuite);
-        } catch (IllegalArgumentException e) {
-            return Result.ofErr(e);
-        }
+        return context.require(input.desugaredAstSupplier).map(
+            ast -> testSuiteExtractor.extract(ast)
+        );
+//        final IStrategoTerm desugaredAst = context.require(input.desugaredAstSupplier);
+//
+//        try {
+//            final ITestSuite testSuite = testSuiteExtractor.extract(desugaredAst);
+//            return Result.ofOk(testSuite);
+//        } catch (IllegalArgumentException e) {
+//            return Result.ofErr(e);
+//        }
     }
 
 }

@@ -36,6 +36,7 @@ public class AdapterProjectCompiler {
     private final TemplateWriter checkMultiTaskDefTemplate;
     private final TemplateWriter checkAggregatorTaskDefTemplate;
     private final TemplateWriter componentTemplate;
+    private final TemplateWriter extendedComponentTemplate;
     private final TemplateWriter moduleTemplate;
     private final TemplateWriter instanceTemplate;
     private final TemplateWriter commandDefTemplate;
@@ -60,6 +61,7 @@ public class AdapterProjectCompiler {
         this.checkMultiTaskDefTemplate = templateCompiler.getOrCompileToWriter("adapter_project/CheckMultiTaskDef.java.mustache");
         this.checkAggregatorTaskDefTemplate = templateCompiler.getOrCompileToWriter("adapter_project/CheckAggregatorTaskDef.java.mustache");
         this.componentTemplate = templateCompiler.getOrCompileToWriter("adapter_project/Component.java.mustache");
+        this.extendedComponentTemplate = templateCompiler.getOrCompileToWriter("adapter_project/ExtendedComponent.java.mustache");
         this.moduleTemplate = templateCompiler.getOrCompileToWriter("adapter_project/Module.java.mustache");
         this.instanceTemplate = templateCompiler.getOrCompileToWriter("adapter_project/Instance.java.mustache");
         this.commandDefTemplate = templateCompiler.getOrCompileToWriter("adapter_project/CommandDef.java.mustache");
@@ -162,7 +164,11 @@ public class AdapterProjectCompiler {
         checkTaskDefTemplate.write(input.genCheckTaskDef().file(classesGenDirectory), input);
         checkMultiTaskDefTemplate.write(input.genCheckMultiTaskDef().file(classesGenDirectory), input);
         checkAggregatorTaskDefTemplate.write(input.genCheckAggregatorTaskDef().file(classesGenDirectory), input);
-        componentTemplate.write(input.genComponent().file(classesGenDirectory), input);
+        if (input.manualComponent().isPresent()) {
+            extendedComponentTemplate.write(input.genComponent().file(classesGenDirectory), input);
+        } else {
+            componentTemplate.write(input.genComponent().file(classesGenDirectory), input);
+        }
         for(CommandDefRepr commandDef : input.commandDefs()) {
             final UniqueNamer uniqueNamer = new UniqueNamer();
             final HashMap<String, Object> map = new HashMap<>();
