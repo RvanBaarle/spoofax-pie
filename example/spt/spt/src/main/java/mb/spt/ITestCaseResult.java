@@ -4,6 +4,8 @@ import mb.common.message.Message;
 import mb.common.util.ListView;
 import mb.spt.expectations.ITestExpectationResult;
 
+import java.util.ArrayList;
+
 /**
  * A test result.
  */
@@ -42,7 +44,12 @@ public interface ITestCaseResult {
      *
      * @return a list of messages
      */
-    ListView<Message> getAllMessages();
+    default ListView<Message> getAllMessages() {
+        final ArrayList<Message> allMessages = new ArrayList<>();
+        getMessages().addAllTo(allMessages);
+        getTestExpectationResults().stream().map(r -> r.getMessages()).forEach(m -> m.addAllTo(allMessages));
+        return ListView.of(allMessages);
+    }
 
     /**
      * Gets the result of each test expectation in the test case.

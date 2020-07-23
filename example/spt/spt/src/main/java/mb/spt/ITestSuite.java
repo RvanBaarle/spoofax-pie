@@ -3,6 +3,7 @@ package mb.spt;
 import jdk.nashorn.internal.ir.annotations.Immutable;
 import mb.common.message.Message;
 import mb.common.util.ListView;
+import mb.spt.runner.ITestTreeVisitor;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,5 +39,6 @@ public interface ITestSuite {
             .collect(Collectors.toList())
         );
     }
+
 
 }

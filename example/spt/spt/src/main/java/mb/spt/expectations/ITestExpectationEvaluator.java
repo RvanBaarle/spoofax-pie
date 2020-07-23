@@ -10,15 +10,16 @@ import mb.spt.ITestSuite;
  *
  * @param <E> the type of test expectation being evaluated
  */
-public interface ITestExpectationEvaluator<E extends ITestExpectation, I extends ITestInput> {
+public interface ITestExpectationEvaluator<E extends ITestExpectation> {
 
     /**
      * Evaluates the test expectation.
      *
      * @param testExpectation the test expectation
-     * @param input the input
+     * @param testCase the test case that contains the test expectation
+     * @param testSuite the test suite that contains the test case
      * @return the result of evaluating the test expectation
      */
-    ITestExpectationResult evaluate(E testExpectation, I input) throws ExecException, InterruptedException;
+    ITestExpectationResult evaluate(E testExpectation, ITestCase testCase, ITestSuite testSuite) throws ExecException, InterruptedException;
 
 }

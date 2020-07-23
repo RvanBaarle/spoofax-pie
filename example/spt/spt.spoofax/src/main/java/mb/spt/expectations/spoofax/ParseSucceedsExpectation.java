@@ -98,31 +98,29 @@ public final class ParseSucceedsExpectation extends TestExpectation {
     /**
      * Evaluator for {@link ParseSucceedsExpectation}.
      */
-    public static final class Evaluator implements ITestExpectationEvaluator<ParseSucceedsExpectation, ISpoofaxTestCodeInput> {
+    public static final class Evaluator implements ITestExpectationEvaluator<ParseSucceedsExpectation> {
 
         private final ITestExpectationResultBuilder testExpectationResultBuilder;
         private final Pie pie;
         private final ILanguageManager languageManager;
+        private final ISpoofaxTestCodeInputProvider testCodeInputProvider;
 
-        @Inject public Evaluator(Pie pie, ITestExpectationResultBuilder testExpectationResultBuilder, ILanguageManager languageManager) {
+        @Inject public Evaluator(Pie pie, ITestExpectationResultBuilder testExpectationResultBuilder, ILanguageManager languageManager, ISpoofaxTestCodeInputProvider testCodeInputProvider) {
             this.pie = pie;
             this.testExpectationResultBuilder = testExpectationResultBuilder;
             this.languageManager = languageManager;
+            this.testCodeInputProvider = testCodeInputProvider;
         }
 
-        @Override public ITestExpectationResult evaluate(ParseSucceedsExpectation testExpectation, ISpoofaxTestCodeInput input)
+        @Override public ITestExpectationResult evaluate(ParseSucceedsExpectation testExpectation, ITestCase testCase, ITestSuite testSuite)
             throws ExecException, InterruptedException {
 
             final ITestExpectationResultBuilder builder = testExpectationResultBuilder.reset();
             builder.withTestExpectation(testExpectation);
 
+            final ISpoofaxTestCodeInput input = testCodeInputProvider.get(testCase, testSuite);
             final String fragmentText = input.getText();
-            final Task<Result<JSGLR1ParseOutput, JSGLR1ParseException>> task = languageManager.getParseTaskDef(input.getLanguageName()).createTask(new Supplier<String>() {
-                @Override
-                public String get(ExecContext context) throws IOException {
-                    return fragmentText;
-                }
-            });
+            final Task<Result<JSGLR1ParseOutput, JSGLR1ParseException>> task = languageManager.getParseTaskDef(input.getLanguageName()).createTask(c -> fragmentText);
             final Result<JSGLR1ParseOutput, ?> parseResult;
             try (MixedSession session = pie.newSession()) {
                 parseResult = session.require(task);

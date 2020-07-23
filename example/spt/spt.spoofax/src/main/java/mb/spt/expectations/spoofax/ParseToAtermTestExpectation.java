@@ -120,21 +120,24 @@ public final class ParseToAtermTestExpectation extends TestExpectation {
     /**
      * Evaluator for {@link ParseToAtermTestExpectation}.
      */
-    public static final class Evaluator implements ITestExpectationEvaluator<ParseToAtermTestExpectation, ISpoofaxTestCodeInput> {
+    public static final class Evaluator implements ITestExpectationEvaluator<ParseToAtermTestExpectation> {
 
         private final ITestExpectationResultBuilder testExpectationResultBuilder;
         private final Pie pie;
+        private final ISpoofaxTestCodeInputProvider testCodeInputProvider;
 
-        @Inject public Evaluator(Pie pie, ITestExpectationResultBuilder testExpectationResultBuilder) {
+        @Inject public Evaluator(Pie pie, ITestExpectationResultBuilder testExpectationResultBuilder, ISpoofaxTestCodeInputProvider testCodeInputProvider) {
             this.pie = pie;
             this.testExpectationResultBuilder = testExpectationResultBuilder;
+            this.testCodeInputProvider = testCodeInputProvider;
         }
 
-        @Override public ITestExpectationResult evaluate(ParseToAtermTestExpectation testExpectation, ISpoofaxTestCodeInput input)
+        @Override public ITestExpectationResult evaluate(ParseToAtermTestExpectation testExpectation, ITestCase testCase, ITestSuite testSuite)
             throws ExecException, InterruptedException {
             final ITestExpectationResultBuilder builder = testExpectationResultBuilder.reset();
             builder.withTestExpectation(testExpectation);
 
+            final ISpoofaxTestCodeInput input = testCodeInputProvider.get(testCase, testSuite);
             final String fragmentText = input.getText();
             final Task<Result<IStrategoTerm, ?>> task = null; // TODO: Get the parse task
             final Result<IStrategoTerm, ?> parseResult;
