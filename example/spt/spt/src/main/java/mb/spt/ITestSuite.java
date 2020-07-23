@@ -1,5 +1,6 @@
 package mb.spt;
 
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import mb.common.message.Message;
 import mb.common.util.ListView;
 

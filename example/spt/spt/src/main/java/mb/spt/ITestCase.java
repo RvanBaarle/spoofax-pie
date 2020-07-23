@@ -36,19 +36,6 @@ public interface ITestCase extends ITestSuiteElement {
      */
     ITestFragment getFragment();
 
-//    /**
-//     * Gets the resource of the test suite from which the test case was extracted.
-//     *
-//     * @return the resource
-//     */
-//    Resource getResource();
-
-    // NEW: A project is a Spoofax concept
-//    /**
-//     * Gets the project that contains this test. It is required for analysis of fragments.
-//     */
-//    IProject getProject();
-
     /**
      * Gets the test expectations for this test case.
      *

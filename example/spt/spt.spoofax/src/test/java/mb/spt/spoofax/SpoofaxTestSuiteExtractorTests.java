@@ -42,7 +42,8 @@ public final class SpoofaxTestSuiteExtractorTests {
             new TestFragmentBuilder(),
             new TestFixtureBuilder()
         );
-        final IStrategoTerm term = new TAFTermReader(new TermFactory()).parseFromString("TestSuite(\n" +
+        final IStrategoTerm term = new TAFTermReader(new TermFactory()).parseFromString(
+            "TestSuite(\n" +
             "  [Name(\"test\"), Language(\"Tiger\")]\n" +
             ", None()\n" +
             ", [Test(\n" +

@@ -1,6 +1,7 @@
 package mb.spt;
 
 import mb.common.util.ListView;
+import mb.spt.extract.ITestSuiteExtractor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
@@ -25,7 +26,12 @@ public class TestSuiteBuilder implements ITestSuiteBuilder {
     }
 
     @Override public ITestSuite build() {
-        return new TestSuite(name, ListView.of(testElements));
+        final TestSuite testSuite = new TestSuite(name, ListView.of(testElements));
+        for (int i = 0; i < testElements.size(); i++) {
+            ITestSuiteElement element = testElements.get(i);
+            element.setOwner(testSuite, i);
+        }
+        return testSuite;
     }
 
     @Override public ITestSuiteBuilder reset() {

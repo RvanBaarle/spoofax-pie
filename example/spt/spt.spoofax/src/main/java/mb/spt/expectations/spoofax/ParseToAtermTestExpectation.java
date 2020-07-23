@@ -9,7 +9,9 @@ import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.Task;
 import mb.spt.FragmentUtils;
+import mb.spt.ISpoofaxTestCodeInput;
 import mb.spt.ITestCase;
+import mb.spt.ITestInput;
 import mb.spt.ITestSuite;
 import mb.spt.expectations.ITestExpectationBuilder;
 import mb.spt.expectations.ITestExpectationEvaluator;
@@ -118,7 +120,7 @@ public final class ParseToAtermTestExpectation extends TestExpectation {
     /**
      * Evaluator for {@link ParseToAtermTestExpectation}.
      */
-    public static final class Evaluator implements ITestExpectationEvaluator<ParseToAtermTestExpectation> {
+    public static final class Evaluator implements ITestExpectationEvaluator<ParseToAtermTestExpectation, ISpoofaxTestCodeInput> {
 
         private final ITestExpectationResultBuilder testExpectationResultBuilder;
         private final Pie pie;
@@ -128,12 +130,12 @@ public final class ParseToAtermTestExpectation extends TestExpectation {
             this.testExpectationResultBuilder = testExpectationResultBuilder;
         }
 
-        @Override public ITestExpectationResult evaluate(ParseToAtermTestExpectation testExpectation, ITestCase testCase, ITestSuite testSuite)
+        @Override public ITestExpectationResult evaluate(ParseToAtermTestExpectation testExpectation, ISpoofaxTestCodeInput input)
             throws ExecException, InterruptedException {
             final ITestExpectationResultBuilder builder = testExpectationResultBuilder.reset();
             builder.withTestExpectation(testExpectation);
 
-            final String fragmentText = FragmentUtils.getFragmentText(testSuite, testCase, testCase.getFragment());
+            final String fragmentText = input.getText();
             final Task<Result<IStrategoTerm, ?>> task = null; // TODO: Get the parse task
             final Result<IStrategoTerm, ?> parseResult;
             try (MixedSession session = pie.newSession()) {

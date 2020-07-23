@@ -9,6 +9,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public interface ITestFixtureBuilder extends ITestSuiteElementBuilder {
 
     /**
+     * Sets the container of the test fixture.
+     *
+     * @param container the container
+     * @return this builder
+     */
+    ITestFixtureBuilder withContainer(OwnedList<? super ITestFixture, ITestSuite> container);
+
+    /**
      * Builds the test fixture.
      *
      * After a call to {@link #build()}, the builder is reset and can be reused.

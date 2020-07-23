@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A fragment represents a piece of code within an SPT test suite, written in another language.
+ * A code fragment represents a piece of code within an SPT test suite, written in another language.
  *
  * Examples are the fragment of a test case, or the fragment of a 'parse to' test expectation. The former would be
  * written in the language under test, the latter possibly in another language.
@@ -24,6 +24,7 @@ import java.util.Objects;
  * have offsets based on the SPT AST, which is why parsing a fragment should be done using an IFragmentParser, to ensure
  * that the character offsets of the parse result match properly with the selected regions.
  */
+// TODO: Rename to CodeFragment
 public interface ITestFragment {
 
     /**
