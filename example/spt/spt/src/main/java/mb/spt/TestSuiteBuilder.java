@@ -26,12 +26,7 @@ public class TestSuiteBuilder implements ITestSuiteBuilder {
     }
 
     @Override public ITestSuite build() {
-        final TestSuite testSuite = new TestSuite(name, ListView.of(testElements));
-        for (int i = 0; i < testElements.size(); i++) {
-            ITestSuiteElement element = testElements.get(i);
-            element.setOwner(testSuite, i);
-        }
-        return testSuite;
+        return new TestSuite(name, ListView.of(testElements));
     }
 
     @Override public ITestSuiteBuilder reset() {

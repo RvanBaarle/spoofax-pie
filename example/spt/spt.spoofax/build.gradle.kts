@@ -57,7 +57,8 @@ spoofaxAdapterProject {
 
       // Utility task definitions
       val desugar = TypeInfo.of(taskPackageId, "SptDesugar")
-      builder.addTaskDefs(desugar)
+      val extractTestSuite = TypeInfo.of(taskPackageId, "ExtractTestSuiteTask")
+      builder.addTaskDefs(desugar, extractTestSuite)
 
       builder.classKind(ClassKind.Extended)
       builder.genComponent(packageId, "GeneratedSptComponent")

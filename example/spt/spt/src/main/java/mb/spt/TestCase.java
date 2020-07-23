@@ -46,10 +46,6 @@ public class TestCase implements ITestCase {
         this.expectations = expectations;
     }
 
-    @Override public @Nullable ITestSuite getTestSuite() {
-        return owner;
-    }
-
     @Override public String getDescription() {
         return description;
     }
@@ -60,16 +56,6 @@ public class TestCase implements ITestCase {
 
     @Override public ITestFragment getFragment() {
         return fragment;
-    }
-
-    @Override public void setOwner(ITestSuite owner, int index) {
-        if (owner != null && this.owner != owner)
-            throw new IllegalArgumentException("Owner is already set.");
-        if ((owner == null) == (index == -1))
-            throw new IllegalArgumentException("Index must be -1 when owner is null, but positive or zero when owner is not null.");
-
-        this.owner = owner;
-        this.index = index;
     }
 
     @Override public ListView<ITestExpectation> getExpectations() {
