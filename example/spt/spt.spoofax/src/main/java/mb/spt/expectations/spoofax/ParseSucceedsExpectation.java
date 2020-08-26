@@ -126,7 +126,7 @@ public final class ParseSucceedsExpectation extends TestExpectation {
                 parseResult = session.require(task);
             }
 
-            parseResult.ifElse(actualTerm -> {
+            parseResult.ifElse(parseOutput -> {
                 // FIXME: Test for ambiguities
                 builder.isSuccessful(true);
             }, err -> {

@@ -3,6 +3,8 @@ package mb.spt;
 import mb.common.message.Message;
 import mb.common.util.ListView;
 
+import java.util.ArrayList;
+
 /**
  * A test suite result.
  */
@@ -42,7 +44,12 @@ public interface ITestSuiteResult {
      *
      * @return a list of messages
      */
-    ListView<Message> getAllMessages();
+    default ListView<Message> getAllMessages() {
+        final ArrayList<Message> allMessages = new ArrayList<>();
+        getMessages().addAllTo(allMessages);
+        getTestCaseResults().stream().map(r -> r.getMessages()).forEach(m -> m.addAllTo(allMessages));
+        return ListView.of(allMessages);
+    }
 
     /**
      * Gets the result of each test case in the test suite.

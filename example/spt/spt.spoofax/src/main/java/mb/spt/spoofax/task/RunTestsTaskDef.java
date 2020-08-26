@@ -1,5 +1,6 @@
 package mb.spt.spoofax.task;
 
+import mb.common.util.ListView;
 import mb.jsglr1.common.JSGLR1ParseException;
 import mb.pie.api.Task;
 import mb.spoofax.core.language.LanguageScope;
@@ -15,7 +16,13 @@ import mb.resource.hierarchical.ResourcePath;
 import mb.spoofax.core.language.LanguageScope;
 import mb.spoofax.core.language.command.CommandFeedback;
 import mb.spoofax.core.language.command.ShowFeedback;
+import mb.spt.ITestCase;
+import mb.spt.ITestCaseResult;
 import mb.spt.ITestSuite;
+import mb.spt.ITestSuiteResult;
+import mb.spt.TestSuiteResult;
+import mb.spt.runner.ITestCaseRunner;
+import mb.spt.runner.TestCaseRunner;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.metaborg.sdf2table.io.ParseTableIO;
 import org.metaborg.sdf2table.parsetable.ParseTable;
@@ -28,6 +35,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
@@ -68,12 +76,14 @@ public class RunTestsTaskDef implements TaskDef<RunTestsTaskDef.Args, CommandFee
     private final ExtractTestSuiteTask extractTestSuiteTask;
     private final SptDesugar sptDesugar;
     private final SptParse sptParse;
+    private final ITestCaseRunner testCaseRunner;
 
-    @Inject public RunTestsTaskDef(ResourceService resourceService, ExtractTestSuiteTask extractTestSuiteTask, SptDesugar sptDesugar, SptParse sptParse) {
+    @Inject public RunTestsTaskDef(ResourceService resourceService, ExtractTestSuiteTask extractTestSuiteTask, SptDesugar sptDesugar, SptParse sptParse, ITestCaseRunner testCaseRunner) {
         this.resourceService = resourceService;
         this.extractTestSuiteTask = extractTestSuiteTask;
         this.sptDesugar = sptDesugar;
         this.sptParse = sptParse;
+        this.testCaseRunner = testCaseRunner;
     }
 
     @Override public String getId() {
@@ -90,7 +100,18 @@ public class RunTestsTaskDef implements TaskDef<RunTestsTaskDef.Args, CommandFee
 
         return testSuiteResult
             .mapCatching(testSuite -> {
-                // TODO: Run the test suite
+                // Run the test suite
+                ArrayList<ITestCaseResult> testCaseResults = new ArrayList<>();
+                for (ITestCase testCase: testSuite.getTestCases()) {
+                    final ITestCaseResult testCaseResult = testCaseRunner.run(testCase, testSuite);
+                    testCaseResults.add(testCaseResult);
+                }
+                ITestSuiteResult result = new TestSuiteResult(
+                    testSuite,
+                    testCaseResults.stream().allMatch(r -> r.isSuccessful()),
+                    ListView.of(),
+                    ListView.of(testCaseResults)
+                );
 
                 final WritableResource outputResource = resourceService.getWritableResource(args.output);
                 try (final OutputStream outputStream = outputResource.openWrite()) {

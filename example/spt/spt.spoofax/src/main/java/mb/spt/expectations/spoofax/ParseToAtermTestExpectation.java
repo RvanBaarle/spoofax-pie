@@ -4,11 +4,14 @@ import mb.common.message.Severity;
 import mb.common.region.Region;
 import mb.common.result.Result;
 import mb.common.util.ListView;
+import mb.jsglr1.common.JSGLR1ParseException;
+import mb.jsglr1.common.JSGLR1ParseOutput;
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.pie.api.Task;
 import mb.spt.FragmentUtils;
+import mb.spt.ILanguageManager;
 import mb.spt.ISpoofaxTestCodeInput;
 import mb.spt.ITestCase;
 import mb.spt.ITestInput;
@@ -124,11 +127,13 @@ public final class ParseToAtermTestExpectation extends TestExpectation {
 
         private final ITestExpectationResultBuilder testExpectationResultBuilder;
         private final Pie pie;
+        private final ILanguageManager languageManager;
         private final ISpoofaxTestCodeInputProvider testCodeInputProvider;
 
-        @Inject public Evaluator(Pie pie, ITestExpectationResultBuilder testExpectationResultBuilder, ISpoofaxTestCodeInputProvider testCodeInputProvider) {
+        @Inject public Evaluator(Pie pie, ITestExpectationResultBuilder testExpectationResultBuilder, ILanguageManager languageManager, ISpoofaxTestCodeInputProvider testCodeInputProvider) {
             this.pie = pie;
             this.testExpectationResultBuilder = testExpectationResultBuilder;
+            this.languageManager = languageManager;
             this.testCodeInputProvider = testCodeInputProvider;
         }
 
@@ -139,13 +144,14 @@ public final class ParseToAtermTestExpectation extends TestExpectation {
 
             final ISpoofaxTestCodeInput input = testCodeInputProvider.get(testCase, testSuite);
             final String fragmentText = input.getText();
-            final Task<Result<IStrategoTerm, ?>> task = null; // TODO: Get the parse task
-            final Result<IStrategoTerm, ?> parseResult;
+            final Task<Result<JSGLR1ParseOutput, JSGLR1ParseException>> task = languageManager.getParseTaskDef(input.getLanguageName()).createTask(c -> fragmentText);
+            final Result<JSGLR1ParseOutput, ?> parseResult;
             try (MixedSession session = pie.newSession()) {
                 parseResult = session.require(task);
             }
+            final Result<IStrategoTerm, ?> astResult = parseResult.map(r -> r.ast);
 
-            parseResult.ifElse(actualTerm -> {
+            astResult.ifElse(actualTerm -> {
                 final IStrategoTerm expectedTerm = testExpectation.getExpectedTerm();
                 if (expectedTerm.match(actualTerm)) {
                     // FIXME: Match prob ably won't work, since the expected AST is in SPT ATerm terms, not literal ATerm

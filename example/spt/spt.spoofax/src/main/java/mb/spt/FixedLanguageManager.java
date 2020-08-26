@@ -33,6 +33,9 @@ public final class FixedLanguageManager implements ILanguageManager {
                     .build();
                 return sdf3Component.getParse();
                 // TODO: Add statix, stratego
+            case "weblab-language":
+                // The Weblab test language
+                // TODO
             default:
                 throw new UnsupportedOperationException("Unsupported language: " + languageId);
         }
