@@ -1,0 +1,4 @@
+[submodule "example/tiger/spoofaxcore"]
+	path = example/tiger/spoofaxcore
+	url = git@github.com:MetaBorgCube/metaborg-tiger.git
+	branch = tiger-statix
