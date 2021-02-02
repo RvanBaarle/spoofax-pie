@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+  <!-- Context -->
+  <extension point="org.eclipse.ui.contexts">
+    <context
+      id="tiger.statix.eclipse.context"
+      parentId="org.eclipse.ui.textEditorScope"
+      name="Editing Tiger files"
+      description="Editing Tiger files"
+    />
+  </extension>
+
+
+  <!-- Editor -->
+  <extension point="org.eclipse.ui.editors">
+    <editor
+      name="Tiger editor"
+      extensions="tig"
+      class="mb.tiger.statix.eclipse.TigerEditor"
+      id="tiger.statix.eclipse.editor"
+    />
+  </extension>
+
+
+  <!-- Markers -->
+  <!-- Base -->
+  <extension
+    point="org.eclipse.core.resources.markers"
+    id="tiger.statix.eclipse.marker"
+    name="Tiger marker"
+  >
+    <super type="org.eclipse.core.resources.textmarker"/>
+    <super type="org.eclipse.core.resources.problemmarker"/>
+    <persistent value="true"/>
+  </extension>
+  <!-- Info -->
+  <extension
+    point="org.eclipse.core.resources.markers"
+    id="tiger.statix.eclipse.marker.info"
+    name="Tiger info marker"
+  >
+    <super type="tiger.statix.eclipse.marker"/>
+    <persistent value="true"/>
+  </extension>
+  <!-- Warning -->
+  <extension
+    point="org.eclipse.core.resources.markers"
+    id="tiger.statix.eclipse.marker.warning"
+    name="Tiger warning marker"
+  >
+    <super type="tiger.statix.eclipse.marker"/>
+    <persistent value="true"/>
+  </extension>
+  <!-- Error -->
+  <extension
+    point="org.eclipse.core.resources.markers"
+    id="tiger.statix.eclipse.marker.error"
+    name="Tiger error marker"
+  >
+    <super type="tiger.statix.eclipse.marker"/>
+    <persistent value="true"/>
+  </extension>
+
+
+  <!-- Annotations -->
+  <extension point="org.eclipse.ui.editors.annotationTypes">
+    <!-- Info -->
+    <type
+      markerType="tiger.statix.eclipse.marker.info"
+      super="org.eclipse.ui.workbench.texteditor.info"
+      markerSeverity="0"
+      name="Tiger info annotation"
+    />
+    <!-- Warning -->
+    <type
+      markerType="tiger.statix.eclipse.marker.warning"
+      super="org.eclipse.ui.workbench.texteditor.warning"
+      markerSeverity="1"
+      name="Tiger warning annotation"
+    />
+    <!-- Error -->
+    <type
+      markerType="tiger.statix.eclipse.marker.error"
+      super="org.eclipse.ui.workbench.texteditor.error"
+      markerSeverity="2"
+      name="Tiger error annotation"
+    />
+  </extension>
+
+
+  <!-- Document Provider -->
+  <extension point="org.eclipse.ui.editors.documentProviders">
+    <provider
+      extensions="tig"
+      class="mb.tiger.statix.eclipse.TigerDocumentProvider"
+      id="tiger.statix.eclipse.documentprovider"
+    />
+  </extension>
+
+
+  <!-- Builder -->
+  <extension
+    point="org.eclipse.core.resources.builders"
+    name="Tiger builder"
+    id="builder"
+  >
+    <builder
+      hasNature="true"
+      isConfigurable="false"
+      callOnEmptyDelta="false"
+      supportsConfigurations="false"
+    >
+      <run class="mb.tiger.statix.eclipse.TigerProjectBuilder"/>
+    </builder>
+  </extension>
+
+
+  <!-- Nature -->
+  <extension
+    point="org.eclipse.core.resources.natures"
+    name="Tiger nature"
+    id="nature"
+  >
+    <runtime>
+      <run class="mb.tiger.statix.eclipse.TigerNature"/>
+    </runtime>
+    <builder id="tiger.statix.eclipse.builder"/>
+  </extension>
+
+
+  <!-- Menus -->
+  <extension point="org.eclipse.ui.menus">
+    <!-- Project Explorer context menu -->
+    <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+      <dynamic id="tiger.statix.eclipse.menu.resource.context" class="mb.tiger.statix.eclipse.TigerResourceContextMenu"/>
+    </menuContribution>
+    <!-- Package Explorer context menu -->
+    <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer?after=additions">
+      <dynamic id="tiger.statix.eclipse.menu.resource.context" class="mb.tiger.statix.eclipse.TigerResourceContextMenu"/>
+    </menuContribution>
+    <!-- Editor context menu -->
+    <menuContribution locationURI="popup:#SpoofaxEditorContext?after=additions">
+      <dynamic id="tiger.statix.eclipse.menu.editor.context" class="mb.tiger.statix.eclipse.TigerEditorContextMenu"/>
+    </menuContribution>
+    <!-- Main menu -->
+    <menuContribution locationURI="menu:org.eclipse.ui.main.menu">
+      <menu id="tiger.statix.eclipse.menu.main" label="Tiger">
+        <dynamic id="tiger.statix.eclipse.menu.main.dynamic" class="mb.tiger.statix.eclipse.TigerMainMenu"/>
+        <visibleWhen>
+          <with variable="activeContexts">
+            <iterate ifEmpty="false" operator="or">
+              <equals value="tiger.statix.eclipse.context"/>
+            </iterate>
+          </with>
+        </visibleWhen>
+      </menu>
+    </menuContribution>
+  </extension>
+
+
+  <!-- Commands and Handlers -->
+  <!-- Add/Remove Nature -->
+  <extension point="org.eclipse.ui.commands">
+    <command id="tiger.statix.eclipse.nature.add" name="Add Tiger nature"/>
+    <command id="tiger.statix.eclipse.nature.remove" name="Remove Tiger nature"/>
+  </extension>
+  <extension point="org.eclipse.ui.handlers">
+    <handler
+      commandId="tiger.statix.eclipse.nature.add"
+      class="mb.tiger.statix.eclipse.TigerAddNatureHandler"
+    />
+    <handler
+      commandId="tiger.statix.eclipse.nature.remove"
+      class="mb.tiger.statix.eclipse.TigerRemoveNatureHandler"
+    />
+  </extension>
+  <!-- Observe/Unobserve -->
+  <extension point="org.eclipse.ui.commands">
+    <command id="tiger.statix.eclipse.observe" name="Observe file(s) for Tiger-related tasks"/>
+    <command id="tiger.statix.eclipse.unobserve" name="Unobserve file(s) for Tiger-related tasks"/>
+  </extension>
+  <extension point="org.eclipse.ui.handlers">
+    <handler
+      commandId="tiger.statix.eclipse.observe"
+      class="mb.tiger.statix.eclipse.TigerObserveHandler"
+    />
+    <handler
+      commandId="tiger.statix.eclipse.unobserve"
+      class="mb.tiger.statix.eclipse.TigerUnobserveHandler"
+    />
+  </extension>
+  <!-- Transform -->
+  <extension point="org.eclipse.ui.commands">
+    <command id="tiger.statix.eclipse.runcommand" name="Run Tiger command">
+      <commandParameter id="data" name="Data" optional="false"/>
+    </command>
+  </extension>
+  <extension point="org.eclipse.ui.handlers">
+    <handler
+      commandId="tiger.statix.eclipse.runcommand"
+      class="mb.tiger.statix.eclipse.TigerRunCommandHandler"
+    />
+  </extension>
+</plugin>
