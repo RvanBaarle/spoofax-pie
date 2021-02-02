@@ -61,34 +61,34 @@ fun String.includeProject(id: String, path: String = "$this/$id") {
   includeProject("mod.intellij")
 }
 
-"calc".run {
-  includeProject("calc")
-  includeProject("calc.cli")
-  includeProject("calc.eclipse")
-  includeProject("calc.intellij")
-}
-
-"multilang/spoofaxcore".run {
-  includeProject("signature-interface.spoofaxcore")
-  includeProject("module-interface.spoofaxcore")
-  includeProject("minisdf.spoofaxcore")
-  includeProject("ministr.spoofaxcore")
-}
-
-"multilang/generated".run {
-  includeProject("signature")
-  includeProject("module")
-
-  includeProject("minisdf")
-  includeProject("minisdf.eclipse")
-  includeProject("minisdf.cli")
-
-  includeProject("ministr")
-  includeProject("ministr.eclipse")
-  includeProject("ministr.cli")
-
-  includeProject("multilang.eclipse")
-  includeProject("multilang.test")
-}
+//"calc".run {
+//  includeProject("calc")
+//  includeProject("calc.cli")
+//  includeProject("calc.eclipse")
+//  includeProject("calc.intellij")
+//}
+//
+//"multilang/spoofaxcore".run {
+//  includeProject("signature-interface.spoofaxcore")
+//  includeProject("module-interface.spoofaxcore")
+//  includeProject("minisdf.spoofaxcore")
+//  includeProject("ministr.spoofaxcore")
+//}
+//
+//"multilang/generated".run {
+//  includeProject("signature")
+//  includeProject("module")
+//
+//  includeProject("minisdf")
+//  includeProject("minisdf.eclipse")
+//  includeProject("minisdf.cli")
+//
+//  includeProject("ministr")
+//  includeProject("ministr.eclipse")
+//  includeProject("ministr.cli")
+//
+//  includeProject("multilang.eclipse")
+//  includeProject("multilang.test")
+//}
 
 
