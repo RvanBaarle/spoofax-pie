@@ -55,7 +55,6 @@ public interface TigerComponent extends LanguageComponent  {
     mb.tiger.statix.spoofax.task.TigerTokenize getTigerTokenize();
     mb.tiger.statix.spoofax.task.TigerParse getTigerParse();
     mb.tiger.statix.spoofax.task.TigerStyle getTigerStyle();
-//    mb.tiger.statix.spoofax.task.TigerComplete getTigerComplete();
     mb.tiger.statix.spoofax.task.TigerAnalyze getTigerAnalyze();
     mb.tiger.statix.spoofax.task.TigerAnalyzeMulti getTigerAnalyzeMulti();
     mb.tiger.statix.spoofax.task.TigerCheck getTigerCheck();

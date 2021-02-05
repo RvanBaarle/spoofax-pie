@@ -18,16 +18,12 @@ import mb.spoofax.core.language.LanguageInstance;
 import mb.spoofax.core.language.command.AutoCommandRequest;
 import mb.spoofax.core.language.command.CommandDef;
 import mb.spoofax.core.platform.Platform;
-//import mb.statix.common.StatixAnalyzer;
 import mb.stratego.common.StrategoRuntime;
 import mb.stratego.common.StrategoRuntimeBuilder;
-//import mb.tiger.statix.TigerAnalyzer;
-//import mb.tiger.statix.TigerAnalyzerFactory;
 import mb.tiger.statix.TigerClassLoaderResources;
 import mb.tiger.statix.spoofax.task.TigerPostAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPreAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPrettyPrint;
-//import mb.tiger.statix.spoofax.task.TigerStatixSpec;
 
 import javax.inject.Named;
 import java.util.HashSet;
@@ -88,19 +84,6 @@ public class TigerModule {
         return stylerFactory.create();
     }
 
-//    @Provides @TigerScope
-//    static TigerAnalyzerFactory provideAnalyzerFactory(LoggerFactory loggerFactory, ITermFactory termFactory) {
-//        return new TigerAnalyzerFactory(termFactory, loggerFactory);
-//    }
-//
-//    @Provides @TigerScope
-//    static TigerAnalyzer provideAnalyzer(TigerAnalyzerFactory analyzerFactory) {
-//        return analyzerFactory.create();
-//    }
-//    @Provides @TigerScope
-//    static StatixAnalyzer bindAnalyzer(TigerAnalyzer analyzer) { return analyzer; }
-//
-//
     @Provides @TigerScope
     static mb.tiger.statix.TigerConstraintAnalyzerFactory provideConstraintAnalyzerFactory(ResourceService resourceService) {
         return new mb.tiger.statix.TigerConstraintAnalyzerFactory(resourceService);
@@ -155,8 +138,6 @@ public class TigerModule {
         mb.tiger.statix.spoofax.task.TigerTokenize tigerTokenize,
         mb.tiger.statix.spoofax.task.TigerParse tigerParse,
         mb.tiger.statix.spoofax.task.TigerStyle tigerStyle,
-//        mb.tiger.statix.spoofax.task.TigerComplete tigerComplete,
-//        TigerStatixSpec statixSpec,
         TigerPrettyPrint prettyPrintTaskDef,
         TigerPreAnalyze preAnalyzeTaskDef,
         TigerPostAnalyze postAnalyzeTaskDef,
@@ -178,8 +159,6 @@ public class TigerModule {
         taskDefs.add(tigerTokenize);
         taskDefs.add(tigerParse);
         taskDefs.add(tigerStyle);
-//        taskDefs.add(tigerComplete);
-//        taskDefs.add(statixSpec);
         taskDefs.add(prettyPrintTaskDef);
         taskDefs.add(preAnalyzeTaskDef);
         taskDefs.add(postAnalyzeTaskDef);

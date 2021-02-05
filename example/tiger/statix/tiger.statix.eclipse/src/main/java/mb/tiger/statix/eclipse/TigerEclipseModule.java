@@ -5,7 +5,6 @@ import dagger.Provides;
 import mb.pie.api.Pie;
 import mb.spoofax.core.language.LanguageInstance;
 import mb.spoofax.eclipse.EclipseIdentifiers;
-//import mb.spoofax.eclipse.editor.SpoofaxContentAssistProcessor;
 import mb.spoofax.eclipse.job.LockRule;
 import mb.spoofax.eclipse.job.ReadLockRule;
 
@@ -29,12 +28,4 @@ public class TigerEclipseModule {
     static ReadLockRule provideStartupReadLockRule(@Named("StartupWriteLock") LockRule writeLock) {
         return new ReadLockRule(writeLock, "Startup read lock");
     }
-
-//    @Provides
-//    SpoofaxContentAssistProcessor.Factory provideContentAssistProcessorFactory(
-//        LanguageInstance languageInstance,
-//        Pie pie
-//    ) {
-//        return new SpoofaxContentAssistProcessor.FactoryImpl(languageInstance, pie);
-//    }
 }

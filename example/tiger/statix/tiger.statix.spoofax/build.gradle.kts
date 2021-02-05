@@ -15,8 +15,6 @@ fun compositeBuild(name: String) = "$group:$name:$version"
 dependencies {
   // Platforms
   configurations.forEach { add(it.name, platform(compositeBuild("spoofax.depconstraints"))) }
-
-  //api(compositeBuild("statix.completions"))
 }
 
 languageAdapterProject {
@@ -181,10 +179,6 @@ fun AdapterProjectCompiler.Input.Builder.configureCompilerInput() {
       ParamRepr.of("resource", TypeInfo.of("mb.resource", "ResourceKey"), true, ArgProviderRepr.context(CommandContextType.ResourceKey)),
       ParamRepr.of("region", TypeInfo.of("mb.common.region", "Region"), false, ArgProviderRepr.value("null"))
     ))
-//    .addAllArgs(listOf(
-//      VarRepr.of("resource"),
-//      ConstRepr.ofNull()
-//    ))
     .build()
   addCommandDefs(showScopeGraphCommand)
 
