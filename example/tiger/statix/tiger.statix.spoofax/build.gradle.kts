@@ -16,7 +16,7 @@ dependencies {
   // Platforms
   configurations.forEach { add(it.name, platform(compositeBuild("spoofax.depconstraints"))) }
 
-  api(compositeBuild("statix.completions"))
+  //api(compositeBuild("statix.completions"))
 }
 
 languageAdapterProject {
@@ -32,6 +32,7 @@ languageAdapterProject {
       classKind(ClassKind.Manual)
     }
     withStrategoRuntime().run {
+
     }
     withConstraintAnalyzer().run {
       classKind(ClassKind.Manual)

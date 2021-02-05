@@ -3,21 +3,13 @@ package mb.tiger.statix.spoofax;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.ElementsIntoSet;
-import mb.common.result.Result;
-import mb.jsglr1.common.JSGLR1ParseException;
 import mb.log.api.LoggerFactory;
-import mb.common.util.MapView;
-import mb.common.util.EntryView;
-import mb.common.message.Messages;
-import mb.log.api.LoggerFactory;
-import mb.pie.api.Function;
 import mb.pie.api.MapTaskDefs;
 import mb.pie.api.Pie;
-import mb.pie.api.MixedSession;
-import mb.pie.api.Supplier;
+import mb.pie.api.PieBuilder;
 import mb.pie.api.TaskDef;
 import mb.pie.api.TaskDefs;
-import mb.resource.ResourceKeyString;
+import mb.pie.api.serde.JavaSerde;
 import mb.resource.ResourceService;
 import mb.resource.classloader.ClassLoaderResource;
 import mb.resource.classloader.ClassLoaderResourceRegistry;
@@ -25,33 +17,32 @@ import mb.resource.hierarchical.HierarchicalResource;
 import mb.spoofax.core.language.LanguageInstance;
 import mb.spoofax.core.language.command.AutoCommandRequest;
 import mb.spoofax.core.language.command.CommandDef;
-import mb.spoofax.core.language.command.HierarchicalResourceType;
-import mb.spoofax.core.language.command.arg.RawArgs;
 import mb.spoofax.core.platform.Platform;
-import mb.statix.common.StatixAnalyzer;
+//import mb.statix.common.StatixAnalyzer;
 import mb.stratego.common.StrategoRuntime;
 import mb.stratego.common.StrategoRuntimeBuilder;
-import mb.tiger.statix.TigerAnalyzer;
-import mb.tiger.statix.TigerAnalyzerFactory;
+//import mb.tiger.statix.TigerAnalyzer;
+//import mb.tiger.statix.TigerAnalyzerFactory;
+import mb.tiger.statix.TigerClassLoaderResources;
 import mb.tiger.statix.spoofax.task.TigerPostAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPreAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPrettyPrint;
-import mb.tiger.statix.spoofax.task.TigerStatixSpec;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
-
-import mb.tiger.statix.spoofax.TigerScope;
+//import mb.tiger.statix.spoofax.task.TigerStatixSpec;
 
 import javax.inject.Named;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Map;
 
 @Module
 public class TigerModule {
     @Provides @TigerScope
-    static ClassLoaderResourceRegistry provideClassLoaderResourceRegistry() {
-        return mb.tiger.statix.TigerClassloaderResources.createClassLoaderResourceRegistry();
+    static TigerClassLoaderResources provideClassLoaderResources() {
+        return new TigerClassLoaderResources();
+    }
+
+    @Provides @TigerScope
+    static ClassLoaderResourceRegistry provideClassLoaderResourceRegistry(TigerClassLoaderResources classLoaderResources) {
+        return classLoaderResources.resourceRegistry;
     }
 
     @Provides @TigerScope @TigerQualifier
@@ -64,20 +55,20 @@ public class TigerModule {
         return resourceService;
     }
 
-    @Provides @TigerScope @TigerQualifier("definition-dir")
-    static ClassLoaderResource provideDefinitionDir(ClassLoaderResourceRegistry registry) {
-        return mb.tiger.statix.TigerClassloaderResources.createDefinitionDir(registry);
+    @Provides @TigerScope @TigerQualifier("definition-directory")
+    static ClassLoaderResource provideDefinitionDirectory(TigerClassLoaderResources classLoaderResources) {
+        return classLoaderResources.definitionDirectory;
     }
 
-    @Provides @TigerScope @TigerQualifier("definition-dir")
-    static HierarchicalResource provideDefinitionDirAsHierarchicalResource(@TigerQualifier("definition-dir") ClassLoaderResource definitionDir) {
+    @Provides @TigerScope @TigerQualifier("definition-directory")
+    static HierarchicalResource provideDefinitionDirectoryAsHierarchicalResource(@TigerQualifier("definition-directory") ClassLoaderResource definitionDir) {
         return definitionDir;
     }
 
 
 
     @Provides @TigerScope
-    static mb.tiger.statix.TigerParserFactory provideParserFactory(@TigerQualifier("definition-dir") HierarchicalResource definitionDir) {
+    static mb.tiger.statix.TigerParserFactory provideParserFactory(@TigerQualifier("definition-directory") HierarchicalResource definitionDir) {
         return new mb.tiger.statix.TigerParserFactory(definitionDir);
     }
 
@@ -88,7 +79,7 @@ public class TigerModule {
 
 
     @Provides @TigerScope
-    static mb.tiger.statix.TigerStylerFactory provideStylerFactory(LoggerFactory loggerFactory, @TigerQualifier("definition-dir") HierarchicalResource definitionDir) {
+    static mb.tiger.statix.TigerStylerFactory provideStylerFactory(LoggerFactory loggerFactory, @TigerQualifier("definition-directory") HierarchicalResource definitionDir) {
         return new mb.tiger.statix.TigerStylerFactory(loggerFactory, definitionDir);
     }
 
@@ -97,19 +88,19 @@ public class TigerModule {
         return stylerFactory.create();
     }
 
-    @Provides @TigerScope
-    static TigerAnalyzerFactory provideAnalyzerFactory(LoggerFactory loggerFactory, ITermFactory termFactory) {
-        return new TigerAnalyzerFactory(termFactory, loggerFactory);
-    }
-
-    @Provides @TigerScope
-    static TigerAnalyzer provideAnalyzer(TigerAnalyzerFactory analyzerFactory) {
-        return analyzerFactory.create();
-    }
-    @Provides @TigerScope
-    static StatixAnalyzer bindAnalyzer(TigerAnalyzer analyzer) { return analyzer; }
-
-
+//    @Provides @TigerScope
+//    static TigerAnalyzerFactory provideAnalyzerFactory(LoggerFactory loggerFactory, ITermFactory termFactory) {
+//        return new TigerAnalyzerFactory(termFactory, loggerFactory);
+//    }
+//
+//    @Provides @TigerScope
+//    static TigerAnalyzer provideAnalyzer(TigerAnalyzerFactory analyzerFactory) {
+//        return analyzerFactory.create();
+//    }
+//    @Provides @TigerScope
+//    static StatixAnalyzer bindAnalyzer(TigerAnalyzer analyzer) { return analyzer; }
+//
+//
     @Provides @TigerScope
     static mb.tiger.statix.TigerConstraintAnalyzerFactory provideConstraintAnalyzerFactory(ResourceService resourceService) {
         return new mb.tiger.statix.TigerConstraintAnalyzerFactory(resourceService);
@@ -122,7 +113,7 @@ public class TigerModule {
 
 
     @Provides @TigerScope
-    static mb.tiger.statix.TigerStrategoRuntimeBuilderFactory provideStrategoRuntimeBuilderFactory(LoggerFactory loggerFactory, ResourceService resourceService, @TigerQualifier("definition-dir") HierarchicalResource definitionDir) {
+    static mb.tiger.statix.TigerStrategoRuntimeBuilderFactory provideStrategoRuntimeBuilderFactory(LoggerFactory loggerFactory, ResourceService resourceService, @TigerQualifier("definition-directory") HierarchicalResource definitionDir) {
         return new mb.tiger.statix.TigerStrategoRuntimeBuilderFactory(loggerFactory, resourceService, definitionDir);
     }
 
@@ -164,8 +155,8 @@ public class TigerModule {
         mb.tiger.statix.spoofax.task.TigerTokenize tigerTokenize,
         mb.tiger.statix.spoofax.task.TigerParse tigerParse,
         mb.tiger.statix.spoofax.task.TigerStyle tigerStyle,
-        mb.tiger.statix.spoofax.task.TigerComplete tigerComplete,
-        TigerStatixSpec statixSpec,
+//        mb.tiger.statix.spoofax.task.TigerComplete tigerComplete,
+//        TigerStatixSpec statixSpec,
         TigerPrettyPrint prettyPrintTaskDef,
         TigerPreAnalyze preAnalyzeTaskDef,
         TigerPostAnalyze postAnalyzeTaskDef,
@@ -187,8 +178,8 @@ public class TigerModule {
         taskDefs.add(tigerTokenize);
         taskDefs.add(tigerParse);
         taskDefs.add(tigerStyle);
-        taskDefs.add(tigerComplete);
-        taskDefs.add(statixSpec);
+//        taskDefs.add(tigerComplete);
+//        taskDefs.add(statixSpec);
         taskDefs.add(prettyPrintTaskDef);
         taskDefs.add(preAnalyzeTaskDef);
         taskDefs.add(postAnalyzeTaskDef);
@@ -200,14 +191,23 @@ public class TigerModule {
         return taskDefs;
     }
 
+    @Provides @TigerScope @TigerQualifier
+    static TaskDefs provideQualifiedTaskDefs(Set<TaskDef<?, ?>> taskDefs) {
+        return new MapTaskDefs(taskDefs);
+    }
+
     @Provides @TigerScope
     static TaskDefs provideTaskDefs(Set<TaskDef<?, ?>> taskDefs) {
         return new MapTaskDefs(taskDefs);
     }
 
     @Provides @TigerScope @Named("prototype")
-    static Pie providePrototypePie(@Platform Pie pie, TaskDefs taskDefs, ResourceService resourceService) {
-        return pie.createChildBuilder().withTaskDefs(taskDefs).withResourceService(resourceService).build();
+    static Pie providePrototypePie(@Platform PieBuilder pieBuilder, TaskDefs taskDefs, ResourceService resourceService) {
+        return pieBuilder
+            .addTaskDefs(taskDefs)
+            .withResourceService(resourceService)
+            .withSerdeFactory(loggerFactory -> new JavaSerde(TigerClassLoaderResources.class.getClassLoader()))
+            .build();
     }
     @Provides @TigerScope @TigerQualifier
     static Pie provideQualifiedPie(@Named("prototype") Pie languagePie) {

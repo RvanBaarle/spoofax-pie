@@ -23,7 +23,7 @@ public interface TigerComponent extends LanguageComponent  {
 
     @Override @TigerQualifier ResourceService getResourceService();
 
-    @TigerQualifier("definition-dir") ClassLoaderResource getDefinitionDir();
+    @TigerQualifier("definition-directory") ClassLoaderResource getDefinitionDir();
 
     @Override @TigerQualifier Pie getPie();
 
@@ -55,7 +55,7 @@ public interface TigerComponent extends LanguageComponent  {
     mb.tiger.statix.spoofax.task.TigerTokenize getTigerTokenize();
     mb.tiger.statix.spoofax.task.TigerParse getTigerParse();
     mb.tiger.statix.spoofax.task.TigerStyle getTigerStyle();
-    mb.tiger.statix.spoofax.task.TigerComplete getTigerComplete();
+//    mb.tiger.statix.spoofax.task.TigerComplete getTigerComplete();
     mb.tiger.statix.spoofax.task.TigerAnalyze getTigerAnalyze();
     mb.tiger.statix.spoofax.task.TigerAnalyzeMulti getTigerAnalyzeMulti();
     mb.tiger.statix.spoofax.task.TigerCheck getTigerCheck();
