@@ -8,8 +8,10 @@ dependencies {
   api("org.metaborg:common")
 
   api("org.metaborg.devenv:statix.solver")
+  api("org.metaborg.devenv:statix.generator")
 
   implementation(project(":stratego.common"))
+  implementation(project(":jsglr.common"))
 
   compileOnly("org.checkerframework:checker-qual-android")
 }

@@ -10,11 +10,8 @@ plugins {
   id("org.metaborg.spoofax.compiler.gradle.adapter")
 }
 
-fun compositeBuild(name: String) = "$group:$name:$version"
-
 dependencies {
-  // Platforms
-  configurations.forEach { add(it.name, platform(compositeBuild("spoofax.depconstraints"))) }
+  api("org.metaborg:statix.common")
 }
 
 languageAdapterProject {
