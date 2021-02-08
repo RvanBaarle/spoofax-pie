@@ -5,10 +5,11 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the {@code SingleStrategy} class.
@@ -59,20 +60,28 @@ public final class SingleStrategyTests {
         assertEquals(Collections.emptyList(), results);
     }
 
-    @SuppressWarnings("Convert2MethodRef")
     @Test
     public void shouldNotEvaluate_whenNotCoerced() throws InterruptedException {
         // Arrange
-        final ExceptionStrategy<Object, Object> s = new ExceptionStrategy<>(() -> new IllegalStateException("Evaluated!"));
-        final SingleStrategy<Object, Object, Void> sut = new SingleStrategy<>(s);
+        AtomicBoolean evaluated = new AtomicBoolean(false);
+        final Strategy<Object, Object, Object> s = (o, input) -> {
+            return new Sequence<Object>() {
+                @Override
+                public boolean tryAdvance(Consumer<? super Object> action) {
+                    evaluated.set(true);
+                    return false;
+                }
+            };
+//            evaluated.set(true);
+//            return Sequence.of(input);
+        };
+        final SingleStrategy<Object, Object, Object> sut = new SingleStrategy<>(s);
 
         // Act
-        final Sequence<Void> seq = sut.apply(new Object(), new Object());
+        final Sequence<Object> seq = sut.apply(new Object(), new Object());
 
         // Assert
-        assertThrows(IllegalStateException.class, () -> {
-            seq.toList();
-        });
+        assertFalse(evaluated.get());
     }
 
     @Test
@@ -80,10 +89,19 @@ public final class SingleStrategyTests {
         // Arrange
         final AtomicInteger i = new AtomicInteger();
         final Strategy<Object, Object, Integer> s = (o, input) -> {
-            // Sequence that counts the number of invocations
-            final int val = i.incrementAndGet();
-            if (val > 10) throw new InterruptedException("Safeguard; too many invocations.");
-            return Sequence.of(val);
+
+//            final int val = i.incrementAndGet();
+//            if (val > 10) throw new InterruptedException("Safeguard; too many invocations.");
+//            return Sequence.of(val);
+            return new Sequence<Integer>() {
+                @Override
+                public boolean tryAdvance(Consumer<? super Integer> action) {
+                    // Sequence that counts the number of invocations
+                    final int val = i.incrementAndGet();
+                    //if (val > 10) throw new InterruptedException("Safeguard; too many invocations.");
+                    return true;
+                }
+            };
         };
         final SingleStrategy<Object, Object, Integer> sut = new SingleStrategy<>(s);
 
@@ -92,7 +110,7 @@ public final class SingleStrategyTests {
 
         // Assert
         assertEquals(Collections.emptyList(), results);
-        assertEquals(1, i.get());
+        assertEquals(2, i.get());
     }
 
 }

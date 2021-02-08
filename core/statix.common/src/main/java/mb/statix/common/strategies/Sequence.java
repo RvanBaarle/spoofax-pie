@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * A sequence that returns values through its iterator.
@@ -12,14 +13,32 @@ import java.util.List;
  */
 public interface Sequence<T> {
 
+//    /**
+//     * Gets the iterator that returns values from the sequence.
+//     *
+//     * Getting the iterator multiple times will compute the values multiple times.
+//     *
+//     * @return the iterator
+//     */
+//    Iterator<T> iterator();
+
     /**
-     * Gets the iterator that returns values from the sequence.
+     * Applies the specified action to values in this sequence, until the sequence is empty.
      *
-     * Getting the iterator multiple times will compute the values multiple times.
-     *
-     * @return the iterator
+     * @param action the action to apply
+     * @return {@code true} when a value was present (and the action was applied); otherwise, {@code false}
      */
-    Iterator<T> iterator();
+    boolean tryAdvance(Consumer<? super T> action);
+
+    /**
+     * Applies the specified action to the remaining values in this sequence, until the sequence is empty.
+     *
+     * @param action the action to apply
+     */
+    @SuppressWarnings("StatementWithEmptyBody")
+    default void forEachRemaining(Consumer<? super T> action) {
+        while (tryAdvance(action));
+    }
 
     /**
      * Creates a sequence from an iterable.
@@ -29,7 +48,7 @@ public interface Sequence<T> {
      * @return the sequence
      */
     static <T> Sequence<T> from(Iterable<T> iterable) {
-        return iterable::iterator;
+        return new IteratorSequence<T>(iterable.iterator());
     }
 
     /**
@@ -49,11 +68,30 @@ public interface Sequence<T> {
      * @return the list
      */
     default List<T> toList() {
-        final List<T> buffer = new ArrayList<T>();
-        final Iterator<T> iterator = this.iterator();
-        while (iterator.hasNext()) {
-            buffer.add(iterator.next());
-        }
+        final List<T> buffer = new ArrayList<>();
+        this.forEachRemaining(buffer::add);
         return buffer;
+    }
+
+    static class IteratorSequence<T> implements Sequence<T> {
+
+        private final Iterator<T> iterator;
+
+        /**
+         * Initializes a new instance of the {@link IteratorSequence} class.
+         *
+         * @param iterator the iterator
+         */
+        public IteratorSequence(Iterator<T> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public boolean tryAdvance(Consumer<? super T> action) {
+            if (!this.iterator.hasNext()) return false;
+            final T value = this.iterator.next();
+            action.accept(value);
+            return true;
+        }
     }
 }

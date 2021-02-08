@@ -1,12 +1,8 @@
 package mb.statix.common.strategies;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 /**
  * Evaluates a strategy and returns its values only if it results in exactly one value.
@@ -30,8 +26,8 @@ public final class SingleStrategy<CTX, I, O> implements Strategy<CTX, I, O> {
 
     @Override
     public Sequence<O> apply(CTX ctx, I input) throws InterruptedException {
-        final Sequence<O> sequence = s.apply(ctx, input);
-        return () -> new IteratorImpl(sequence.iterator());
+        final Sequence<O> source = s.apply(ctx, input);
+        return new SequenceImpl(source);
     }
 
     @Override
@@ -42,65 +38,28 @@ public final class SingleStrategy<CTX, I, O> implements Strategy<CTX, I, O> {
         return buffer;
     }
 
-    /**
-     * Iterator implementation that buffers the values
-     * until either the specified limit has been reached
-     * or the source produces no more values.
-     *
-     * This class is not thread-safe.
-     */
-    private class IteratorImpl implements Iterator<O> {
+    private class SequenceImpl implements Sequence<O> {
 
-        /** The source iterator. */
-        private final Iterator<O> source;
-        /** A singleton list, or {@code null} when not computed. */
-        @Nullable private List<O> buffer = null;
+        /** The source sequence. */
+        private final Sequence<O> source;
 
         /**
-         * Initializes a new instance of the {@link IteratorImpl} class.
+         * Initializes a new instance of the {@link SequenceImpl} class.
          *
-         * @param source the source iterator
+         * @param source the source sequence
          */
-        public IteratorImpl(Iterator<O> source) {
+        public SequenceImpl(Sequence<O> source) {
             this.source = source;
         }
 
         @Override
-        public boolean hasNext() {
-            return !fillAndReturnBuffer().isEmpty();
+        public boolean tryAdvance(Consumer<? super O> action) {
+            AtomicReference<O> value = new AtomicReference<>();
+            if (!this.source.tryAdvance(value::set)) return false;  // No values
+            if (this.source.tryAdvance(it -> {})) return false;     // More than one value
+            action.accept(value.get());                             // Exactly one value
+            return true;
         }
 
-        @Override
-        public O next() {
-            final List<O> buffer = fillAndReturnBuffer();
-            if (buffer.isEmpty()) throw new NoSuchElementException();
-            final O value = buffer.get(0);
-            // No more values remaining
-            this.buffer = Collections.emptyList();
-            return value;
-        }
-
-        private List<O> fillAndReturnBuffer() {
-            if (this.buffer != null) return this.buffer;    // Already done
-
-            List<O> buffer;
-            if (this.source.hasNext()) {
-                // Buffer the first value
-                buffer = Collections.singletonList(this.source.next());
-
-                if(this.source.hasNext()) {
-                    // The source produced more than one value
-                    // so we fail.
-                    buffer = Collections.emptyList();
-                }
-            } else {
-                // The source was empty
-                buffer = Collections.emptyList();
-            }
-
-            // Done
-            this.buffer = buffer;
-            return buffer;
-        }
     }
 }

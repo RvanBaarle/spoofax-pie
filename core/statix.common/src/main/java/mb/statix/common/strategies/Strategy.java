@@ -1,5 +1,6 @@
 package mb.statix.common.strategies;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -17,7 +18,7 @@ public interface Strategy<CTX, I, O> {
      *
      * @param ctx the strategy context
      * @param input the strategy input
-     * @return a sequence of values; or an empty sequence when the strategy failed
+     * @return an iterator of values; or an empty iterator when the strategy failed
      * @throws InterruptedException if the operation was interrupted
      */
     Sequence<O> apply(CTX ctx, I input) throws InterruptedException;

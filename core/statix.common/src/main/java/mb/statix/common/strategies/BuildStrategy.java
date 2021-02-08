@@ -1,6 +1,7 @@
 package mb.statix.common.strategies;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * Strategy that returns the specified values.
@@ -18,7 +19,7 @@ public final class BuildStrategy<CTX, O> implements Strategy<CTX, Object, O> {
 
     @Override
     public Sequence<O> apply(CTX ctx, Object input) throws InterruptedException {
-        return values::iterator;
+        return Sequence.from(values);
     }
 
     @Override
