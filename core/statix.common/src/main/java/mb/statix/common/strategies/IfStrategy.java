@@ -39,7 +39,7 @@ public final class IfStrategy<CTX, I, M, O> implements Strategy<CTX, I, O> {
     }
 
     @Override
-    public Sequence<O> apply(CTX ctx, I input) throws InterruptedException {
+    public Sequence<O> apply(CTX ctx, I input) {
         return new Sequence<O>() {
             @Nullable Sequence<O> seq = null;
 
@@ -51,8 +51,7 @@ public final class IfStrategy<CTX, I, M, O> implements Strategy<CTX, I, O> {
                 // In case of success, we will have removed the first value from the `condition` sequence,
                 // so we need to concat that before the rest of the `conditionSeq` to get the whole sequence again.
                 if (this.seq == null) {
-                    // First a
-                    // ttempt to get an element
+                    // First attempt to get an element
                     final Sequence<M> conditionSeq = condition.apply(ctx, input);
 
                     // Save the first element

@@ -8,9 +8,10 @@ import java.io.IOException;
  * Strategy that returns the specified values.
  *
  * @param <CTX> the type of context (invariant)
+ * @param <O> the type of input (contravariant)
  * @param <O> the type of outputs (covariant)
  */
-public final class BuildStrategy<CTX, O> implements Strategy<CTX, Object, O> {
+public final class BuildStrategy<CTX, I, O> implements Strategy<CTX, I, O> {
 
     private final Iterable<O> values;
 
@@ -19,7 +20,7 @@ public final class BuildStrategy<CTX, O> implements Strategy<CTX, Object, O> {
     }
 
     @Override
-    public Sequence<O> apply(CTX ctx, Object input) throws InterruptedException {
+    public Sequence<O> apply(CTX ctx, I input) {
         return Sequence.from(values);
     }
 

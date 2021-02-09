@@ -1,6 +1,5 @@
 package mb.statix.common.strategies;
 
-import mb.statix.common.sequences.InterruptibleConsumer;
 import mb.statix.common.sequences.Sequence;
 import org.junit.jupiter.api.Test;
 
@@ -9,16 +8,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests the {@code SingleStrategy} class.
  */
+@SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public final class SingleStrategyTests {
 
-    @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     @Test
     public void shouldReturnNothing_whenSourceIsEmpty() throws InterruptedException {
         // Arrange
@@ -33,7 +31,6 @@ public final class SingleStrategyTests {
         assertEquals(input, results);
     }
 
-    @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
     @Test
     public void shouldReturnSingleValue_whenSourceHasSingleValue() throws InterruptedException {
         // Arrange
@@ -66,16 +63,9 @@ public final class SingleStrategyTests {
     public void shouldNotEvaluate_whenNotCoerced() throws InterruptedException {
         // Arrange
         AtomicBoolean evaluated = new AtomicBoolean(false);
-        final Strategy<Object, Object, Object> s = (o, input) -> {
-            return new Sequence<Object>() {
-                @Override
-                public boolean tryAdvance(InterruptibleConsumer<? super Object> action) {
-                    evaluated.set(true);
-                    return false;
-                }
-            };
-//            evaluated.set(true);
-//            return Sequence.of(input);
+        final Strategy<Object, Object, Object> s = (o, input) -> (Sequence<Object>)action -> {
+            evaluated.set(true);
+            return false;
         };
         final SingleStrategy<Object, Object, Object> sut = new SingleStrategy<>(s);
 
@@ -90,20 +80,11 @@ public final class SingleStrategyTests {
     public void shouldNotEvaluateBeyondWhatIsNeeded() throws InterruptedException {
         // Arrange
         final AtomicInteger i = new AtomicInteger();
-        final Strategy<Object, Object, Integer> s = (o, input) -> {
-
-//            final int val = i.incrementAndGet();
-//            if (val > 10) throw new InterruptedException("Safeguard; too many invocations.");
-//            return Sequence.of(val);
-            return new Sequence<Integer>() {
-                @Override
-                public boolean tryAdvance(InterruptibleConsumer<? super Integer> action) {
-                    // Sequence that counts the number of invocations
-                    final int val = i.incrementAndGet();
-                    //if (val > 10) throw new InterruptedException("Safeguard; too many invocations.");
-                    return true;
-                }
-            };
+        final Strategy<Object, Object, Integer> s = (o, input) -> (Sequence<Integer>)action -> {
+            // Sequence that counts the number of invocations
+            final int val = i.incrementAndGet();
+            action.accept(val);
+            return true;
         };
         final SingleStrategy<Object, Object, Integer> sut = new SingleStrategy<>(s);
 

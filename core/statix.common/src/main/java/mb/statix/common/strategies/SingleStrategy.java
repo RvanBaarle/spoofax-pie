@@ -1,6 +1,5 @@
 package mb.statix.common.strategies;
 
-import mb.statix.common.sequences.InterruptibleConsumer;
 import mb.statix.common.sequences.Sequence;
 
 import java.io.IOException;
@@ -27,9 +26,15 @@ public final class SingleStrategy<CTX, I, O> implements Strategy<CTX, I, O> {
     }
 
     @Override
-    public Sequence<O> apply(CTX ctx, I input) throws InterruptedException {
+    public Sequence<O> apply(CTX ctx, I input) {
         final Sequence<O> source = s.apply(ctx, input);
-        return new SequenceImpl(source);
+        return action -> {
+            AtomicReference<O> value = new AtomicReference<>();
+            if (!source.tryAdvance(value::set)) return false;  // No values
+            if (source.tryAdvance(it -> {})) return false;     // More than one value
+            action.accept(value.get());                        // Exactly one value
+            return true;
+        };
     }
 
     @Override
@@ -40,28 +45,4 @@ public final class SingleStrategy<CTX, I, O> implements Strategy<CTX, I, O> {
         return buffer;
     }
 
-    private final class SequenceImpl implements Sequence<O> {
-
-        /** The source sequence. */
-        private final Sequence<O> source;
-
-        /**
-         * Initializes a new instance of the {@link SequenceImpl} class.
-         *
-         * @param source the source sequence
-         */
-        public SequenceImpl(Sequence<O> source) {
-            this.source = source;
-        }
-
-        @Override
-        public boolean tryAdvance(InterruptibleConsumer<? super O> action) throws InterruptedException {
-            AtomicReference<O> value = new AtomicReference<>();
-            if (!this.source.tryAdvance(value::set)) return false;  // No values
-            if (this.source.tryAdvance(it -> {})) return false;     // More than one value
-            action.accept(value.get());                             // Exactly one value
-            return true;
-        }
-
-    }
 }

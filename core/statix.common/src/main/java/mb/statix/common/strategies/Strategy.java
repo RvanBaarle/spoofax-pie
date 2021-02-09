@@ -18,10 +18,9 @@ public interface Strategy<CTX, I, O> {
      *
      * @param ctx the strategy context
      * @param input the strategy input
-     * @return a sequence of values; or an empty sequence when the strategy failed
-     * @throws InterruptedException if the operation was interrupted
+     * @return a lazy sequence of values; which may be empty when the strategy failed
      */
-    Sequence<O> apply(CTX ctx, I input) throws InterruptedException;
+    Sequence<O> apply(CTX ctx, I input);
 
     /**
      * Writes the strategy to the specified appendable.
