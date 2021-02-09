@@ -1,7 +1,8 @@
 package mb.statix.common.strategies;
 
+import mb.statix.common.sequences.Sequence;
+
 import java.io.IOException;
-import java.util.Iterator;
 
 /**
  * Strategy that returns the specified values.

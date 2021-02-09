@@ -1,5 +1,7 @@
 package mb.statix.common.strategies;
 
+import mb.statix.common.sequences.InterruptibleConsumer;
+import mb.statix.common.sequences.Sequence;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -67,7 +69,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, Object> s = (o, input) -> {
             return new Sequence<Object>() {
                 @Override
-                public boolean tryAdvance(Consumer<? super Object> action) {
+                public boolean tryAdvance(InterruptibleConsumer<? super Object> action) {
                     evaluated.set(true);
                     return false;
                 }
@@ -95,7 +97,7 @@ public final class SingleStrategyTests {
 //            return Sequence.of(val);
             return new Sequence<Integer>() {
                 @Override
-                public boolean tryAdvance(Consumer<? super Integer> action) {
+                public boolean tryAdvance(InterruptibleConsumer<? super Integer> action) {
                     // Sequence that counts the number of invocations
                     final int val = i.incrementAndGet();
                     //if (val > 10) throw new InterruptedException("Safeguard; too many invocations.");

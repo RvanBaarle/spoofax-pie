@@ -1,8 +1,10 @@
 package mb.statix.common.strategies;
 
+import mb.statix.common.sequences.InterruptibleConsumer;
+import mb.statix.common.sequences.Sequence;
+
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 /**
  * Evaluates a strategy and returns its values only if it results in exactly one value.
@@ -38,7 +40,7 @@ public final class SingleStrategy<CTX, I, O> implements Strategy<CTX, I, O> {
         return buffer;
     }
 
-    private class SequenceImpl implements Sequence<O> {
+    private final class SequenceImpl implements Sequence<O> {
 
         /** The source sequence. */
         private final Sequence<O> source;
@@ -53,7 +55,7 @@ public final class SingleStrategy<CTX, I, O> implements Strategy<CTX, I, O> {
         }
 
         @Override
-        public boolean tryAdvance(Consumer<? super O> action) {
+        public boolean tryAdvance(InterruptibleConsumer<? super O> action) throws InterruptedException {
             AtomicReference<O> value = new AtomicReference<>();
             if (!this.source.tryAdvance(value::set)) return false;  // No values
             if (this.source.tryAdvance(it -> {})) return false;     // More than one value
