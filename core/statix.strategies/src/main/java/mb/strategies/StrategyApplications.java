@@ -1,6 +1,8 @@
 package mb.strategies;
 
-final class AppliedStrategy2<CTX, A1, A2, A3, I, O> implements Strategy2<CTX, A2, A3, I, O>, StrategyApplDecl<CTX, O> {
+import mb.sequences.Sequence;
+
+final class AppliedStrategy2<CTX, A1, A2, A3, I, O> implements Strategy2<CTX, A2, A3, I, O>, StrategyApplDecl {
     private final Strategy3<CTX, A1, A2, A3, I, O> s;
     private final A1 arg1;
 
@@ -10,7 +12,7 @@ final class AppliedStrategy2<CTX, A1, A2, A3, I, O> implements Strategy2<CTX, A2
     }
 
     @Override
-    public O eval(CTX ctx, A2 arg2, A3 arg3, I input) throws InterruptedException {
+    public Sequence<O> eval(CTX ctx, A2 arg2, A3 arg3, I input) throws InterruptedException {
         return s.eval(ctx, arg1, arg2, arg3, input);
     }
 
@@ -33,13 +35,13 @@ final class AppliedStrategy2<CTX, A1, A2, A3, I, O> implements Strategy2<CTX, A2
         buffer.append(arg1.toString());
         if (s instanceof StrategyApplDecl) {
             buffer.append(", ");
-            ((StrategyApplDecl<?, ?>)s).writeArgs(buffer);
+            ((StrategyApplDecl)s).writeArgs(buffer);
         }
         return buffer;
     }
 }
 
-final class AppliedStrategy1<CTX, A1, A2, I, O> implements Strategy1<CTX, A2, I, O>, StrategyApplDecl<CTX, O> {
+final class AppliedStrategy1<CTX, A1, A2, I, O> implements Strategy1<CTX, A2, I, O>, StrategyApplDecl {
     private final Strategy2<CTX, A1, A2, I, O> s;
     private final A1 arg1;
 
@@ -49,7 +51,7 @@ final class AppliedStrategy1<CTX, A1, A2, I, O> implements Strategy1<CTX, A2, I,
     }
 
     @Override
-    public O eval(CTX ctx, A2 arg2, I input) throws InterruptedException {
+    public Sequence<O> eval(CTX ctx, A2 arg2, I input) throws InterruptedException {
         return s.eval(ctx, arg1, arg2, input);
     }
 
@@ -72,13 +74,13 @@ final class AppliedStrategy1<CTX, A1, A2, I, O> implements Strategy1<CTX, A2, I,
         buffer.append(arg1.toString());
         if (s instanceof StrategyApplDecl) {
             buffer.append(", ");
-            ((StrategyApplDecl<?, ?>)s).writeArgs(buffer);
+            ((StrategyApplDecl)s).writeArgs(buffer);
         }
         return buffer;
     }
 }
 
-final class AppliedStrategy<CTX, A1, I, O> implements Strategy<CTX, I, O>, StrategyApplDecl<CTX, O> {
+final class AppliedStrategy<CTX, A1, I, O> implements Strategy<CTX, I, O>, StrategyApplDecl {
     private final Strategy1<CTX, A1, I, O> s;
     private final A1 arg1;
 
@@ -88,7 +90,7 @@ final class AppliedStrategy<CTX, A1, I, O> implements Strategy<CTX, I, O>, Strat
     }
 
     @Override
-    public O eval(CTX ctx, I input) throws InterruptedException {
+    public Sequence<O> eval(CTX ctx, I input) throws InterruptedException {
         return s.eval(ctx, arg1, input);
     }
 
@@ -111,7 +113,7 @@ final class AppliedStrategy<CTX, A1, I, O> implements Strategy<CTX, I, O>, Strat
         buffer.append(arg1.toString());
         if (s instanceof StrategyApplDecl) {
             buffer.append(", ");
-            ((StrategyApplDecl<?, ?>)s).writeArgs(buffer);
+            ((StrategyApplDecl)s).writeArgs(buffer);
         }
         return buffer;
     }
@@ -127,7 +129,7 @@ final class AppliedComputation<CTX, I, O> implements Computation<CTX, O> {
     }
 
     @Override
-    public O eval(CTX ctx) throws InterruptedException {
+    public Sequence<O> eval(CTX ctx) throws InterruptedException {
         return s.eval(ctx, input);
     }
 
@@ -142,7 +144,7 @@ final class AppliedComputation<CTX, I, O> implements Computation<CTX, O> {
         sb.append(s.getName());
         if (s instanceof StrategyApplDecl) {
             sb.append("(");
-            ((StrategyApplDecl<?, ?>)s).writeArgs(sb);
+            ((StrategyApplDecl)s).writeArgs(sb);
             sb.append(")");
         }
         sb.append("> ");

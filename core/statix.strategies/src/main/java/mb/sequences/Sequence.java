@@ -3,6 +3,7 @@ package mb.sequences;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +25,38 @@ public interface Sequence<T> {
      * @return the iterator
      */
     Iterator<T> getIterator();
+
+    /**
+     * Returns an empty sequence.
+     *
+     * @param <T> the type of values
+     * @return an empty sequence
+     */
+    // TODO: Optimize empty sequence
+    static <T> Sequence<T> empty() { return of(); }
+
+    /**
+     * Creates a sequence from the specified values.
+     *
+     * @param values the values
+     * @param <T> the type of values
+     * @return a sequence
+     */
+    // TODO: Optimize the empty and singleton cases (separate overloads)
+    @SafeVarargs static <T> Sequence<T> of(T... values) {
+        return Sequence.from(Arrays.asList(values.clone()));
+    }
+
+    /**
+     * Creates a sequence from an iterable.
+     *
+     * @param iterable the iterable
+     * @param <T> the type of values
+     * @return a sequence
+     */
+    static <T> Sequence<T> from(Iterable<T> iterable) {
+        return iterable::iterator;
+    }
 
     /**
      * Returns whether all the elements in the sequence match the given predicate.
@@ -87,6 +120,20 @@ public interface Sequence<T> {
     default boolean none() {
         return !this.getIterator().hasNext();
     }
+
+    /**
+     * Returns whether the sequence has no elements.
+     *
+     * @return {@code true} when the sequence is empty; otherwise, {@code false}
+     */
+    default boolean isEmpty() { return none(); }
+
+    /**
+     * Returns whether the sequence has any elements.
+     *
+     * @return {@code true} when the sequence is not empty; otherwise, {@code false}
+     */
+    default boolean isNotEmpty() { return any(); }
 
     /**
      * Returns an iterable wrapping the sequence.
@@ -209,6 +256,59 @@ public interface Sequence<T> {
     }
 
     /**
+     * Returns a sequence that takes the first number of elements.
+     *
+     * @param n the number of elements to take
+     * @return the new sequence
+     */
+    default Sequence<T> take(int n) {
+        return () -> new IteratorBase<T>() {
+            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private int taken = 0;
+
+            @Override
+            protected void computeNext() {
+                // Return the first n elements
+                if (taken < n && iterator.hasNext()) {
+                    setNext(iterator.next());
+                    taken += 1;
+                    return;
+                }
+
+                // The iterator is empty
+                finished();
+            }
+        };
+    }
+
+    /**
+     * Returns a sequence that takes the first elements that match the given predicate.
+     *
+     * @param predicate the predicate to test
+     * @return the new sequence
+     */
+    default Sequence<T> takeWhile(Predicate<T> predicate) {
+        return () -> new IteratorBase<T>() {
+            private final Iterator<T> iterator = Sequence.this.getIterator();
+
+            @Override
+            protected void computeNext() {
+                // Return the first elements
+                if (iterator.hasNext()) {
+                    T value = iterator.next();
+                    if (predicate.test(value)) {
+                        setNext(value);
+                        return;
+                    }
+                }
+
+                // We are done
+                finished();
+            }
+        };
+    }
+
+    /**
      * Returns a sequence that skips the first number of elements.
      *
      * @param n the number of elements to skip
@@ -306,12 +406,12 @@ public interface Sequence<T> {
      * @param transform the transform function
      * @return the new sequence
      */
-    default <R> Sequence<R> map(Function<T, R> transform) {
+    default <R> Sequence<R> map(InterruptibleFunction<T, R> transform) {
         return () -> new IteratorBase<R>() {
             private final Iterator<T> iterator = Sequence.this.getIterator();
 
             @Override
-            protected void computeNext() {
+            protected void computeNext() throws InterruptedException {
                 // Return elements that match the predicate
                 if (iterator.hasNext()) {
                     T value = iterator.next();
@@ -332,13 +432,13 @@ public interface Sequence<T> {
      * @param transform the transform function
      * @return the new sequence
      */
-    default <R> Sequence<R> flatMap(Function<T, Sequence<R>> transform) {
+    default <R> Sequence<R> flatMap(InterruptibleFunction<T, Sequence<R>> transform) {
         return () -> new IteratorBase<R>() {
             private final Iterator<T> iterator = Sequence.this.getIterator();
             @Nullable private Iterator<R> nestedIterator = null;
 
             @Override
-            protected void computeNext() {
+            protected void computeNext() throws InterruptedException {
                 while (true) {
                     // Return elements from the nested iterator
                     if (nestedIterator != null && nestedIterator.hasNext()) {
@@ -356,6 +456,77 @@ public interface Sequence<T> {
 
                 // The iterator is empty
                 finished();
+            }
+        };
+    }
+
+    /**
+     * Returns a sequence that buffers all its elements.
+     *
+     * This ensures the sequence is only iterated once.
+     * This can be used, for example, to avoid an expensive recomputation.
+     *
+     * Note that this sequence is not thread-safe!
+     *
+     * @return the new sequence
+     */
+    default Sequence<T> buffer() {
+        return new Sequence<T>() {
+            private final List<T> buffer = new ArrayList<>();
+            private final Iterator<T> iterator = getIterator();
+
+            @Override
+            public Iterator<T> getIterator() {
+                return new IteratorBase<T>() {
+                    int index = 0;
+                    @Override
+                    protected void computeNext() throws InterruptedException {
+                        // FIXME: This computation is not thread-safe.
+                        // It is possible for two threads to use the same sequence
+                        // and cause a race condition in the getting and storing the next element.
+                        final T value;
+                        if (index >= 0 && index < buffer.size()) {
+                            // Return element from the buffer
+                            value = buffer.get(index);
+                        } else {
+                            if (!iterator.hasNext()) {
+                                finished();
+                                return;
+                            }
+                            value = iterator.next();
+                            buffer.add(value);
+                        }
+                        index += 1;
+                        setNext(value);
+                    }
+                };
+            }
+        };
+    }
+
+    /**
+     * Returns a sequence that can only be iterated once.
+     *
+     * This can be used, for example, to avoid an expensive recomputation
+     * and to find places where this happens.
+     *
+     * @return the new sequence
+     */
+    default Sequence<T> iterateOnlyOnce() {
+        return new Sequence<T>() {
+            private Iterator<T> iterator = getIterator();
+
+            @Override
+            public Iterator<T> getIterator() {
+                if (this.iterator == null) return new IteratorBase<T>() {
+                    @Override
+                    protected void computeNext()  {
+                        throw new IllegalStateException("Detected multiple iteration of this sequence.");
+                    }
+                };
+                final Iterator<T> currentIterator = this.iterator;
+                this.iterator = null;
+                return currentIterator;
             }
         };
     }

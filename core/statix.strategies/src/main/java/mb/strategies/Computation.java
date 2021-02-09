@@ -1,9 +1,22 @@
 package mb.strategies;
 
-public interface Computation<CTX, O> extends StrategyDecl<CTX, O> {
+import mb.sequences.Sequence;
 
-    O eval(CTX ctx) throws InterruptedException;
+/**
+ * A computation.
+ *
+ * @param <CTX> the type of context (invariant)
+ * @param <O> the type of output (covariant)
+ */
+public interface Computation<CTX, O> extends StrategyDecl {
 
-//    default String getName() { return this.getClass().getSimpleName(); }
+    /**
+     * Evaluates the computation.
+     *
+     * @param ctx the context
+     * @return the resulting (possibly lazy) sequence of values
+     * @throws InterruptedException if the operation was interrupted
+     */
+    Sequence<O> eval(CTX ctx) throws InterruptedException;
 
 }

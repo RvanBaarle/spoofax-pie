@@ -51,9 +51,15 @@ abstract class IteratorBase<T> implements Iterator<T> {
      * otherwise, {@code false}
      */
     private boolean tryComputeNext() {
-        state = State.Preparing;
-        computeNext();
-        return state == State.Ready;
+        try {
+            state = State.Preparing;
+            computeNext();
+            return state == State.Ready;
+        } catch (InterruptedException ex) {
+            // Signal that the thread was interrupted
+            Thread.currentThread().interrupt();
+            return false;
+        }
     }
 
     /**
@@ -62,7 +68,7 @@ abstract class IteratorBase<T> implements Iterator<T> {
      * This method should call either {@link #setNext} to return the next element,
      * or {@link #finished} to indicate the end of the iterator.
      */
-    protected abstract void computeNext();
+    protected abstract void computeNext() throws InterruptedException;
 
     /**
      * Indicates what the next element will be.
