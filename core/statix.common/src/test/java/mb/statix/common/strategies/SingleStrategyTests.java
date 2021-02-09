@@ -21,7 +21,7 @@ public final class SingleStrategyTests {
     public void shouldReturnNothing_whenSourceIsEmpty() throws InterruptedException {
         // Arrange
         final List<String> input = Arrays.asList();
-        final BuildStrategy<Object, String> s = new BuildStrategy<>(input);
+        final BuildStrategy<Object, Object, String> s = new BuildStrategy<>(input);
         final SingleStrategy<Object, Object, String> sut = new SingleStrategy<>(s);
 
         // Act
@@ -35,7 +35,7 @@ public final class SingleStrategyTests {
     public void shouldReturnSingleValue_whenSourceHasSingleValue() throws InterruptedException {
         // Arrange
         final List<String> input = Arrays.asList("a");
-        final BuildStrategy<Object, String> s = new BuildStrategy<>(input);
+        final BuildStrategy<Object, Object, String> s = new BuildStrategy<>(input);
         final SingleStrategy<Object, Object, String> sut = new SingleStrategy<>(s);
 
         // Act
@@ -49,7 +49,7 @@ public final class SingleStrategyTests {
     public void shouldReturnNothing_whenSourceHasMultipleValues() throws InterruptedException {
         // Arrange
         final List<String> input = Arrays.asList("a", "b", "c");
-        final BuildStrategy<Object, String> s = new BuildStrategy<>(input);
+        final BuildStrategy<Object, Object, String> s = new BuildStrategy<>(input);
         final SingleStrategy<Object, Object, String> sut = new SingleStrategy<>(s);
 
         // Act
