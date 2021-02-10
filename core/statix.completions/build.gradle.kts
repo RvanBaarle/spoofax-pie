@@ -4,6 +4,13 @@ plugins {
 }
 
 dependencies {
+  api(platform(project(":spoofax.depconstraints")))
+  implementation(platform(project(":spoofax.depconstraints")))
+  compileOnly(platform(project(":spoofax.depconstraints")))
+  annotationProcessor(platform(project(":spoofax.depconstraints")))
+  testImplementation(platform(project(":spoofax.depconstraints")))
+  testCompileOnly(platform(project(":spoofax.depconstraints")))
+  testAnnotationProcessor(platform(project(":spoofax.depconstraints")))
 //  configurations.forEach { add(it.name, platform(project(":spoofax.depconstraints"))) }
 ////  api(platform(project(":spoofax.depconstraints")))
 ////  testCompileOnly(platform(project(":spoofax.depconstraints")))
@@ -49,10 +56,13 @@ dependencies {
 
   compileOnly("org.checkerframework:checker-qual-android")
 
-//  testCompileOnly("org.checkerframework:checker-qual-android")
-//  testImplementation("nl.jqno.equalsverifier:equalsverifier")
-//  testImplementation("org.metaborg:log.backend.slf4j")
-//  testImplementation("org.slf4j:slf4j-simple:1.7.10")
-//  testCompileOnly("org.immutables:value")
-//  testCompileOnly("javax.annotation:javax.annotation-api")
+  annotationProcessor("org.immutables:value")
+  testAnnotationProcessor("org.immutables:value")
+
+  testCompileOnly("org.checkerframework:checker-qual-android")
+  testImplementation("nl.jqno.equalsverifier:equalsverifier")
+  testImplementation("org.metaborg:log.backend.slf4j")
+  testImplementation("org.slf4j:slf4j-simple:1.7.10")
+  testCompileOnly("org.immutables:value")
+  testCompileOnly("javax.annotation:javax.annotation-api")
 }
