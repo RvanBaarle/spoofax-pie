@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
  *
  * @param <T> the type of elements in the iterator
  */
-abstract class IteratorBase<T> implements Iterator<T> {
+public abstract class IteratorBase<T> implements Iterator<T> {
 
     /**
      * Specifies the state of the iterator.

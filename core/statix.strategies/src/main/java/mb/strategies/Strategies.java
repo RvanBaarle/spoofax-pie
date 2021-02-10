@@ -2,6 +2,7 @@ package mb.strategies;
 
 import mb.sequences.Sequence;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -13,94 +14,61 @@ public final class Strategies {
     private Strategies() {}
 
     /**
-     * Applies a strategy to the results of the condition strategy, if any;
-     * otherwise applies an alternative strategy to the original inputs.
+     * Asserts that the input matches the given predicate.
      *
-     * @param condition the condition strategy
-     * @param onSuccess the strategy to apply when the condition strategy doesn't fail
-     * @param onFailure the strategy to apply when the condition strategy fails
      * @param <CTX> the type of context
      * @param <I> the type of input
-     * @param <M> the type of intermediates
      * @param <O> the type of outputs
      * @return the resulting strategy
      */
-    public static <CTX, I, M, O> Strategy<CTX, I, O> glc(
-        Strategy<CTX, I, M> condition,
-        Strategy<CTX, M, O> onSuccess,
-        Strategy<CTX, I, O> onFailure
+    public static <CTX, I, O> Strategy<CTX, I, O> assertAll(
+        Predicate<Sequence<O>> predicate,
+        Strategy<CTX, I, O> strategy
     ) {
-        return GlcStrategy.<CTX, I, M, O>getInstance().apply(condition, onSuccess, onFailure);
+        return AssertAllStrategy.<CTX, I, O>getInstance().apply(predicate, strategy);
     }
 
     /**
-     * Asserts that the given strategy returns only one result.
+     * Asserts that the input matches the given predicate.
      *
-     * @param s the strategy
      * @param <CTX> the type of context
-     * @param <I> the type of input
-     * @param <O> the type of outputs
+     * @param <T> the type of values
      * @return the resulting strategy
      */
-    public static <CTX, I, O> Strategy<CTX, I, O> single(
-        Strategy<CTX, I, O> s
+    public static <CTX, T> Strategy<CTX, T, T> assertThat(
+        Predicate<T> predicate
     ) {
-        return SingleStrategy.<CTX, I, O>getInstance().apply(s);
+        return AssertStrategy.<CTX, T>getInstance().apply(predicate);
     }
 
     /**
-     * Always succeeds and creates a sequence from the input.
+     * Provides initial values.
      *
-     * @param <CTX> the type of context
-     * @param <T> the type of value
-     * @return the resulting strategy
-     */
-    public static <CTX, T> Strategy<CTX, T, T> id() {
-        return IdStrategy.getInstance();
-    }
-
-    /**
-     * Always fails.
-     *
+     * @param iterable the iterable
      * @param <CTX> the type of context
      * @param <I> the type of input
      * @param <O> the type of outputs
      * @return the resulting strategy
      */
-    public static <CTX, I, O> Strategy<CTX, I, O> fail() {
-        return FailStrategy.getInstance();
-    }
-
-    /**
-     * Composes two strategies.
-     *
-     * @param s the first strategy
-     * @param <CTX> the type of context
-     * @param <I> the type of input
-     * @param <O> the type of outputs
-     * @return the resulting strategy
-     */
-    public static <CTX, I, O> SeqStrategy.Builder<CTX, I, O> seq(
-        Strategy<CTX, I, O> s
+    public static <CTX, I, O> Strategy<CTX, I, O> build(
+        Iterable<O> iterable
     ) {
-        return new SeqStrategy.Builder<>(s);
+        return BuildStrategy.<CTX, I, O>getInstance().apply(iterable);
     }
 
     /**
-     * Limits the number of results from the given strategy.
+     * Asserts that the input matches the given predicate.
      *
-     * @param limit the limit
-     * @param s the strategy
      * @param <CTX> the type of context
      * @param <I> the type of input
      * @param <O> the type of outputs
      * @return the resulting strategy
      */
-    public static <CTX, I, O> Strategy<CTX, I, O> limit(
-        int limit,
-        Strategy<CTX, I, O> s
+    public static <CTX, I, O> Strategy<CTX, I, O> debug(
+        Consumer<? super O> action,
+        Strategy<CTX, I, O> strategy
     ) {
-        return LimitStrategy.<CTX, I, O>getInstance().apply(limit, s);
+        return DebugStrategy.<CTX, I, O>getInstance().apply(action, strategy);
     }
 
     /**
@@ -133,31 +101,118 @@ public final class Strategies {
     }
 
     /**
-     * Attempts to apply the specified strategy.
+     * Always fails.
      *
      * @param <CTX> the type of context
-     * @param <T> the type of values
+     * @param <I> the type of input
+     * @param <O> the type of outputs
      * @return the resulting strategy
      */
-    public static <CTX, T> Strategy<CTX, T, T> try_(
-        Strategy<CTX, T, T> s
-    ) {
-        // s < id + id
-        return glc(s, id(), id());
+    public static <CTX, I, O> Strategy<CTX, I, O> fail() {
+        return FailStrategy.getInstance();
     }
 
     /**
-     * Applies the specified strategy until it fails.
+     * Always succeeds and creates a sequence from the input.
+     *
+     * @param <CTX> the type of context
+     * @param <T> the type of value
+     * @return the resulting strategy
+     */
+    public static <CTX, T> Strategy<CTX, T, T> id() {
+        return IdStrategy.getInstance();
+    }
+
+    /**
+     * Applies a strategy to the results of the condition strategy, if any;
+     * otherwise applies an alternative strategy to the original inputs.
+     *
+     * @param condition the condition strategy
+     * @param onSuccess the strategy to apply when the condition strategy doesn't fail
+     * @param onFailure the strategy to apply when the condition strategy fails
+     * @param <CTX> the type of context
+     * @param <I> the type of input
+     * @param <M> the type of intermediates
+     * @param <O> the type of outputs
+     * @return the resulting strategy
+     */
+    public static <CTX, I, M, O> Strategy<CTX, I, O> if_(
+        Strategy<CTX, I, M> condition,
+        Strategy<CTX, M, O> onSuccess,
+        Strategy<CTX, I, O> onFailure
+    ) {
+        return GlcStrategy.<CTX, I, M, O>getInstance().apply(condition, onSuccess, onFailure);
+    }
+
+    /**
+     * Limits the number of results from the given strategy.
+     *
+     * @param limit the limit
+     * @param s the strategy
+     * @param <CTX> the type of context
+     * @param <I> the type of input
+     * @param <O> the type of outputs
+     * @return the resulting strategy
+     */
+    public static <CTX, I, O> Strategy<CTX, I, O> limit(
+        int limit,
+        Strategy<CTX, I, O> s
+    ) {
+        return LimitStrategy.<CTX, I, O>getInstance().apply(limit, s);
+    }
+
+    /**
+     * Applies two strategies to the input and concatenates the results.
+     *
+     * @param s1 the first strategy
+     * @param s2 the second strategy
+     * @param <CTX> the type of context
+     * @param <I> the type of input
+     * @param <O> the type of outputs
+     * @return the resulting strategy
+     */
+    public static <CTX, I, O> Strategy<CTX, I, O> or(
+        Strategy<CTX, I, O> s1,
+        Strategy<CTX, I, O> s2
+    ) {
+        return OrStrategy.<CTX, I, O>getInstance().apply(s1, s2);
+    }
+
+    /**
+     * Prints all values resulting from the given strategy.
+     *
+     * @param s the strategy
+     * @param <CTX> the type of context
+     * @param <I> the type of input
+     * @param <O> the type of outputs
+     * @return the resulting strategy
+     */
+    public static <CTX, I, O> Strategy<CTX, I, O> print(String prefix, Strategy<CTX, I, O> s) {
+        return debug(v -> System.out.println(prefix + v.toString()), s);
+    }
+
+    /**
+     * Prints all values resulting from the given strategy.
+     *
+     * @param s the strategy
+     * @param <CTX> the type of context
+     * @param <I> the type of input
+     * @param <O> the type of outputs
+     * @return the resulting strategy
+     */
+    public static <CTX, I, O> Strategy<CTX, I, O> print(Strategy<CTX, I, O> s) {
+        return print("", s);
+    }
+
+    /**
+     * Prints the value.
      *
      * @param <CTX> the type of context
      * @param <T> the type of values
      * @return the resulting strategy
      */
-    public static <CTX, T> Strategy<CTX, T, T> repeat(
-        Strategy<CTX, T, T> s
-    ) {
-        // try(s ; repeat(s))
-        return rec(x -> try_(seq(s).$(x).$()));
+    public static <CTX, T> Strategy<CTX, T, T> print() {
+        return print(id());
     }
 
     /**
@@ -179,15 +234,60 @@ public final class Strategies {
     }
 
     /**
-     * Asserts that the input matches the given predicate.
+     * Applies the specified strategy until it fails.
      *
      * @param <CTX> the type of context
      * @param <T> the type of values
      * @return the resulting strategy
      */
-    public static <CTX, T> Strategy<CTX, T, T> assertThat(
-        Predicate<T> predicate
+    public static <CTX, T> Strategy<CTX, T, T> repeat(
+        Strategy<CTX, T, T> s
     ) {
-        return AssertStrategy.<CTX, T>getInstance().apply(predicate);
+        // try(s ; repeat(s))
+        return rec(x -> try_(seq(s).$(x).$()));
+    }
+
+    /**
+     * Composes two strategies.
+     *
+     * @param s the first strategy
+     * @param <CTX> the type of context
+     * @param <I> the type of input
+     * @param <O> the type of outputs
+     * @return the resulting strategy
+     */
+    public static <CTX, I, O> SeqStrategy.Builder<CTX, I, O> seq(
+        Strategy<CTX, I, O> s
+    ) {
+        return new SeqStrategy.Builder<>(s);
+    }
+
+    /**
+     * Asserts that the given strategy returns only one result.
+     *
+     * @param s the strategy
+     * @param <CTX> the type of context
+     * @param <I> the type of input
+     * @param <O> the type of outputs
+     * @return the resulting strategy
+     */
+    public static <CTX, I, O> Strategy<CTX, I, O> single(
+        Strategy<CTX, I, O> s
+    ) {
+        return SingleStrategy.<CTX, I, O>getInstance().apply(s);
+    }
+
+    /**
+     * Attempts to apply the specified strategy.
+     *
+     * @param <CTX> the type of context
+     * @param <T> the type of values
+     * @return the resulting strategy
+     */
+    public static <CTX, T> Strategy<CTX, T, T> try_(
+        Strategy<CTX, T, T> s
+    ) {
+        // s < id + id
+        return if_(s, id(), id());
     }
 }
