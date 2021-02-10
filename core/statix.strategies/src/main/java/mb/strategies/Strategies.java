@@ -113,10 +113,23 @@ public final class Strategies {
      * @return the resulting strategy
      */
     public static <CTX, I, O> Strategy<CTX, I, O> distinct(
-        int limit,
         Strategy<CTX, I, O> s
     ) {
         return DistinctStrategy.<CTX, I, O>getInstance().apply(s);
+    }
+
+    /**
+     * Repeatedly evaluates the strategy until the set of values no longer changes.
+     *
+     * @param s the strategy
+     * @param <CTX> the type of context
+     * @param <T> the type of values
+     * @return the resulting strategy
+     */
+    public static <CTX, T> Strategy<CTX, T, T> fixSet(
+        Strategy<CTX, T, T> s
+    ) {
+        return FixSetStrategy.<CTX, T>getInstance().apply(s);
     }
 
     /**

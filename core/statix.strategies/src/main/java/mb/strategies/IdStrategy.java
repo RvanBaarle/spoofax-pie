@@ -17,6 +17,8 @@ public final class IdStrategy<CTX, T> implements Strategy<CTX, T, T>{
     @SuppressWarnings("unchecked")
     public static <CTX, T> IdStrategy<CTX, T> getInstance() { return (IdStrategy<CTX, T>)instance; }
 
+    private IdStrategy() {}
+
     @Override
     public String getName() { return "id"; }
 

@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -14,17 +16,12 @@ import java.util.function.Predicate;
 /**
  * A sequence.
  *
+ * The sequence implements {@link Iterable} for convenience.
+ *
  * @param <T> the type of values in the sequence (covariant)
  */
-@FunctionalInterface
-public interface Sequence<T> {
-
-    /**
-     * Gets the sequence iterator.
-     *
-     * @return the iterator
-     */
-    Iterator<T> getIterator();
+@SuppressWarnings("WhileLoopReplaceableByForEach") @FunctionalInterface
+public interface Sequence<T> extends Iterable<T> {
 
     /**
      * Returns an empty sequence.
@@ -44,6 +41,8 @@ public interface Sequence<T> {
      */
     // TODO: Optimize the empty and singleton cases (separate overloads)
     @SafeVarargs static <T> Sequence<T> of(T... values) {
+        Objects.requireNonNull(values);
+
         return Sequence.from(Arrays.asList(values.clone()));
     }
 
@@ -55,6 +54,8 @@ public interface Sequence<T> {
      * @return a sequence
      */
     static <T> Sequence<T> from(Iterable<T> iterable) {
+        Objects.requireNonNull(iterable);
+
         return iterable::iterator;
     }
 
@@ -65,7 +66,9 @@ public interface Sequence<T> {
      * @return {@code true} when all elements match the predicate; otherwise, {@code false}
      */
     default boolean all(Predicate<T> predicate) {
-        final Iterator<T> iterator = this.getIterator();
+        Objects.requireNonNull(predicate);
+
+        final Iterator<T> iterator = this.iterator();
         while (iterator.hasNext()) {
             final T value = iterator.next();
             if (!predicate.test(value)) return false;
@@ -80,7 +83,9 @@ public interface Sequence<T> {
      * @return {@code true} when any elements match the predicate; otherwise, {@code false}
      */
     default boolean any(Predicate<T> predicate) {
-        final Iterator<T> iterator = this.getIterator();
+        Objects.requireNonNull(predicate);
+
+        final Iterator<T> iterator = this.iterator();
         while (iterator.hasNext()) {
             final T value = iterator.next();
             if (predicate.test(value)) return true;
@@ -94,7 +99,7 @@ public interface Sequence<T> {
      * @return {@code true} when the sequence is not empty; otherwise, {@code false}
      */
     default boolean any() {
-        return this.getIterator().hasNext();
+        return this.iterator().hasNext();
     }
 
     /**
@@ -104,7 +109,9 @@ public interface Sequence<T> {
      * @return {@code true} when none elements match the predicate; otherwise, {@code false}
      */
     default boolean none(Predicate<T> predicate) {
-        final Iterator<T> iterator = this.getIterator();
+        Objects.requireNonNull(predicate);
+
+        final Iterator<T> iterator = this.iterator();
         while (iterator.hasNext()) {
             final T value = iterator.next();
             if (predicate.test(value)) return false;
@@ -118,7 +125,7 @@ public interface Sequence<T> {
      * @return {@code true} when the sequence is empty; otherwise, {@code false}
      */
     default boolean none() {
-        return !this.getIterator().hasNext();
+        return !this.iterator().hasNext();
     }
 
     /**
@@ -141,7 +148,7 @@ public interface Sequence<T> {
      * @return the iterable
      */
     default Iterable<T> toIterable() {
-        return this::getIterator;
+        return this::iterator;
     }
 
     /**
@@ -151,7 +158,7 @@ public interface Sequence<T> {
      */
     default List<T> toList() {
         final List<T> list = new ArrayList<T>();
-        final Iterator<T> iterator = this.getIterator();
+        final Iterator<T> iterator = this.iterator();
         while (iterator.hasNext()) {
             final T value = iterator.next();
             list.add(value);
@@ -165,8 +172,9 @@ public interface Sequence<T> {
      * @return the set of elements
      */
     default Set<T> toSet() {
-        final Set<T> set = new HashSet<T>();
-        final Iterator<T> iterator = this.getIterator();
+        // We use a LinkedHashSet to preverse insertion order
+        final Set<T> set = new LinkedHashSet<T>();
+        final Iterator<T> iterator = this.iterator();
         while (iterator.hasNext()) {
             final T value = iterator.next();
             set.add(value);
@@ -175,12 +183,24 @@ public interface Sequence<T> {
     }
 
     /**
+     * Concatenates this sequence with the specified sequence.
+     *
+     * @param other the other sequence
+     * @return the concatenated sequence
+     */
+    default Sequence<T> concatWith(Sequence<T> other) {
+        Objects.requireNonNull(other);
+
+        return concat(Sequence.this, other);
+    }
+
+    /**
      * Returns whether the sequence contains any element equal to the given element.
      *
-     * @param element the element to find
+     * @param element the element to find, which may be {@code null}
      * @return {@code true} if an equal element was found; otherwise, {@code false}
      */
-    default boolean contains(T element) {
+    default boolean contains(@Nullable T element) {
         return any(element::equals);
     }
 
@@ -191,7 +211,7 @@ public interface Sequence<T> {
      */
     default int count() {
         int count = 0;
-        final Iterator<T> iterator = this.getIterator();
+        final Iterator<T> iterator = this.iterator();
         while (iterator.hasNext()) {
             iterator.next();
             count += 1;
@@ -206,8 +226,10 @@ public interface Sequence<T> {
      * @return the number of elements in the sequence that match the given predicate
      */
     default int count(Predicate<T> predicate) {
+        Objects.requireNonNull(predicate);
+
         int count = 0;
-        final Iterator<T> iterator = this.getIterator();
+        final Iterator<T> iterator = this.iterator();
         while (iterator.hasNext()) {
             final T value = iterator.next();
             if (predicate.test(value)) count += 1;
@@ -232,8 +254,10 @@ public interface Sequence<T> {
      * @param <K> the type of key
      */
     default <K> Sequence<T> distinctBy(Function<T, K> selector) {
+        Objects.requireNonNull(selector);
+
         return () -> new IteratorBase<T>() {
-            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private final Iterator<T> iterator = Sequence.this.iterator();
             private final HashSet<K> observed = new HashSet<>();
 
             @Override
@@ -263,7 +287,7 @@ public interface Sequence<T> {
      */
     default Sequence<T> take(int n) {
         return () -> new IteratorBase<T>() {
-            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private final Iterator<T> iterator = Sequence.this.iterator();
             private int taken = 0;
 
             @Override
@@ -288,8 +312,10 @@ public interface Sequence<T> {
      * @return the new sequence
      */
     default Sequence<T> takeWhile(Predicate<T> predicate) {
+        Objects.requireNonNull(predicate);
+
         return () -> new IteratorBase<T>() {
-            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private final Iterator<T> iterator = Sequence.this.iterator();
 
             @Override
             protected void computeNext() {
@@ -316,7 +342,7 @@ public interface Sequence<T> {
      */
     default Sequence<T> skip(int n) {
         return () -> new IteratorBase<T>() {
-            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private final Iterator<T> iterator = Sequence.this.iterator();
             private int skipped = 0;
 
             @Override
@@ -346,8 +372,10 @@ public interface Sequence<T> {
      * @return the new sequence
      */
     default Sequence<T> skipWhile(Predicate<T> predicate) {
+        Objects.requireNonNull(predicate);
+
         return () -> new IteratorBase<T>() {
-            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private final Iterator<T> iterator = Sequence.this.iterator();
             private boolean done = false;
 
             @Override
@@ -380,8 +408,10 @@ public interface Sequence<T> {
      * @return the new sequence
      */
     default Sequence<T> filter(Predicate<T> predicate) {
+        Objects.requireNonNull(predicate);
+
         return () -> new IteratorBase<T>() {
-            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private final Iterator<T> iterator = Sequence.this.iterator();
 
             @Override
             protected void computeNext() {
@@ -407,8 +437,10 @@ public interface Sequence<T> {
      * @return the new sequence
      */
     default <R> Sequence<R> map(InterruptibleFunction<T, R> transform) {
+        Objects.requireNonNull(transform);
+
         return () -> new IteratorBase<R>() {
-            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private final Iterator<T> iterator = Sequence.this.iterator();
 
             @Override
             protected void computeNext() throws InterruptedException {
@@ -433,8 +465,10 @@ public interface Sequence<T> {
      * @return the new sequence
      */
     default <R> Sequence<R> flatMap(InterruptibleFunction<T, Sequence<R>> transform) {
+        Objects.requireNonNull(transform);
+
         return () -> new IteratorBase<R>() {
-            private final Iterator<T> iterator = Sequence.this.getIterator();
+            private final Iterator<T> iterator = Sequence.this.iterator();
             @Nullable private Iterator<R> nestedIterator = null;
 
             @Override
@@ -451,10 +485,46 @@ public interface Sequence<T> {
                     if(!iterator.hasNext()) break;
                     T value = iterator.next();
                     Sequence<R> newValue = transform.apply(value);
-                    nestedIterator = newValue.getIterator();
+                    nestedIterator = newValue.iterator();
                 }
 
                 // The iterator is empty
+                finished();
+            }
+        };
+    }
+
+    /**
+     * Concatenates the sequences in the order they are specified.
+     *
+     * @param sequences the sequences to concatenate
+     * @return the new sequence
+     */
+    @SafeVarargs static <T> Sequence<T> concat(Sequence<T>... sequences) {
+        Objects.requireNonNull(sequences);
+
+        return () -> new IteratorBase<T>() {
+            @Nullable private Iterator<T> iterator = null;
+            private int index = 0;
+
+            @Override
+            protected void computeNext() throws InterruptedException {
+                // Return the next element
+                if (iterator != null && iterator.hasNext()) {
+                    setNext(iterator.next());
+                    return;
+                }
+                while(index < sequences.length) {
+                    // Get the next iterator
+                    iterator = sequences[index].iterator();
+                    index += 1;
+                    // Return its first element, if any
+                    if (iterator.hasNext()) {
+                        setNext(iterator.next());
+                        return;
+                    }
+                }
+                // No more sequences or elements
                 finished();
             }
         };
@@ -473,10 +543,10 @@ public interface Sequence<T> {
     default Sequence<T> buffer() {
         return new Sequence<T>() {
             private final List<T> buffer = new ArrayList<>();
-            private final Iterator<T> iterator = getIterator();
+            private final Iterator<T> iterator = iterator();
 
             @Override
-            public Iterator<T> getIterator() {
+            public Iterator<T> iterator() {
                 return new IteratorBase<T>() {
                     int index = 0;
                     @Override
@@ -514,10 +584,10 @@ public interface Sequence<T> {
      */
     default Sequence<T> iterateOnlyOnce() {
         return new Sequence<T>() {
-            private Iterator<T> iterator = getIterator();
+            private Iterator<T> iterator = iterator();
 
             @Override
-            public Iterator<T> getIterator() {
+            public Iterator<T> iterator() {
                 if (this.iterator == null) return new IteratorBase<T>() {
                     @Override
                     protected void computeNext()  {

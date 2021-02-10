@@ -19,6 +19,8 @@ public final class GlcStrategy<CTX, I, M, O> implements Strategy3<CTX, Strategy<
     @SuppressWarnings("unchecked")
     public static <CTX, I, M, O> GlcStrategy<CTX, I, M, O> getInstance() { return (GlcStrategy<CTX, I, M, O>)instance; }
 
+    private GlcStrategy() {}
+
     @Override
     public String getName() { return "glc"; }
 

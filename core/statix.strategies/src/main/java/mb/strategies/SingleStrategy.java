@@ -18,6 +18,8 @@ public final class SingleStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<
     @SuppressWarnings("unchecked")
     public static <CTX, I, O> SingleStrategy<CTX, I, O> getInstance() { return (SingleStrategy<CTX, I, O>)instance; }
 
+    private SingleStrategy() {}
+
     @Override
     public String getName() { return "single"; }
 
@@ -28,7 +30,7 @@ public final class SingleStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<
         I input
     ) throws InterruptedException {
         final Sequence<O> values = s.eval(ctx, input);
-        final Iterator<O> iterator = values.getIterator();
+        final Iterator<O> iterator = values.iterator();
         if (!iterator.hasNext()) {
             // The source has no elements, we're done.
             return Sequence.empty();

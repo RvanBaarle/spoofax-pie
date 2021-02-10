@@ -12,6 +12,8 @@ public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<
     @SuppressWarnings("unchecked")
     public static <CTX, I, M, O> SeqStrategy<CTX, I, M, O> getInstance() { return (SeqStrategy<CTX, I, M, O>)instance; }
 
+    private SeqStrategy() {}
+
     @Override
     public String getName() { return "seq"; }
 

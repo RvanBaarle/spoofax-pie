@@ -39,6 +39,7 @@ dependencies {
   api("org.metaborg:common")
   api("org.metaborg:completions.common")
   api("org.metaborg:statix.common")
+  api("org.metaborg:statix.strategies")
 
   api("org.metaborg.devenv:statix.solver")
   api("org.metaborg.devenv:statix.generator")

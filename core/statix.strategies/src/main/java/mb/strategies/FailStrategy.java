@@ -16,6 +16,8 @@ public final class FailStrategy<CTX, I, O> implements Strategy<CTX, I, O>{
     @SuppressWarnings("unchecked")
     public static <CTX, I, O> FailStrategy<CTX, I, O> getInstance() { return (FailStrategy<CTX, I, O>)instance; }
 
+    private FailStrategy() {}
+
     @Override
     public String getName() { return "fail"; }
 
