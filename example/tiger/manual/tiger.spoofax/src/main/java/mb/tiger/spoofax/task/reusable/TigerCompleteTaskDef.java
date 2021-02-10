@@ -3,7 +3,7 @@ package mb.tiger.spoofax.task.reusable;
 import mb.common.region.Region;
 import mb.common.style.StyleName;
 import mb.common.util.ListView;
-import mb.completions.common.CompletionProposal;
+import mb.completions.common.CompletionItem;
 import mb.completions.common.CompletionResult;
 import mb.pie.api.ExecContext;
 import mb.pie.api.Supplier;
@@ -63,10 +63,11 @@ public class TigerCompleteTaskDef implements TaskDef<TigerCompleteTaskDef.Input,
         //    and (maybe?) add the solver state to the current solver state
 
 
-        return new CompletionResult(ListView.of(
-            new CompletionProposal("mypackage", "description", "", "", "mypackage", Objects.requireNonNull(StyleName.fromString("meta.package")), ListView.of(), false),
-            new CompletionProposal("myclass", "description", "", "T", "mypackage", Objects.requireNonNull(StyleName.fromString("meta.class")), ListView.of(), false)
-        ), true);
+//        return new CompletionResult(ListView.of(
+//            new CompletionItem("mypackage", "description", "", "", "mypackage", Objects.requireNonNull(StyleName.fromString("meta.package")), ListView.of(), false),
+//            new CompletionItem("myclass", "description", "", "T", "mypackage", Objects.requireNonNull(StyleName.fromString("meta.class")), ListView.of(), false)
+//        ), true);
+        throw new UnsupportedOperationException("Not implemented");
     }
 
     /**

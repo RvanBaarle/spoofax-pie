@@ -10,7 +10,7 @@ import java.io.Serializable;
 /**
  * A completion proposal.
  */
-public final class CompletionProposal implements Serializable {
+public final class CompletionItem implements Serializable {
 
     private final String label;
     private final String description;
@@ -23,7 +23,7 @@ public final class CompletionProposal implements Serializable {
     private final ListView<TextEdit> edits;
 
     /**
-     * Initializes a new instance of the {@link CompletionProposal} class.
+     * Initializes a new instance of the {@link CompletionItem} class.
      *
      * @param label the label of the proposal
      * @param description the details of the proposal; or an empty string
@@ -34,7 +34,7 @@ public final class CompletionProposal implements Serializable {
      * @param edits the edits to perform to insert the proposal
      * @param deprecated whether the proposal is deprecated
      */
-    public CompletionProposal(String label, String description, String parameters, String type, String location, StyleName kind, ListView<TextEdit> edits, @Experimental boolean deprecated) {
+    public CompletionItem(String label, String description, String parameters, String type, String location, StyleName kind, ListView<TextEdit> edits, @Experimental boolean deprecated) {
         this.label = label;
         this.description = description;
         this.parameters = parameters;

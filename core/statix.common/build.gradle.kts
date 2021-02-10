@@ -13,6 +13,7 @@ dependencies {
 
   implementation(project(":stratego.common"))
   implementation(project(":jsglr.common"))
+  implementation(project(":statix.strategies"))
 
   compileOnly("org.checkerframework:checker-qual-android")
 

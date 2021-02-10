@@ -12,6 +12,8 @@ plugins {
 
 dependencies {
   api("org.metaborg:statix.common")
+  api("org.metaborg:statix.completions")
+  api("org.metaborg:statix.strategies")
 }
 
 languageAdapterProject {

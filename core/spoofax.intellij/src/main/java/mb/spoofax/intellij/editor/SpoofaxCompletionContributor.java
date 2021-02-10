@@ -13,7 +13,7 @@ import com.intellij.util.SmartList;
 import com.intellij.util.ui.EmptyIcon;
 import mb.common.region.Region;
 import mb.common.style.StyleNames;
-import mb.completions.common.CompletionProposal;
+import mb.completions.common.CompletionItem;
 import mb.completions.common.CompletionResult;
 import mb.pie.api.ExecException;
 import mb.pie.api.MixedSession;
@@ -73,7 +73,7 @@ public abstract class SpoofaxCompletionContributor extends CompletionContributor
         result.addAllElements(completionResult.getProposals().stream().map(this::proposalToElement).collect(Collectors.toList()));
     }
 
-    private LookupElement proposalToElement(CompletionProposal proposal) {
+    private LookupElement proposalToElement(CompletionItem proposal) {
         return LookupElementBuilder
             .create(proposal.getLabel())
             .withTailText(proposal.getParameters() + (proposal.getLocation().isEmpty() ? "" : " " + proposal.getLocation()))
