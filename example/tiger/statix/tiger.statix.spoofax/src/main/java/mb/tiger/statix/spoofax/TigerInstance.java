@@ -29,9 +29,11 @@ import mb.spoofax.core.language.command.HierarchicalResourceType;
 import mb.spoofax.core.language.command.arg.RawArgs;
 import mb.spoofax.core.language.menu.CommandAction;
 import mb.spoofax.core.language.menu.MenuItem;
+import mb.tiger.statix.spoofax.task.TigerComplete;
 import mb.tiger.statix.spoofax.task.TigerPostAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPreAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPrettyPrint;
+import mb.tiger.statix.spoofax.task.TigerStatixSpec;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.inject.Inject;
@@ -46,6 +48,8 @@ public class TigerInstance implements LanguageInstance {
     private final mb.tiger.statix.spoofax.task.TigerTokenize tigerTokenize;
     private final mb.tiger.statix.spoofax.task.TigerCheckMulti tigerCheckMulti;
     private final mb.tiger.statix.spoofax.task.TigerStyle tigerStyle;
+    private final mb.tiger.statix.spoofax.task.TigerComplete tigerComplete;
+    private final TigerStatixSpec statixSpecTaskDef;
     private final TigerPrettyPrint prettyPrintTaskDef;
     private final TigerPreAnalyze preAnalyzeTaskDef;
     private final TigerPostAnalyze postAnalyzeTaskDef;
@@ -57,7 +61,6 @@ public class TigerInstance implements LanguageInstance {
     private final mb.tiger.statix.spoofax.command.TigerShowAnalyzedAstCommand tigerShowAnalyzedAstCommand;
     private final mb.tiger.statix.spoofax.command.TigerShowPrettyPrintedTextCommand tigerShowPrettyPrintedTextCommand;
     private final mb.tiger.statix.spoofax.command.TigerShowScopeGraphCommand tigerShowScopeGraphCommand;
-    private final mb.spoofax.core.language.taskdef.NullCompleteTaskDef nullCompleteTaskDef;
 
     private final CollectionView<CommandDef<?>> commandDefs;
     private final CollectionView<AutoCommandRequest<?>> autoCommandDefs;
@@ -67,7 +70,8 @@ public class TigerInstance implements LanguageInstance {
         mb.tiger.statix.spoofax.task.TigerTokenize tigerTokenize,
         mb.tiger.statix.spoofax.task.TigerCheckMulti tigerCheckMulti,
         mb.tiger.statix.spoofax.task.TigerStyle tigerStyle,
-        mb.spoofax.core.language.taskdef.NullCompleteTaskDef nullCompleteTaskDef,
+        mb.tiger.statix.spoofax.task.TigerComplete tigerComplete,
+        TigerStatixSpec statixSpecTaskDef,
         TigerPrettyPrint prettyPrintTaskDef,
         TigerPreAnalyze preAnalyzeTaskDef,
         TigerPostAnalyze postAnalyzeTaskDef,
@@ -86,7 +90,8 @@ public class TigerInstance implements LanguageInstance {
         this.tigerTokenize = tigerTokenize;
         this.tigerCheckMulti = tigerCheckMulti;
         this.tigerStyle = tigerStyle;
-        this.nullCompleteTaskDef = nullCompleteTaskDef;
+        this.tigerComplete = tigerComplete;
+        this.statixSpecTaskDef = statixSpecTaskDef;
         this.prettyPrintTaskDef = prettyPrintTaskDef;
         this.preAnalyzeTaskDef = preAnalyzeTaskDef;
         this.postAnalyzeTaskDef = postAnalyzeTaskDef;
@@ -122,7 +127,14 @@ public class TigerInstance implements LanguageInstance {
 
     @Override
     public Task<@Nullable CompletionResult> createCompletionTask(ResourceKey resourceKey, Region primarySelection) {
-        return nullCompleteTaskDef.createTask(new mb.spoofax.core.language.taskdef.NullCompleteTaskDef.Input((ctx) -> mb.pie.api.None.instance)); // TODO: use Result
+        return tigerComplete.createTask(new TigerComplete.Input(
+            resourceKey,
+            primarySelection.getStartOffset(),
+            tigerParse.createAstSupplier(resourceKey).map(Result::get),
+            (c, t) -> prettyPrintTaskDef.createFunction().apply(c, new TigerPrettyPrint.Input(c2 -> t)),
+            (c, t) -> preAnalyzeTaskDef.createFunction().apply(c, new TigerPreAnalyze.Input(c2 -> t)),
+            (c, t) -> postAnalyzeTaskDef.createFunction().apply(c, new TigerPostAnalyze.Input(c2 -> t))
+        ));
     }
 
     @Override public Task<KeyedMessages> createCheckTask(ResourcePath projectRoot) {
