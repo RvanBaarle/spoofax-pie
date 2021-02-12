@@ -22,7 +22,7 @@ public final class InferSuccessStrategy implements Strategy<SolverContext, Solve
     private InferSuccessStrategy() {}
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, SolverState input) {
+    public Seq<SolverState> apply(SolverContext ctx, SolverState input) {
         return
             // Perform inference
             seq(infer())
@@ -31,6 +31,6 @@ public final class InferSuccessStrategy implements Strategy<SolverContext, Solve
             // Delay stuck queries
             .$(delayStuckQueries())
             .$()
-            .eval(ctx, input);
+            .apply(ctx, input);
     }
 }

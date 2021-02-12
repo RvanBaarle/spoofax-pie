@@ -23,13 +23,12 @@ public final class AssertStrategy<CTX, T> implements Strategy1<CTX, Predicate<T>
     public String getName() { return "assert"; }
 
     @Override
-    public Seq<T> eval(
+    public Seq<T> apply(
         CTX ctx,
         Predicate<T> predicate,
         T input
     ) {
-        if (predicate.test(input)) return Seq.of(input);
-        return Seq.empty();
+        throw new UnsupportedOperationException("Not implemented");
     }
 
 }

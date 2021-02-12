@@ -75,7 +75,7 @@ public final class ExpandQueryStrategy implements Strategy<SolverContext, Focuse
     }
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<CResolveQuery> input) {
+    public Seq<SolverState> apply(SolverContext ctx, FocusedSolverState<CResolveQuery> input) {
         final CResolveQuery query = input.getFocus();
 
         System.out.println("Expand query: " + query);

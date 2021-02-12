@@ -1,8 +1,6 @@
 package mb.strategies;
 
 import mb.sequences.ComputingInterruptibleIterator;
-import mb.sequences.InterruptibleIterator;
-import mb.sequences.InterruptibleIteratorBase;
 import mb.sequences.Seq;
 
 import java.util.LinkedHashSet;
@@ -29,7 +27,7 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
     }
 
     @Override
-    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+    public Seq<T> apply(CTX ctx, Strategy<CTX, T, T> s, T input) {
         return () -> new ComputingInterruptibleIterator<T>() {
             @Override
             protected Iterable<T> computeAll() throws InterruptedException {
@@ -39,7 +37,7 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
                 values.add(input);
                 while (true) {
                     for(T value : values) {
-                        final Seq<T> seq = s.eval(ctx, value);
+                        final Seq<T> seq = s.apply(ctx, value);
                         seq.iterator().forEachRemaining(newValues::add);
                     }
 

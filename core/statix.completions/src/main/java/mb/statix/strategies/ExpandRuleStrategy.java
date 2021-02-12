@@ -34,7 +34,7 @@ public final class ExpandRuleStrategy implements Strategy<SolverContext, Focused
     }
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<CUser> state) {
+    public Seq<SolverState> apply(SolverContext ctx, FocusedSolverState<CUser> state) {
         CUser focus = state.getFocus();
         System.out.println("Expand rule: " + focus);
 

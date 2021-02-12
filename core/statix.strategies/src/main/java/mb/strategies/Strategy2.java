@@ -14,26 +14,42 @@ import mb.sequences.Seq;
 @FunctionalInterface
 public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
 
-    /**
-     * Evaluates the strategy.
-     *
-     * @param ctx the context
-     * @param arg1 the first argument
-     * @param arg2 the second argument
-     * @param input the input value
-     * @return the resulting (possibly lazy) sequence of values
-     * @throws InterruptedException if the operation was interrupted
-     */
-    Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, I input);
+    @Override
+    default int getArity() { return 2; }
 
     /**
      * Partially applies the strategy, providing the first argument.
+     *
+     * As an optimization, partially applying the returned strategy
+     * will not wrap the strategy twice.
      *
      * @param arg1 the first argument
      * @return the resulting partially applied strategy
      */
     default Strategy1<CTX, A2, I, O> apply(A1 arg1) {
-        return new AppliedStrategy1<>(this, arg1);
+        return new Strategy1<CTX, A2, I, O>() {
+            @Override
+            public Seq<O> apply(CTX ctx, A2 arg2, I input) {
+                return Strategy2.this.apply(ctx, arg1, arg2, input);
+            }
+
+            @Override
+            public String getName() {
+                return Strategy2.this.getName();
+            }
+
+            @Override
+            public Strategy<CTX, I, O> apply(A2 arg2) {
+                // Direct to another implementation,
+                // to avoid wrapping the strategy twice.
+                return Strategy2.this.apply(arg1, arg2);
+            }
+
+            @Override
+            public String toString() {
+                return getName() + "(" + arg1 + ")";
+            }
+        };
     }
 
     /**
@@ -44,19 +60,33 @@ public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
      * @return the resulting partially applied strategy
      */
     default Strategy<CTX, I, O> apply(A1 arg1, A2 arg2) {
-        return new AppliedStrategy<>(apply(arg1), arg2);
+        return new Strategy<CTX, I, O>() {
+            @Override
+            public Seq<O> apply(CTX ctx, I input) {
+                return Strategy2.this.apply(ctx, arg1, arg2, input);
+            }
+
+            @Override
+            public String getName() {
+                return Strategy2.this.getName();
+            }
+
+            @Override
+            public String toString() {
+                return getName() + "(" + arg1 + ", " + arg2 + ")";
+            }
+        };
     }
 
     /**
-     * Fully applies the strategy, providing the first, second, and input arguments.
+     * Applies the strategy to the given arguments.
      *
+     * @param ctx the context
      * @param arg1 the first argument
      * @param arg2 the second argument
-     * @param input the input
-     * @return the resulting fully applied strategy
+     * @param input the input value
+     * @return a lazy sequence of results
      */
-    default Computation<CTX, O> apply(A1 arg1, A2 arg2, I input) {
-        return new AppliedComputation<>(apply(arg1).apply(arg2), input);
-    }
+    Seq<O> apply(CTX ctx, A1 arg1, A2 arg2, I input);
 
 }

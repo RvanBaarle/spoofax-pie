@@ -21,7 +21,7 @@ public final class IdStrategy<CTX, T> implements Strategy<CTX, T, T>{
     public String getName() { return "id"; }
 
     @Override
-    public Seq<T> eval(
+    public Seq<T> apply(
         CTX ctx,
         T input
     ) {
@@ -29,3 +29,11 @@ public final class IdStrategy<CTX, T> implements Strategy<CTX, T, T>{
     }
 
 }
+
+
+//class Strats {
+//
+//    @SuppressWarnings("rawtypes") private static final Strategy id = IdStrategy.getInstance();
+//    @SuppressWarnings("unchecked") public static <CTX, T> Strategy<CTX, T, T> id() { return (Strategy<CTX, T, T>)id; }
+//
+//}

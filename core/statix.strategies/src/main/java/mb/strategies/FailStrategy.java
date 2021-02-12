@@ -22,7 +22,7 @@ public final class FailStrategy<CTX, I, O> implements Strategy<CTX, I, O>{
     public String getName() { return "fail"; }
 
     @Override
-    public Seq<O> eval(
+    public Seq<O> apply(
         CTX ctx,
         I input
     ) {

@@ -12,24 +12,15 @@ import mb.sequences.Seq;
 @FunctionalInterface
 public interface Strategy<CTX, I, O> extends StrategyDecl {
 
+    @Override
+    default int getArity() { return 0; }
+
     /**
-     * Evaluates the strategy.
+     * Applies the strategy to the given arguments.
      *
      * @param ctx the context
      * @param input the input value
-     * @return the resulting (possibly lazy) sequence of values
-     * @throws InterruptedException if the operation was interrupted
+     * @return a lazy sequence of results
      */
-    Seq<O> eval(CTX ctx, I input);
-
-    /**
-     * Fully applies the strategy, providing the input arguments.
-     *
-     * @param input the input
-     * @return the resulting fully applied strategy
-     */
-    default Computation<CTX, O> apply(I input) {
-        return new AppliedComputation<>(this, input);
-    }
-
+    Seq<O> apply(CTX ctx, I input);
 }

@@ -22,14 +22,14 @@ public final class OrStrategy<CTX, I, O> implements Strategy2<CTX, Strategy<CTX,
     public String getName() { return "or"; }
 
     @Override
-    public Seq<O> eval(
+    public Seq<O> apply(
         CTX ctx,
         Strategy<CTX, I, O> s1,
         Strategy<CTX, I, O> s2,
         I input
     ) {
-        final Seq<O> results1 = s1.eval(ctx, input);
-        final Seq<O> results2 = s2.eval(ctx, input);
+        final Seq<O> results1 = s1.apply(ctx, input);
+        final Seq<O> results2 = s2.apply(ctx, input);
         return results1.concatWith(results2);
     }
 

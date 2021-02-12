@@ -24,13 +24,13 @@ public final class DebugStrategy<CTX, I, O> implements Strategy2<CTX, Consumer<?
     public String getName() { return "debug"; }
 
     @Override
-    public Seq<O> eval(
+    public Seq<O> apply(
         CTX ctx,
         Consumer<? super O> action,
         Strategy<CTX, I, O> strategy,
         I input
     ) {
-        return strategy.eval(ctx, input).map(it -> { action.accept(it); return it; });
+        return strategy.apply(ctx, input).map(it -> { action.accept(it); return it; });
     }
 
 }

@@ -21,11 +21,11 @@ public final class Strategies {
      * @param <O> the type of outputs
      * @return the resulting strategy
      */
-    public static <CTX, I, O> Strategy<CTX, I, O> assertAll(
-        Predicate<Seq<O>> predicate,
+    public static <CTX, I, O> Strategy<CTX, I, O> all(
+        Predicate<O> predicate,
         Strategy<CTX, I, O> strategy
     ) {
-        return AssertAllStrategy.<CTX, I, O>getInstance().apply(predicate, strategy);
+        return AllStrategy.<CTX, I, O>getInstance().apply(predicate, strategy);
     }
 
     /**
@@ -227,8 +227,8 @@ public final class Strategies {
     public static <CTX, I, O> Strategy<CTX, I, O> rec(Function<Strategy<CTX, I, O>, Strategy<CTX, I, O>> f) {
         return new Strategy<CTX, I, O>() {
             @Override
-            public Seq<O> eval(CTX ctx, I input) {
-                return f.apply(this).eval(ctx, input);
+            public Seq<O> apply(CTX ctx, I input) {
+                return f.apply(this).apply(ctx, input);
             }
         };
     }

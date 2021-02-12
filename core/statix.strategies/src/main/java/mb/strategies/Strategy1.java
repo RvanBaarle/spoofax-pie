@@ -13,15 +13,8 @@ import mb.sequences.Seq;
 @FunctionalInterface
 public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
 
-    /**
-     * Evaluates the strategy.
-     *
-     * @param ctx the context
-     * @param arg1 the first argument
-     * @param input the input value
-     * @return the resulting (possibly lazy) sequence of values
-     */
-    Seq<O> eval(CTX ctx, A1 arg1, I input);
+    @Override
+    default int getArity() { return 1; }
 
     /**
      * Partially applies the strategy, providing the first arguments.
@@ -30,18 +23,32 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
      * @return the resulting partially applied strategy
      */
     default Strategy<CTX, I, O> apply(A1 arg1) {
-        return new AppliedStrategy<>(this, arg1);
+        return new Strategy<CTX, I, O>() {
+            @Override
+            public Seq<O> apply(CTX ctx, I input) {
+                return Strategy1.this.apply(ctx, arg1, input);
+            }
+
+            @Override
+            public String getName() {
+                return Strategy1.this.getName();
+            }
+
+            @Override
+            public String toString() {
+                return getName() + "(" + arg1 + ")";
+            }
+        };
     }
 
     /**
-     * Fully applies the strategy, providing the first and input arguments.
+     * Applies the strategy to the given arguments.
      *
+     * @param ctx the context
      * @param arg1 the first argument
-     * @param input the input
-     * @return the resulting fully applied strategy
+     * @param input the input value
+     * @return a lazy sequence of results
      */
-    default Computation<CTX, O> apply(A1 arg1, I input) {
-        return new AppliedComputation<>(apply(arg1), input);
-    }
+    Seq<O> apply(CTX ctx, A1 arg1, I input);
 
 }

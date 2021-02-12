@@ -22,7 +22,7 @@ public final class BuildStrategy<CTX, I, O> implements Strategy1<CTX, Iterable<O
     public String getName() { return "build"; }
 
     @Override
-    public Seq<O> eval(
+    public Seq<O> apply(
         CTX ctx,
         Iterable<O> iterable,
         I input

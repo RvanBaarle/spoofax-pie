@@ -27,16 +27,16 @@ public final class GlcStrategy<CTX, I, M, O> implements Strategy3<CTX, Strategy<
     public String getName() { return "glc"; }
 
     @Override
-    public Seq<O> eval(
+    public Seq<O> apply(
         CTX ctx,
         Strategy<CTX, I, M> condition,
         Strategy<CTX, M, O> onSuccess,
         Strategy<CTX, I, O> onFailure,
         I input
     ) {
-        final Seq<M> conditionSeq = condition.eval(ctx, input);
-        final Seq<O> onSuccessSeq = conditionSeq.flatMap(it -> onSuccess.eval(ctx, it));
-        final Seq<O> onFailureSeq = onFailure.eval(ctx, input);
+        final Seq<M> conditionSeq = condition.apply(ctx, input);
+        final Seq<O> onSuccessSeq = conditionSeq.flatMap(it -> onSuccess.apply(ctx, it));
+        final Seq<O> onFailureSeq = onFailure.apply(ctx, input);
         return () -> new InterruptibleIteratorBase<O>() {
             InterruptibleIterator<O> seqIter = null;
 

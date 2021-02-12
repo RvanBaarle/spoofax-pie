@@ -18,8 +18,8 @@ public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<
     public String getName() { return "seq"; }
 
     @Override
-    public Seq<O> eval(CTX ctx, Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2, I input) {
-        return s1.eval(ctx, input).flatMap(it -> s2.eval(ctx, it));
+    public Seq<O> apply(CTX ctx, Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2, I input) {
+        return s1.apply(ctx, input).flatMap(it -> s2.apply(ctx, it));
     }
 
     /**

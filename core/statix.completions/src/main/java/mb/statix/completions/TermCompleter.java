@@ -50,7 +50,7 @@ public final class TermCompleter {
      * @return the resulting states
      */
     public Seq<SolverState> completeNodes(SolverContext ctx, SolverState state, ITermVar placeholderVar) throws InterruptedException {
-        return new CompleteStrategy(placeholderVar).eval(ctx, state);
+        return new CompleteStrategy(placeholderVar).apply(ctx, state);
     }
 
     private static boolean returnAndWrite(String msg, boolean value) {

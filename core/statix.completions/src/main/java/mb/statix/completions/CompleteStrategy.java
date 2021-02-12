@@ -41,7 +41,7 @@ public final class CompleteStrategy implements Strategy<SolverContext, SolverSta
     }
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, SolverState input) {
+    public Seq<SolverState> apply(SolverContext ctx, SolverState input) {
         Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> continuation = buildInnerCompletionStrategy(placeholderVar);
         return distinct(
             fixSet(
@@ -51,7 +51,7 @@ public final class CompleteStrategy implements Strategy<SolverContext, SolverSta
                     .$(continuation)
                     .$()
             )
-        ).eval(ctx, input);
+        ).apply(ctx, input);
     }
 
     private Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> buildInnerCompletionStrategy(ITermVar placeholderVar) {

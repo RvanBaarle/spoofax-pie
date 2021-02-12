@@ -28,7 +28,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, String> sut = single(build(input));
 
         // Act
-        final List<String> results = sut.eval(new Object(), new Object()).toList().tryEval();
+        final List<String> results = sut.apply(new Object(), new Object()).toList().tryEval();
 
         // Assert
         assertEquals(input, results);
@@ -41,7 +41,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, String> sut = single(build(input));
 
         // Act
-        final List<String> results = sut.eval(new Object(), new Object()).toList().tryEval();
+        final List<String> results = sut.apply(new Object(), new Object()).toList().tryEval();
 
         // Assert
         assertEquals(input, results);
@@ -54,7 +54,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, String> sut = single(build(input));
 
         // Act
-        final List<String> results = sut.eval(new Object(), new Object()).toList().tryEval();
+        final List<String> results = sut.apply(new Object(), new Object()).toList().tryEval();
 
         // Assert
         assertEquals(Collections.emptyList(), results);
@@ -72,7 +72,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, String> sut = single(s);
 
         // Act
-        sut.eval(new Object(), new Object());
+        sut.apply(new Object(), new Object());
 
         // Assert
         assertFalse(evaluated.get());
@@ -91,7 +91,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, Integer> sut = single(s);
 
         // Act
-        final List<Integer> results = sut.eval(new Object(), new Object()).toList().tryEval();
+        final List<Integer> results = sut.apply(new Object(), new Object()).toList().tryEval();
 
         // Assert
         assertEquals(Arrays.asList(1), results);

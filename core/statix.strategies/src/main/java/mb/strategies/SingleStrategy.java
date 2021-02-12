@@ -1,10 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.InterruptibleIterator;
-import mb.sequences.InterruptibleIteratorBase;
 import mb.sequences.Seq;
-
-import java.util.Iterator;
 
 /**
  * Returns the results of the given strategy only when there is only one result.
@@ -26,12 +22,12 @@ public final class SingleStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<
     public String getName() { return "single"; }
 
     @Override
-    public Seq<O> eval(
+    public Seq<O> apply(
         CTX ctx,
         Strategy<CTX, I, O> s,
         I input
     ) {
-        return s.eval(ctx, input).single();
+        return s.apply(ctx, input).single();
     }
 
 }
