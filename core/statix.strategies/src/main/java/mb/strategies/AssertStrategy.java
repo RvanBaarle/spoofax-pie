@@ -1,6 +1,8 @@
 package mb.strategies;
 
+import mb.sequences.Computation;
 import mb.sequences.Seq;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.function.Predicate;
 
@@ -28,7 +30,10 @@ public final class AssertStrategy<CTX, T> implements Strategy1<CTX, Predicate<T>
         Predicate<T> predicate,
         T input
     ) {
-        throw new UnsupportedOperationException("Not implemented");
+        return (Computation<T>)() -> {
+            if (!predicate.test(input)) return null;
+            return input;
+        };
     }
 
 }
