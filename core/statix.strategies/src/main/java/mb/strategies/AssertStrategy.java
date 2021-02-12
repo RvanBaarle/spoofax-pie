@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 import java.util.function.Predicate;
 
@@ -23,13 +23,13 @@ public final class AssertStrategy<CTX, T> implements Strategy1<CTX, Predicate<T>
     public String getName() { return "assert"; }
 
     @Override
-    public Sequence<T> eval(
+    public Seq<T> eval(
         CTX ctx,
         Predicate<T> predicate,
         T input
-    ) throws InterruptedException {
-        if (predicate.test(input)) return Sequence.of(input);
-        return Sequence.empty();
+    ) {
+        if (predicate.test(input)) return Seq.of(input);
+        return Seq.empty();
     }
 
 }

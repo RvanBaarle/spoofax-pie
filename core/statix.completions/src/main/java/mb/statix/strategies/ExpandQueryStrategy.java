@@ -9,7 +9,7 @@ import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
 import mb.nabl2.terms.ListTerms;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.FocusedSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
@@ -35,7 +35,6 @@ import mb.statix.solver.query.RegExpLabelWF;
 import mb.statix.solver.query.RelationLabelOrder;
 import mb.statix.spec.Spec;
 import mb.statix.spoofax.StatixTerms;
-import mb.strategies.AssertAllStrategy;
 import mb.strategies.Strategy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.metaborg.util.functions.Predicate2;
@@ -76,7 +75,7 @@ public final class ExpandQueryStrategy implements Strategy<SolverContext, Focuse
     }
 
     @Override
-    public Sequence<SolverState> eval(SolverContext ctx, FocusedSolverState<CResolveQuery> input) {
+    public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<CResolveQuery> input) {
         final CResolveQuery query = input.getFocus();
 
         System.out.println("Expand query: " + query);
@@ -137,7 +136,7 @@ public final class ExpandQueryStrategy implements Strategy<SolverContext, Focuse
             }
         }
 
-        return Sequence.from(output);
+        return Seq.from(output);
     }
 
     /**

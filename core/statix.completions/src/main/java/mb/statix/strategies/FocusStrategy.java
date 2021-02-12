@@ -1,6 +1,6 @@
 package mb.statix.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.FocusedSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
@@ -29,7 +29,7 @@ public final class FocusStrategy<C extends IConstraint> implements Strategy2<Sol
     }
 
     @Override
-    public Sequence<FocusedSolverState<C>> eval(SolverContext ctx, Class<C> constraintClass, BiPredicate<C, SolverState> predicate, SolverState input) {
+    public Seq<FocusedSolverState<C>> eval(SolverContext ctx, Class<C> constraintClass, BiPredicate<C, SolverState> predicate, SolverState input) {
         //noinspection unchecked
         Optional<C> focus = input.getConstraints().stream()
             .filter(c -> constraintClass.isAssignableFrom(c.getClass()))
@@ -41,7 +41,7 @@ public final class FocusStrategy<C extends IConstraint> implements Strategy2<Sol
         } else {
             System.out.println("Focus: NONE");
         }
-        return focus.map(c -> Sequence.of(new FocusedSolverState<>(input, c))).orElseGet(Sequence::empty);
+        return focus.map(c -> Seq.of(new FocusedSolverState<>(input, c))).orElseGet(Seq::empty);
     }
 
 }

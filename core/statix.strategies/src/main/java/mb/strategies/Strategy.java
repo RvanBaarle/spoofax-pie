@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 /**
  * A strategy.
@@ -20,7 +20,7 @@ public interface Strategy<CTX, I, O> extends StrategyDecl {
      * @return the resulting (possibly lazy) sequence of values
      * @throws InterruptedException if the operation was interrupted
      */
-    Sequence<O> eval(CTX ctx, I input) throws InterruptedException;
+    Seq<O> eval(CTX ctx, I input);
 
     /**
      * Fully applies the strategy, providing the input arguments.

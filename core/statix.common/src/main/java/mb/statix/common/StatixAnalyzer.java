@@ -92,7 +92,7 @@ public class StatixAnalyzer {
      * @return the resulting analysis result
      */
     public SolverState analyze(SolverContext ctx, SolverState startState) throws InterruptedException {
-        final List<SolverState> states = InferStrategy.getInstance().eval(ctx, startState).toList();
+        final List<SolverState> states = InferStrategy.getInstance().eval(ctx, startState).toList().tryEval();
         if (states.isEmpty()) throw new IllegalStateException("This cannot be happening.");
         return states.get(0);
     }

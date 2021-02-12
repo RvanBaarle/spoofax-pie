@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 /**
  * A computation.
@@ -17,6 +17,6 @@ public interface Computation<CTX, O> extends StrategyDecl {
      * @return the resulting (possibly lazy) sequence of values
      * @throws InterruptedException if the operation was interrupted
      */
-    Sequence<O> eval(CTX ctx) throws InterruptedException;
+    Seq<O> eval(CTX ctx) throws InterruptedException;
 
 }

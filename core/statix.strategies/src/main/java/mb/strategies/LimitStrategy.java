@@ -1,8 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
-
-import java.util.Collections;
+import mb.sequences.Seq;
 
 /**
  * Limits the number of results from the given strategy.
@@ -24,13 +22,13 @@ public final class LimitStrategy<CTX, I, O> implements Strategy2<CTX, Integer, S
     public String getName() { return "limit"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
         Integer limit,
         Strategy<CTX, I, O> s,
         I input
-    ) throws InterruptedException {
-        final Sequence<O> values = s.eval(ctx, input);
+    ) {
+        final Seq<O> values = s.eval(ctx, input);
         return values.take(limit);
     }
 

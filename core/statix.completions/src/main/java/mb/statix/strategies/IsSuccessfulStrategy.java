@@ -3,7 +3,7 @@ package mb.statix.strategies;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
 import mb.nabl2.terms.unification.UnifierFormatter;
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.constraints.messages.MessageKind;
@@ -29,7 +29,7 @@ public final class IsSuccessfulStrategy implements Strategy<SolverContext, Solve
     }
 
     @Override
-    public Sequence<SolverState> eval(SolverContext ctx, SolverState state) {
+    public Seq<SolverState> eval(SolverContext ctx, SolverState state) {
         if (state.hasErrors()) {
             @Nullable final ITermVar focusVar = ctx.getFocusVar();
             System.out.println("isSuccessful(): rejected: " + (focusVar != null ? state.project(focusVar) : ""));
@@ -43,10 +43,10 @@ public final class IsSuccessfulStrategy implements Strategy<SolverContext, Solve
                     System.out.println("  " + constraintStr);
                 }
             });
-            return Sequence.empty();
+            return Seq.empty();
         } else {
             //System.out.println("isSuccessful(): Accepted");
-            return Sequence.of(state);
+            return Seq.of(state);
         }
     }
 

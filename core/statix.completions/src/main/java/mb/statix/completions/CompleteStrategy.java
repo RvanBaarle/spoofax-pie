@@ -5,7 +5,7 @@ import com.google.common.collect.Multiset;
 import io.usethesource.capsule.Set;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.FocusedSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
@@ -41,7 +41,7 @@ public final class CompleteStrategy implements Strategy<SolverContext, SolverSta
     }
 
     @Override
-    public Sequence<SolverState> eval(SolverContext ctx, SolverState input) throws InterruptedException {
+    public Seq<SolverState> eval(SolverContext ctx, SolverState input) {
         Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> continuation = buildInnerCompletionStrategy(placeholderVar);
         return distinct(
             fixSet(

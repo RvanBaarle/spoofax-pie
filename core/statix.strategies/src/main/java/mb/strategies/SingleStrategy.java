@@ -1,6 +1,8 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.InterruptibleIterator;
+import mb.sequences.InterruptibleIteratorBase;
+import mb.sequences.Seq;
 
 import java.util.Iterator;
 
@@ -24,23 +26,12 @@ public final class SingleStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<
     public String getName() { return "single"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s,
         I input
-    ) throws InterruptedException {
-        final Sequence<O> values = s.eval(ctx, input);
-        final Iterator<O> iterator = values.iterator();
-        if (!iterator.hasNext()) {
-            // The source has no elements, we're done.
-            return Sequence.empty();
-        }
-        final O value = iterator.next();
-        if (iterator.hasNext()) {
-            // The source has more than one element.
-            return Sequence.empty();
-        }
-        return Sequence.of(value);
+    ) {
+        return s.eval(ctx, input).single();
     }
 
 }

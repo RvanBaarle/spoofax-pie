@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 /**
  * Disjunction.
@@ -22,14 +22,14 @@ public final class OrStrategy<CTX, I, O> implements Strategy2<CTX, Strategy<CTX,
     public String getName() { return "or"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s1,
         Strategy<CTX, I, O> s2,
         I input
-    ) throws InterruptedException {
-        final Sequence<O> results1 = s1.eval(ctx, input);
-        final Sequence<O> results2 = s2.eval(ctx, input);
+    ) {
+        final Seq<O> results1 = s1.eval(ctx, input);
+        final Seq<O> results2 = s2.eval(ctx, input);
         return results1.concatWith(results2);
     }
 

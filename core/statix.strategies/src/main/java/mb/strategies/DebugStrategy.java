@@ -1,10 +1,8 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * Evaluates a strategy and applies an action to each element.
@@ -26,17 +24,13 @@ public final class DebugStrategy<CTX, I, O> implements Strategy2<CTX, Consumer<?
     public String getName() { return "debug"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
         Consumer<? super O> action,
         Strategy<CTX, I, O> strategy,
         I input
-    ) throws InterruptedException {
-        // This buffers the entire sequence.
-        // This has a performance implication, but is required for a better debugging experience.
-        final Sequence<O> seq = strategy.eval(ctx, input).buffer();
-        seq.forEach(action);
-        return seq;
+    ) {
+        return strategy.eval(ctx, input).map(it -> { action.accept(it); return it; });
     }
 
 }

@@ -2,7 +2,6 @@ package mb.sequences;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
@@ -10,7 +9,7 @@ import java.util.NoSuchElementException;
  *
  * @param <T> the type of elements in the iterator
  */
-public abstract class IteratorBase<T> implements Iterator<T> {
+public abstract class InterruptibleIteratorBase<T> implements InterruptibleIterator<T> {
 
     /**
      * Specifies the state of the iterator.
@@ -29,7 +28,7 @@ public abstract class IteratorBase<T> implements Iterator<T> {
     @Nullable private T nextValue = null;
 
     @Override
-    public final boolean hasNext() {
+    public final boolean hasNext() throws InterruptedException {
         switch (state) {
             case Ready: return true;
             case Finished: return false;
@@ -38,7 +37,7 @@ public abstract class IteratorBase<T> implements Iterator<T> {
     }
 
     @Override
-    public final T next() {
+    public final T next() throws InterruptedException {
         if (!hasNext()) throw new NoSuchElementException();
         this.state = State.Preparing;
         return nextValue;
@@ -50,16 +49,10 @@ public abstract class IteratorBase<T> implements Iterator<T> {
      * @return {@code true} when a next element was computed;
      * otherwise, {@code false}
      */
-    private boolean tryComputeNext() {
-        try {
-            state = State.Preparing;
-            computeNext();
-            return state == State.Ready;
-        } catch (InterruptedException ex) {
-            // Signal that the thread was interrupted
-            Thread.currentThread().interrupt();
-            return false;
-        }
+    private boolean tryComputeNext() throws InterruptedException{
+        state = State.Preparing;
+        computeNext();
+        return state == State.Ready;
     }
 
     /**

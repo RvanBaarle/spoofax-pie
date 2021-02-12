@@ -13,49 +13,49 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests {@link Sequence#from}.
+ * Tests {@link Seq#from}.
  */
-@SuppressWarnings({"ArraysAsListWithZeroOrOneArgument", "CodeBlock2Expr", "ConstantConditions"})
-public final class Sequence_FromTests {
+@SuppressWarnings({"ArraysAsListWithZeroOrOneArgument", "CodeBlock2Expr", "ConstantConditions", "Convert2Diamond"})
+public final class Seq_FromTests {
 
     @Test
-    public void returnsAnEmptySequence_whenGivenAnEmptyIterable() {
+    public void returnsAnEmptySequence_whenGivenAnEmptyIterable() throws InterruptedException {
         // Arrange
         Iterable<String> iterable = Collections.emptySet();
 
         // Act
-        Sequence<String> seq = Sequence.from(iterable);
+        Seq<String> seq = Seq.from(iterable);
 
         // Assert
-        assertEquals(Arrays.asList(), seq.toList());
+        assertEquals(Arrays.asList(), seq.toList().tryEval());
     }
 
     @Test
-    public void returnsASingletonSequence_whenGivenASingletonIterable() {
+    public void returnsASingletonSequence_whenGivenASingletonIterable() throws InterruptedException {
         // Arrange
         Iterable<String> iterable = Collections.singleton("a");
 
         // Act
-        Sequence<String> seq = Sequence.from(iterable);
+        Seq<String> seq = Seq.from(iterable);
 
         // Assert
-        assertEquals(Arrays.asList("a"), seq.toList());
+        assertEquals(Arrays.asList("a"), seq.toList().tryEval());
     }
 
     @Test
-    public void returnsASequenceWithTheGivenElements_whenGivenAnIterable() {
+    public void returnsASequenceWithTheGivenElements_whenGivenAnIterable() throws InterruptedException {
         // Arrange
         Iterable<String> iterable = Arrays.asList("a", "b", "c");
 
         // Act
-        Sequence<String> seq = Sequence.from(iterable);
+        Seq<String> seq = Seq.from(iterable);
 
         // Assert
-        assertEquals(Arrays.asList("a", "b", "c"), seq.toList());
+        assertEquals(Arrays.asList("a", "b", "c"), seq.toList().tryEval());
     }
 
     @Test
-    public void returnsTheSameSequenceEveryTime_whenCoercedMultipleTimes() {
+    public void returnsTheSameSequenceEveryTime_whenCoercedMultipleTimes() throws InterruptedException {
         // Arrange
         AtomicInteger n = new AtomicInteger();
         Iterable<String> list = Arrays.asList("a", "b", "c");
@@ -65,33 +65,33 @@ public final class Sequence_FromTests {
         };
 
         // Act
-        Sequence<String> seq = Sequence.from(iterable);
+        Seq<String> seq = Seq.from(iterable);
 
         // Assert
-        assertEquals(Arrays.asList("a", "b", "c"), seq.toList());
-        assertEquals(Arrays.asList("a", "b", "c"), seq.toList());
-        assertEquals(Arrays.asList("a", "b", "c"), seq.toList());
+        assertEquals(Arrays.asList("a", "b", "c"), seq.toList().tryEval());
+        assertEquals(Arrays.asList("a", "b", "c"), seq.toList().tryEval());
+        assertEquals(Arrays.asList("a", "b", "c"), seq.toList().tryEval());
         assertEquals(3, n.get());
     }
 
     @Test
-    public void returnsADifferenceSequence_whenTheOriginalIterableIsChanged() {
+    public void returnsADifferenceSequence_whenTheOriginalIterableIsChanged() throws InterruptedException {
         // Act
         List<String> list = Arrays.asList("a", "b", "c");
-        Sequence<String> seq = Sequence.from(list);
+        Seq<String> seq = Seq.from(list);
 
         // Act & Assert
-        assertEquals(Arrays.asList("a", "b", "c"), seq.toList());
+        assertEquals(Arrays.asList("a", "b", "c"), seq.toList().tryEval());
 
         list.set(0, "A");
         list.set(1, "B");
         list.set(2, "C");
 
-        assertEquals(Arrays.asList("A", "B", "C"), seq.toList());
+        assertEquals(Arrays.asList("A", "B", "C"), seq.toList().tryEval());
     }
 
     @Test
-    public void returnsAsManyValuesAsRequested_whenTheIterableIsInfinite() {
+    public void returnsAsManyValuesAsRequested_whenTheIterableIsInfinite() throws InterruptedException {
         // Arrange
         AtomicInteger hasNextEvaluated = new AtomicInteger(0);
         AtomicInteger nextEvaluated = new AtomicInteger(0);
@@ -111,7 +111,7 @@ public final class Sequence_FromTests {
                 return this.value;
             }
         };
-        Sequence<Integer> seq = Sequence.from(itr);
+        Seq<Integer> seq = Seq.from(itr);
 
         // Assert
         assertEquals(0, hasNextEvaluated.get());
@@ -119,7 +119,7 @@ public final class Sequence_FromTests {
 
         // Act
         final List<Integer> values = new ArrayList<>(10);
-        final Iterator<Integer> iterator = seq.iterator();
+        final InterruptibleIterator<Integer> iterator = seq.iterator();
         for (int i = 0; i < 10; i++) {
             assertTrue(iterator.hasNext());
             values.add(iterator.next());
@@ -131,27 +131,14 @@ public final class Sequence_FromTests {
         assertEquals(10, nextEvaluated.get());
     }
 
-
-    @Test
-    public void returnsASequenceWithNullElements_whenGivenNullElements() {
-        // Arrange
-        List<String> list = Arrays.asList("a", null, "c");
-
-        // Act
-        Sequence<String> seq = Sequence.from(list);
-
-        // Assert
-        assertEquals(Arrays.asList("a", null, "c"), seq.toList());
-    }
-
-    @Test
+    @SuppressWarnings("ResultOfMethodCallIgnored") @Test
     public void throws_whenArgumentIsNull() {
         // Act
         @Nullable Iterable<String> values = null;
 
         // Assert
         assertThrows(NullPointerException.class, () -> {
-            Sequence.from(values);
+            Seq.from(values);
         });
     }
 

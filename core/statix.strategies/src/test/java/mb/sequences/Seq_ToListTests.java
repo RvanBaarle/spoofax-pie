@@ -1,27 +1,26 @@
 package mb.sequences;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests {@link Sequence#toList}.
+ * Tests {@link Seq#toList}.
  */
-public final class Sequence_ToListTests {
+public final class Seq_ToListTests {
 
     @Test
     public void returnsEmptyList_whenEmptySequence() throws InterruptedException {
         // Arrange
-        Sequence<Integer> seq = Sequence.empty();
+        Seq<Integer> seq = Seq.empty();
+        final Computation<List<Integer>> sut = seq.toList();
 
         // Act
-        List<Integer> list = seq.toList();
+        List<Integer> list = sut.tryEval();
 
         // Assert
         assertEquals(Collections.emptyList(), list);
@@ -30,10 +29,11 @@ public final class Sequence_ToListTests {
     @Test
     public void returnsAllElements_whenNonEmptySequence() throws InterruptedException {
         // Arrange
-        Sequence<Integer> seq = Sequence.of(1, 2, 3);
+        Seq<Integer> seq = Seq.of(1, 2, 3);
+        final Computation<List<Integer>> sut = seq.toList();
 
         // Act
-        List<Integer> list = seq.toList();
+        List<Integer> list = sut.tryEval();
 
         // Assert
         assertEquals(Arrays.asList(1, 2, 3), list);
@@ -42,11 +42,12 @@ public final class Sequence_ToListTests {
     @Test
     public void returnsAllElements_whenSequenceIsPartiallyEvaluated() throws InterruptedException {
         // Arrange
-        Sequence<Integer> seq = Sequence.of(1, 2, 3);
+        Seq<Integer> seq = Seq.of(1, 2, 3);
+        final Computation<List<Integer>> sut = seq.toList();
 
         // Act
         seq.iterator().next(); // Consume the first element
-        List<Integer> list = seq.toList();
+        List<Integer> list = sut.tryEval();
 
         // Assert
         assertEquals(Arrays.asList(1, 2, 3), list);

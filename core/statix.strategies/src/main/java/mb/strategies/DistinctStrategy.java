@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 /**
  * Ensures the results from the given strategy are distinct.
@@ -22,12 +22,12 @@ public final class DistinctStrategy<CTX, I, O> implements Strategy1<CTX, Strateg
     public String getName() { return "distinct"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s,
         I input
-    ) throws InterruptedException {
-        final Sequence<O> values = s.eval(ctx, input);
+    ) {
+        final Seq<O> values = s.eval(ctx, input);
         return values.distinct();
     }
 

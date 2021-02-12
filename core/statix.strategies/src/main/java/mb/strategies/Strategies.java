@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,7 +22,7 @@ public final class Strategies {
      * @return the resulting strategy
      */
     public static <CTX, I, O> Strategy<CTX, I, O> assertAll(
-        Predicate<Sequence<O>> predicate,
+        Predicate<Seq<O>> predicate,
         Strategy<CTX, I, O> strategy
     ) {
         return AssertAllStrategy.<CTX, I, O>getInstance().apply(predicate, strategy);
@@ -227,7 +227,7 @@ public final class Strategies {
     public static <CTX, I, O> Strategy<CTX, I, O> rec(Function<Strategy<CTX, I, O>, Strategy<CTX, I, O>> f) {
         return new Strategy<CTX, I, O>() {
             @Override
-            public Sequence<O> eval(CTX ctx, I input) throws InterruptedException {
+            public Seq<O> eval(CTX ctx, I input) {
                 return f.apply(this).eval(ctx, input);
             }
         };

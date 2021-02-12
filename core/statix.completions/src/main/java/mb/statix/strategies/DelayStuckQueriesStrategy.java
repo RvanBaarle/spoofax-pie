@@ -3,7 +3,7 @@ package mb.statix.strategies;
 import com.google.common.collect.Maps;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.constraints.CEqual;
@@ -50,7 +50,7 @@ public final class DelayStuckQueriesStrategy implements Strategy<SolverContext, 
     }
 
     @Override
-    public Sequence<SolverState> eval(SolverContext ctx, SolverState input) {
+    public Seq<SolverState> eval(SolverContext ctx, SolverState input) {
         final IState.Immutable state = input.getState();
         final ICompleteness.Immutable completeness = input.getCompleteness();
 
@@ -59,7 +59,7 @@ public final class DelayStuckQueriesStrategy implements Strategy<SolverContext, 
             delays.put(q, d);
         }));
 
-        return Sequence.of(input.delay(delays.entrySet()));
+        return Seq.of(input.delay(delays.entrySet()));
     }
 
     private Optional<Delay> checkDelay(Spec spec, CResolveQuery query, IState.Immutable state,

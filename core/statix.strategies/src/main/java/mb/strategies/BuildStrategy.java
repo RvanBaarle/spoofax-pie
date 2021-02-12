@@ -1,8 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
-
-import java.util.function.Predicate;
+import mb.sequences.Seq;
 
 /**
  * Provides initial values, ignoring the input.
@@ -24,12 +22,12 @@ public final class BuildStrategy<CTX, I, O> implements Strategy1<CTX, Iterable<O
     public String getName() { return "build"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
         Iterable<O> iterable,
         I input
-    ) throws InterruptedException {
-        return Sequence.from(iterable);
+    ) {
+        return Seq.from(iterable);
     }
 
 }

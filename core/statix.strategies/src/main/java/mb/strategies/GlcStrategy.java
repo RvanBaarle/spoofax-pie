@@ -1,6 +1,8 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.InterruptibleIterator;
+import mb.sequences.InterruptibleIteratorBase;
+import mb.sequences.Seq;
 
 /**
  * Guarded left choice.
@@ -25,21 +27,36 @@ public final class GlcStrategy<CTX, I, M, O> implements Strategy3<CTX, Strategy<
     public String getName() { return "glc"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, M> condition,
         Strategy<CTX, M, O> onSuccess,
         Strategy<CTX, I, O> onFailure,
         I input
-    ) throws InterruptedException {
-        // If `condition` is an expensive operation, the sequence should be buffered.
-        // We don't do that here, to give users the flexibility to do this on the calling site.
-        final Sequence<M> values = condition.eval(ctx, input);
-        if (values.any()) {
-            return values.flatMap(it -> onSuccess.eval(ctx, it));
-        } else {
-            return onFailure.eval(ctx, input);
-        }
+    ) {
+        final Seq<M> conditionSeq = condition.eval(ctx, input);
+        final Seq<O> onSuccessSeq = conditionSeq.flatMap(it -> onSuccess.eval(ctx, it));
+        final Seq<O> onFailureSeq = onFailure.eval(ctx, input);
+        return () -> new InterruptibleIteratorBase<O>() {
+            InterruptibleIterator<O> seqIter = null;
+
+            @Override
+            protected void computeNext() throws InterruptedException {
+                if(this.seqIter == null) {
+                    if(Boolean.TRUE.equals(conditionSeq.any().tryEval())) {
+                        this.seqIter = onSuccessSeq.iterator();
+                    } else {
+                        this.seqIter = onFailureSeq.iterator();
+                    }
+                }
+                // Yield the elements from this.seq
+                if (this.seqIter.hasNext()) {
+                    setNext(this.seqIter.next());
+                } else {
+                    finished();
+                }
+            }
+        };
     }
 
 }

@@ -1,9 +1,8 @@
 package mb.statix.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
-import mb.statix.solver.IConstraint;
 import mb.strategies.Strategy;
 
 import static mb.statix.strategies.SearchStrategies.*;
@@ -23,7 +22,7 @@ public final class InferSuccessStrategy implements Strategy<SolverContext, Solve
     private InferSuccessStrategy() {}
 
     @Override
-    public Sequence<SolverState> eval(SolverContext ctx, SolverState input) throws InterruptedException {
+    public Seq<SolverState> eval(SolverContext ctx, SolverState input) {
         return
             // Perform inference
             seq(infer())

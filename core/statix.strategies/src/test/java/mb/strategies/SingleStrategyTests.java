@@ -1,16 +1,14 @@
 package mb.strategies;
 
-import mb.sequences.IteratorBase;
-import mb.sequences.Sequence;
+import mb.sequences.InterruptibleIterator;
+import mb.sequences.Seq;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import static mb.strategies.Strategies.*;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.PrimitiveIterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,7 +28,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, String> sut = single(build(input));
 
         // Act
-        final List<String> results = sut.eval(new Object(), new Object()).toList();
+        final List<String> results = sut.eval(new Object(), new Object()).toList().tryEval();
 
         // Assert
         assertEquals(input, results);
@@ -43,7 +41,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, String> sut = single(build(input));
 
         // Act
-        final List<String> results = sut.eval(new Object(), new Object()).toList();
+        final List<String> results = sut.eval(new Object(), new Object()).toList().tryEval();
 
         // Assert
         assertEquals(input, results);
@@ -56,7 +54,7 @@ public final class SingleStrategyTests {
         final Strategy<Object, Object, String> sut = single(build(input));
 
         // Act
-        final List<String> results = sut.eval(new Object(), new Object()).toList();
+        final List<String> results = sut.eval(new Object(), new Object()).toList().tryEval();
 
         // Assert
         assertEquals(Collections.emptyList(), results);
@@ -67,14 +65,14 @@ public final class SingleStrategyTests {
     public void shouldNotEvaluate_whenNotCoerced() throws InterruptedException {
         // Arrange
         AtomicBoolean evaluated = new AtomicBoolean(false);
-        final Strategy<Object, Object, String> s = (o, input) -> (Sequence<String>)() -> {
+        final Strategy<Object, Object, String> s = (o, input) -> (Seq<String>)() -> {
             evaluated.set(true);
-            return Collections.emptyIterator();
+            return InterruptibleIterator.empty();
         };
         final Strategy<Object, Object, String> sut = single(s);
 
         // Act
-        final Sequence<String> seq = sut.eval(new Object(), new Object());
+        sut.eval(new Object(), new Object());
 
         // Assert
         assertFalse(evaluated.get());
@@ -85,15 +83,15 @@ public final class SingleStrategyTests {
     public void shouldNotEvaluateBeyondWhatIsNeeded() throws InterruptedException {
         // Arrange
         final AtomicInteger i = new AtomicInteger();
-        final Strategy<Object, Object, Integer> s = (o, input) -> (Sequence<Integer>)() -> {
+        final Strategy<Object, Object, Integer> s = (o, input) -> (Seq<Integer>)() -> {
             // Sequence that counts the number of invocations
             final int val = i.incrementAndGet();
-            return Collections.singleton(val).iterator();
+            return InterruptibleIterator.wrap(Collections.singleton(val).iterator());
         };
         final Strategy<Object, Object, Integer> sut = single(s);
 
         // Act
-        final List<Integer> results = sut.eval(new Object(), new Object()).toList();
+        final List<Integer> results = sut.eval(new Object(), new Object()).toList().tryEval();
 
         // Assert
         assertEquals(Arrays.asList(1), results);

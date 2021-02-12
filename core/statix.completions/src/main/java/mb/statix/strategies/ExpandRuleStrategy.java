@@ -2,7 +2,7 @@ package mb.statix.strategies;
 
 import com.google.common.collect.ImmutableSet;
 import mb.nabl2.terms.ITermVar;
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.FocusedSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
@@ -34,7 +34,7 @@ public final class ExpandRuleStrategy implements Strategy<SolverContext, Focused
     }
 
     @Override
-    public Sequence<SolverState> eval(SolverContext ctx, FocusedSolverState<CUser> state) {
+    public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<CUser> state) {
         CUser focus = state.getFocus();
         System.out.println("Expand rule: " + focus);
 
@@ -50,7 +50,7 @@ public final class ExpandRuleStrategy implements Strategy<SolverContext, Focused
             }
         }
 
-        return Sequence.from(output);
+        return Seq.from(output);
     }
 
 

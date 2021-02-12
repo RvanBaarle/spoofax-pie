@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 /**
  * The s1; s2; ...; sn strategy.
@@ -18,7 +18,7 @@ public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<
     public String getName() { return "seq"; }
 
     @Override
-    public Sequence<O> eval(CTX ctx, Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2, I input) throws InterruptedException {
+    public Seq<O> eval(CTX ctx, Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2, I input) {
         return s1.eval(ctx, input).flatMap(it -> s2.eval(ctx, it));
     }
 

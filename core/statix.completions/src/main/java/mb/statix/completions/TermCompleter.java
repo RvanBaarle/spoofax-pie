@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import io.usethesource.capsule.Set;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.constraints.CUser;
@@ -37,7 +37,7 @@ public final class TermCompleter {
             return Collections.singletonList(new CompletionSolverProposal(state, termInUnifier));
         } else {
             // The variable we're looking for is not in the unifier
-            return completeNodes(ctx, state, placeholderVar).map(s -> new CompletionSolverProposal(s, s.project(placeholderVar))).toList();
+            return completeNodes(ctx, state, placeholderVar).map(s -> new CompletionSolverProposal(s, s.project(placeholderVar))).toList().eval();
         }
     }
 
@@ -49,7 +49,7 @@ public final class TermCompleter {
      * @param placeholderVar the var of the placeholder to complete
      * @return the resulting states
      */
-    public Sequence<SolverState> completeNodes(SolverContext ctx, SolverState state, ITermVar placeholderVar) throws InterruptedException {
+    public Seq<SolverState> completeNodes(SolverContext ctx, SolverState state, ITermVar placeholderVar) throws InterruptedException {
         return new CompleteStrategy(placeholderVar).eval(ctx, state);
     }
 

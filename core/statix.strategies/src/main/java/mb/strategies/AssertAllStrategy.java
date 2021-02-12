@@ -1,9 +1,7 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -13,7 +11,7 @@ import java.util.function.Predicate;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class AssertAllStrategy<CTX, I, O> implements Strategy2<CTX, Predicate<Sequence<O>>, Strategy<CTX, I, O>, I, O>{
+public final class AssertAllStrategy<CTX, I, O> implements Strategy2<CTX, Predicate<Seq<O>>, Strategy<CTX, I, O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final AssertAllStrategy instance = new AssertAllStrategy();
@@ -26,14 +24,14 @@ public final class AssertAllStrategy<CTX, I, O> implements Strategy2<CTX, Predic
     public String getName() { return "assertAll"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
-        Predicate<Sequence<O>> predicate,
+        Predicate<Seq<O>> predicate,
         Strategy<CTX, I, O> strategy,
         I input
-    ) throws InterruptedException {
-        Sequence<O> output = strategy.eval(ctx, input);
-        if (!predicate.test(output)) return Sequence.empty();
+    ) {
+        Seq<O> output = strategy.eval(ctx, input);
+        if (!predicate.test(output)) return Seq.empty();
         return output;
     }
 

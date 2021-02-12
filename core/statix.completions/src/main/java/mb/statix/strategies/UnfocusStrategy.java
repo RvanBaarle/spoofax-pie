@@ -1,14 +1,11 @@
 package mb.statix.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 import mb.statix.common.FocusedSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.solver.IConstraint;
 import mb.strategies.Strategy;
-
-import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -29,8 +26,8 @@ public final class UnfocusStrategy<C extends IConstraint> implements Strategy<So
     }
 
     @Override
-    public Sequence<SolverState> eval(SolverContext ctx, FocusedSolverState<C> input) {
-        return Sequence.of(input.getInnerState());
+    public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<C> input) {
+        return Seq.of(input.getInnerState());
     }
 
 }

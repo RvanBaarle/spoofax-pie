@@ -1,6 +1,9 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.ComputingInterruptibleIterator;
+import mb.sequences.InterruptibleIterator;
+import mb.sequences.InterruptibleIteratorBase;
+import mb.sequences.Seq;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -26,34 +29,36 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
     }
 
     @Override
-    public Sequence<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) throws InterruptedException {
-        // Use LinkedHashSet to preserve insertion order
-        Set<T> newValues = new LinkedHashSet<T>();
-        Set<T> values = new LinkedHashSet<T>();
-        values.add(input);
+    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+        return () -> new ComputingInterruptibleIterator<T>() {
+            @Override
+            protected Iterable<T> computeAll() throws InterruptedException {
+                // Use LinkedHashSet to preserve insertion order
+                Set<T> newValues = new LinkedHashSet<T>();
+                Set<T> values = new LinkedHashSet<T>();
+                values.add(input);
+                while (true) {
+                    for(T value : values) {
+                        final Seq<T> seq = s.eval(ctx, value);
+                        seq.iterator().forEachRemaining(newValues::add);
+                    }
 
-        while (true) {
-            for(T value : values) {
-                final Sequence<T> seq = s.eval(ctx, value);
-                for (T t : seq) {
-                    newValues.add(t);
+                    if (newValues.isEmpty()) {
+                        // Everything failed, we return
+                        return values;
+                    }
+
+                    if (values.equals(newValues)) {
+                        // Everything stayed the same, we return
+                        return newValues;
+                    }
+
+                    Set<T> tmp = values;
+                    values = newValues;
+                    newValues = tmp;
+                    newValues.clear();
                 }
             }
-
-            if (newValues.isEmpty()) {
-                // Everything failed, we return
-                return Sequence.from(values);
-            }
-
-            if (values.equals(newValues)) {
-                // Everything stayed the same, we return
-                return Sequence.from(newValues);
-            }
-
-            Set<T> tmp = values;
-            values = newValues;
-            newValues = tmp;
-            newValues.clear();
-        }
+        };
     }
 }

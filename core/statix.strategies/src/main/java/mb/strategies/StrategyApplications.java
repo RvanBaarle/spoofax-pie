@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 final class AppliedStrategy2<CTX, A1, A2, A3, I, O> implements Strategy2<CTX, A2, A3, I, O>, StrategyApplDecl {
     private final Strategy3<CTX, A1, A2, A3, I, O> s;
@@ -12,7 +12,7 @@ final class AppliedStrategy2<CTX, A1, A2, A3, I, O> implements Strategy2<CTX, A2
     }
 
     @Override
-    public Sequence<O> eval(CTX ctx, A2 arg2, A3 arg3, I input) throws InterruptedException {
+    public Seq<O> eval(CTX ctx, A2 arg2, A3 arg3, I input) {
         return s.eval(ctx, arg1, arg2, arg3, input);
     }
 
@@ -51,7 +51,7 @@ final class AppliedStrategy1<CTX, A1, A2, I, O> implements Strategy1<CTX, A2, I,
     }
 
     @Override
-    public Sequence<O> eval(CTX ctx, A2 arg2, I input) throws InterruptedException {
+    public Seq<O> eval(CTX ctx, A2 arg2, I input) {
         return s.eval(ctx, arg1, arg2, input);
     }
 
@@ -90,7 +90,7 @@ final class AppliedStrategy<CTX, A1, I, O> implements Strategy<CTX, I, O>, Strat
     }
 
     @Override
-    public Sequence<O> eval(CTX ctx, I input) throws InterruptedException {
+    public Seq<O> eval(CTX ctx, I input) {
         return s.eval(ctx, arg1, input);
     }
 
@@ -129,7 +129,7 @@ final class AppliedComputation<CTX, I, O> implements Computation<CTX, O> {
     }
 
     @Override
-    public Sequence<O> eval(CTX ctx) throws InterruptedException {
+    public Seq<O> eval(CTX ctx) throws InterruptedException {
         return s.eval(ctx, input);
     }
 

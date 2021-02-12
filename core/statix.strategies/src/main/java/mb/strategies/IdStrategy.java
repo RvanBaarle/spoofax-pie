@@ -1,8 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
-
-import java.util.Iterator;
+import mb.sequences.Seq;
 
 /**
  * Returns the input as a sequence.
@@ -23,11 +21,11 @@ public final class IdStrategy<CTX, T> implements Strategy<CTX, T, T>{
     public String getName() { return "id"; }
 
     @Override
-    public Sequence<T> eval(
+    public Seq<T> eval(
         CTX ctx,
         T input
-    ) throws InterruptedException {
-        return Sequence.of(input);
+    ) {
+        return Seq.of(input);
     }
 
 }

@@ -1,6 +1,6 @@
 package mb.strategies;
 
-import mb.sequences.Sequence;
+import mb.sequences.Seq;
 
 /**
  * Returns the input as a sequence.
@@ -22,11 +22,11 @@ public final class FailStrategy<CTX, I, O> implements Strategy<CTX, I, O>{
     public String getName() { return "fail"; }
 
     @Override
-    public Sequence<O> eval(
+    public Seq<O> eval(
         CTX ctx,
         I input
-    ) throws InterruptedException {
-        return Sequence.empty();
+    ) {
+        return Seq.empty();
     }
 
 }
