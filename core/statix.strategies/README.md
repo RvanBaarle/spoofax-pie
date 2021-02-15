@@ -1,5 +1,75 @@
 
 
+
+
+## Lazy/Maybe/Option
+A `Lazy<T>` is a lazy computation of a result `T`. It has the following core functions and methods:
+
+- `of(value: T): Lazy<T>` - Unit operation that creates a new computation with the given value.
+- `Lazy<T>.flatMap(transform: T -> Lazy<R>): Lazy<R>` - Binding operation that maps the specified operation over this operation and flattens the result.
+- `Lazy<T>.forEach(action: T -> ()): Boolean` - Terminal operation that evaluates the computation and maybe invokes the action.
+
+From these we can define others:
+- `Lazy<T>.get(): T = { val x: T; if(!this.forEach({ it -> x = it })) throw Exception() else return x }`
+- `Lazy<T>.tryGet(): T? = { val x: T? = null; this.forEach({ it -> x = it }); return x; }`
+- `compose(f: A -> Lazy<B>, g: B -> Lazy<C>): A -> Lazy<C> = { a -> f(a).flatMap(g) }`
+- `Lazy<A>.map(transform: A -> B): Lazy<B> = this.flatMap { a -> of(transform(a)) }`
+
+## Strategy
+A strategy combines (lazy) computations.
+
+- `id(f: A -> Option<B>): A -> Option<B> = f`
+- `fail(f: A -> Option<B>): A -> Option<B> = { _ -> Option.fail() }`
+- `compose(f: A -> Option<B>, g: B -> Option<C>): A -> Option<C> = { a -> f(a).flatMap(g) }`
+
+```
+if(c: A -> Option<B>, t: B -> Option<C>, e: A -> Option<C>): A -> Option<C> = { a ->
+  val mb = c(a)
+  if (mb.any())
+    return mb.flatMap(t)
+  else
+    return of(a).flatMap(e)
+}
+```
+
+vs.
+
+```
+if(): (A -> Option<B>, B -> Option<C>, A -> Option<C>) A -> Option<C> = { (c, t, e) a ->
+  val mb = c(a)
+  if (mb.any())
+    return mb.flatMap(t)
+  else
+    return of(a).flatMap(e)
+}
+```
+
+Because all strategies are singleton objects, we need some way to bind arguments to them. For example:
+
+```
+// Build the computation
+val s = if.apply(c, t, e)
+// Evaluate the computation
+val r = s.apply(a).eval()
+```
+
+Let's see `flatMap` on strategies, as a strategy.
+
+```
+val seq: (A -> Option<B>, B -> Option<C>, A) -> Option<C> =
+  { s1, s2, a -> s1(a).flatMap(s2) }
+```
+
+
+```
+solve(): SolverState -> Option<SolverState> = { s ->
+  val s' = solver.solve(s)
+  return Option.of(s')
+}
+```
+
+----
+
 ## Sequence
 A sequence computes its values lazily, for every value which is required from it. If a sequence is iterated twice, its values are computed twice. A sequence indicates failure when iteration produces no values.
 

@@ -29,6 +29,7 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
     @Override
     public Seq<T> apply(CTX ctx, Strategy<CTX, T, T> s, T input) {
         return () -> new ComputingInterruptibleIterator<T>() {
+            // TODO: Can we optimize this to not compute all values in advance?
             @Override
             protected Iterable<T> computeAll() throws InterruptedException {
                 // Use LinkedHashSet to preserve insertion order

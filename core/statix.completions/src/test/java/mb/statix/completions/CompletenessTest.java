@@ -19,7 +19,9 @@ import mb.statix.common.StatixSpec;
 import mb.statix.solver.Delay;
 import mb.statix.solver.IConstraint;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
@@ -50,7 +52,8 @@ public class CompletenessTest {
     private static final String TIGER_SPEC_SIMPLE1_PATH = TESTPATH + "/simple1/spec.aterm";
 
     // TODO: Enable
-    //@TestFactory
+    @TestFactory
+    @Disabled
     public List<DynamicTest> completenessTests() {
         //noinspection ArraysAsListWithZeroOrOneArgument
         return Arrays.asList(
