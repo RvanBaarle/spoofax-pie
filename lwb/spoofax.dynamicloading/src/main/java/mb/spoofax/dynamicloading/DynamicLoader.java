@@ -4,21 +4,23 @@ import mb.pie.api.MapTaskDefs;
 import mb.pie.api.MixedSession;
 import mb.pie.api.Pie;
 import mb.spoofax.compiler.spoofax3.standalone.dagger.Spoofax3CompilerStandalone;
-import mb.spoofax.core.platform.PlatformComponent;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.IOException;
 import java.util.HashMap;
 
 public class DynamicLoader implements AutoCloseable {
-    private final Spoofax3CompilerStandalone spoofax3CompilerStandalone;
     private final Pie pie;
     private final DynamicLoad dynamicLoad;
     private final HashMap<String, DynamicLanguage> dynamicLanguages = new HashMap<>();
 
-    public DynamicLoader(PlatformComponent platformComponent) {
-        this.spoofax3CompilerStandalone = new Spoofax3CompilerStandalone(platformComponent);
-        this.dynamicLoad = new DynamicLoad(platformComponent, spoofax3CompilerStandalone.component.getCompileToJavaClassFiles(), this);
+    public DynamicLoader(Spoofax3CompilerStandalone spoofax3CompilerStandalone) {
+        this.dynamicLoad = new DynamicLoad(
+            spoofax3CompilerStandalone.spoofax3Compiler.resourceServiceComponent,
+            spoofax3CompilerStandalone.spoofax3Compiler.platformComponent,
+            spoofax3CompilerStandalone.component.getCompileToJavaClassFiles(),
+            this
+        );
         this.pie = spoofax3CompilerStandalone.component.getPie().createChildBuilder()
             .addTaskDefs(new MapTaskDefs(dynamicLoad))
             .build();

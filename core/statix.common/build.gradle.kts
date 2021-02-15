@@ -22,4 +22,3 @@ dependencies {
   testImplementation("org.metaborg:log.backend.slf4j")
   testImplementation("org.slf4j:slf4j-simple:1.7.10")
 }
-}
