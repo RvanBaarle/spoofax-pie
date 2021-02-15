@@ -13,7 +13,7 @@ import mb.tiger.statix.spoofax.TigerScope;
 import javax.swing.*;
 
 @Module
-public class TigerIntellijModule {
+public abstract class TigerIntellijModule {
     @Provides @TigerScope
     static IntellijLanguage provideSpoofaxLanguage(mb.tiger.statix.intellij.TigerLanguage language) {
         // Downcast because injections in spoofax.intellij require an IntellijLanguage, and dagger does not implicitly downcast.

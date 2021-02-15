@@ -1,15 +1,25 @@
 package mb.tiger.statix.intellij;
 
 import dagger.Component;
+import mb.spoofax.core.platform.ResourceServiceComponent;
 import mb.spoofax.intellij.IntellijLanguageComponent;
-import mb.spoofax.intellij.SpoofaxIntellijComponent;
+import mb.spoofax.intellij.IntellijPlatformComponent;
+import mb.tiger.statix.spoofax.TigerModule;
+import mb.tiger.statix.intellij.TigerIntellijModule;
 import mb.tiger.statix.spoofax.SpoofaxModule;
+import mb.tiger.statix.spoofax.TigerResourcesComponent;
+import mb.tiger.statix.spoofax.TigerScope;
 
-@mb.tiger.statix.spoofax.TigerScope
-@Component(modules = { mb.tiger.statix.spoofax.TigerModule.class,
-    mb.tiger.statix.intellij.TigerIntellijModule.class,
+@TigerScope
+@Component(modules = {
+    TigerModule.class,
+    TigerIntellijModule.class,
     SpoofaxModule.class
-}, dependencies = SpoofaxIntellijComponent.class)
+}, dependencies = {
+    TigerResourcesComponent.class,
+    ResourceServiceComponent.class,
+    IntellijPlatformComponent.class
+})
 public interface TigerIntellijComponent extends IntellijLanguageComponent, mb.tiger.statix.spoofax.TigerComponent {
     @Override mb.tiger.statix.intellij.TigerLanguage getLanguage();
 

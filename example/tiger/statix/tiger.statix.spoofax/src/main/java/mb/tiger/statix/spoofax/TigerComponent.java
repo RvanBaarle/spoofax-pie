@@ -8,20 +8,23 @@ import mb.resource.classloader.ClassLoaderResource;
 import mb.pie.api.Pie;
 import javax.inject.Provider;
 
+import mb.spoofax.core.platform.ResourceServiceComponent;
 import mb.tiger.statix.spoofax.TigerQualifier;
 
-@mb.tiger.statix.spoofax.TigerScope
+@TigerScope
 @Component(
     modules = {
         TigerModule.class,
         SpoofaxModule.class
     },
-    dependencies = { PlatformComponent.class }
+    dependencies = {
+        TigerResourcesComponent.class,
+        ResourceServiceComponent.class,
+        PlatformComponent.class
+    }
 )
 public interface TigerComponent extends LanguageComponent  {
     @Override mb.tiger.statix.spoofax.TigerInstance getLanguageInstance();
-
-    @Override @TigerQualifier ResourceService getResourceService();
 
     @TigerQualifier("definition-directory") ClassLoaderResource getDefinitionDir();
 
