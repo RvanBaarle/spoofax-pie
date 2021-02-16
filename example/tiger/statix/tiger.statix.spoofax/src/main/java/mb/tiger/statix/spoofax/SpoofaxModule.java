@@ -8,15 +8,15 @@ import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
 
 @Module
-public class SpoofaxModule {
+public abstract class SpoofaxModule {
 
     @Provides @TigerScope
-    ITermFactory provideTermFactory() {
+    static ITermFactory provideTermFactory() {
         return new ImploderOriginTermFactory(new TermFactory());
     }
 
     @Provides @TigerScope
-    StrategoTerms provideStrategoTerms(ITermFactory termFactory) {
+    static StrategoTerms provideStrategoTerms(ITermFactory termFactory) {
         return new StrategoTerms(termFactory);
     }
 

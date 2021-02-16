@@ -2,10 +2,12 @@ package mb.tiger.statix.spoofax.task;
 
 import mb.common.editing.TextEdit;
 import mb.common.region.Region;
+import mb.common.result.Result;
 import mb.common.style.StyleName;
 import mb.common.util.ListView;
 import mb.completions.common.CompletionItem;
 import mb.completions.common.CompletionResult;
+import mb.jsglr1.common.JSGLR1ParseException;
 import mb.log.api.Logger;
 import mb.log.api.LoggerFactory;
 import mb.nabl2.terms.ITerm;
@@ -51,6 +53,13 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         public final Function<IStrategoTerm, @Nullable String> prettyPrinterFunction;
         public final Function<IStrategoTerm, @Nullable IStrategoTerm> preAnalyzeFunction;
         public final Function<IStrategoTerm, @Nullable IStrategoTerm> postAnalyzeFunction;
+
+        public Input(Supplier<IStrategoTerm> supplier) {
+            // This constructor is only here to satisfy the compiler
+            // because of the generated createCompletionTask() method
+            // in GeneratedTigerInstance
+            throw new UnsupportedOperationException();
+        }
 
         public Input(
             ResourceKey resourceKey,

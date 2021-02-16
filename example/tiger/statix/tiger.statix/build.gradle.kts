@@ -29,26 +29,18 @@ languageProject {
   compilerInput {
     withParser().run {
       startSymbol("Module")
-      classKind(ClassKind.Manual)
     }
-    withStyler().run {
-      classKind(ClassKind.Manual)
-    }
+    withStyler()
     withCompleter().run {
-      
+      classKind(ClassKind.Manual)
     }
     withConstraintAnalyzer().run {
       enableNaBL2(false)
       enableStatix(true)
       multiFile(true)
-      classKind(ClassKind.Manual)
     }
-    withStrategoRuntime().run {
-      classKind(ClassKind.Manual)
-    }
-    withClassloaderResources().run {
-      classKind(ClassKind.Manual)
-    }
+    withStrategoRuntime()
+    withClassloaderResources()
   }
 }
 

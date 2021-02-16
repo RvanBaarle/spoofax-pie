@@ -11,6 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import javax.inject.Inject;
 import java.io.Serializable;
+import java.util.Objects;
 
 @TigerScope
 public class TigerStatixSpec implements TaskDef<TigerStatixSpec.Input, @Nullable Spec> {
@@ -20,6 +21,18 @@ public class TigerStatixSpec implements TaskDef<TigerStatixSpec.Input, @Nullable
 
         public Input(Supplier<@Nullable IStrategoTerm> specAstSupplier) {
             this.specAstSupplier = specAstSupplier;
+        }
+
+        @Override public boolean equals(Object o) {
+            if(this == o) return true;
+            if(o == null || getClass() != o.getClass()) return false;
+            final Input that = (Input)o;
+            return this.specAstSupplier.equals(that.specAstSupplier);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.specAstSupplier);
         }
     }
 

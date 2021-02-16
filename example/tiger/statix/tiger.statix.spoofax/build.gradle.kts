@@ -19,30 +19,32 @@ dependencies {
 languageAdapterProject {
   languageProject.set(project(":tiger.statix"))
   compilerInput {
-    withParser().run {
-      classKind(ClassKind.Manual)
-    }
-    withStyler().run {
-      classKind(ClassKind.Manual)
-    }
+    withParser()
+    withStyler()
     withCompleter().run {
       classKind(ClassKind.Manual)
+      baseCompleteTaskDef("mb.tiger.statix.spoofax.task", "TigerComplete")
     }
-    withStrategoRuntime().run {
-
-    }
-    withConstraintAnalyzer().run {
-      classKind(ClassKind.Manual)
-    }
-    project.classKind(ClassKind.Manual)
+    withStrategoRuntime()
+    withConstraintAnalyzer()
     project.configureCompilerInput()
-    project.additionalModules(listOf(TypeInfo.of("mb.tiger.statix.spoofax", "SpoofaxModule")))
   }
 }
 
 fun AdapterProjectCompiler.Input.Builder.configureCompilerInput() {
-  val taskPackageId = "mb.tiger.statix.spoofax.task"
-  val commandPackageId = "mb.tiger.statix.spoofax.command"
+  val packageId = "mb.tiger.statix.spoofax"
+  val taskPackageId = "$packageId.task"
+  val commandPackageId = "$packageId.command"
+
+  // Custom component and additional modules
+  baseComponent(packageId, "GeneratedTigerComponent")
+  extendComponent(packageId, "TigerComponent")
+  baseInstance(packageId, "GeneratedTigerInstance")
+  extendInstance(packageId, "TigerInstance")
+  addAdditionalModules(packageId, "SpoofaxModule")
+  addAdditionalModules(packageId, "TigerModuleExt")
+
+
   val showArgsType = TypeInfo.of("mb.tiger.statix.spoofax.task", "TigerShowArgs")
 
   // Compile file

@@ -14,7 +14,4 @@ dependencies {
 
 languageCliProject {
   adapterProject.set(project(":tiger.statix.spoofax"))
-  compilerInput {
-    classKind(ClassKind.Manual)
-  }
 }
