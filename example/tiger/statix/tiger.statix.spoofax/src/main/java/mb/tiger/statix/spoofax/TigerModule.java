@@ -36,37 +36,6 @@ import java.util.Set;
 
 @Module
 public class TigerModule {
-//    @Provides @TigerScope
-//    static TigerClassLoaderResources provideClassLoaderResources() {
-//        return new TigerClassLoaderResources();
-//    }
-//
-//    @Provides @TigerScope
-//    static ClassLoaderResourceRegistry provideClassLoaderResourceRegistry(TigerClassLoaderResources classLoaderResources) {
-//        return classLoaderResources.resourceRegistry;
-//    }
-//
-//    @Provides @TigerScope @TigerQualifier
-//    static ResourceService provideQualifiedResourceRegistry(@Platform ResourceService resourceService, ClassLoaderResourceRegistry classLoaderResourceRegistry) {
-//        return resourceService.createChild(classLoaderResourceRegistry);
-//    }
-//
-//    @Provides @TigerScope
-//    static ResourceService provideResourceRegistry(@TigerQualifier ResourceService resourceService) {
-//        return resourceService;
-//    }
-//
-//    @Provides @TigerScope @TigerQualifier("definition-directory")
-//    static ClassLoaderResource provideDefinitionDirectory(TigerClassLoaderResources classLoaderResources) {
-//        return classLoaderResources.definitionDirectory;
-//    }
-//
-//    @Provides @TigerScope @TigerQualifier("definition-directory")
-//    static HierarchicalResource provideDefinitionDirectoryAsHierarchicalResource(@TigerQualifier("definition-directory") ClassLoaderResource definitionDir) {
-//        return definitionDir;
-//    }
-
-
 
     @Provides @TigerScope
     static mb.tiger.statix.TigerParserFactory provideParserFactory(@TigerQualifier("definition-directory") HierarchicalResource definitionDir) {

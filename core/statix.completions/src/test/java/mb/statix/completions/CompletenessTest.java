@@ -47,7 +47,7 @@ public class CompletenessTest {
 
     private static final SLF4JLoggerFactory loggerFactory = new SLF4JLoggerFactory();
     private static final Logger log = loggerFactory.create(CompletenessTest.class);
-    private static final String TESTPATH = "mb/statix/codecompletion";
+    private static final String TESTPATH = "";//mb/statix/codecompletion";
     private static final String TIGER_SPEC_PATH = TESTPATH + "/spec.aterm";
     private static final String TIGER_SPEC_SIMPLE1_PATH = TESTPATH + "/simple1/spec.aterm";
 
@@ -65,6 +65,16 @@ public class CompletenessTest {
         );
     }
 
+    /**
+     * Creates a completion test.
+     *
+     * @param expectedTermPath the resource path to a file with the expected Stratego ATerm
+     * @param inputTermPath the resource path to a file with the input Stratego ATerm
+     * @param specPath the resource path to a file with the merged Statix spec Stratego ATerm
+     * @param specName the name of the specification
+     * @param rootRuleName the name of the root rule
+     * @return the created test
+     */
     private DynamicTest completenessTest(String expectedTermPath, String inputTermPath, String specPath, String specName, String rootRuleName) {
         return DynamicTest.dynamicTest("complete file " + Paths.get(inputTermPath).getFileName() + " to " + Paths.get(expectedTermPath).getFileName() + " using spec " + Paths.get(specPath).getFileName() + "",
             () -> {
@@ -75,6 +85,15 @@ public class CompletenessTest {
             });
     }
 
+    /**
+     * Performs a completion test.
+     *
+     * @param expectedTerm the expected Stratego ATerm
+     * @param inputTerm the input Stratego ATerm
+     * @param spec the merged Statix spec Stratego ATerm
+     * @param specName the name of the specification
+     * @param rootRuleName the name of the root rule
+     */
     private void doCompletenessTest(IStrategoTerm expectedTerm, IStrategoTerm inputTerm, StatixSpec spec, String specName, String rootRuleName) throws InterruptedException, IOException {
         ITermFactory termFactory = new TermFactory();
         StrategoTerms strategoTerms = new StrategoTerms(termFactory);
@@ -89,6 +108,17 @@ public class CompletenessTest {
         doCompletenessTest(expectedStatixTerm, inputStatixTerm, spec, termFactory, resourceKey, specName, rootRuleName);
     }
 
+    /**
+     * Performs a completion test.
+     *
+     * @param expectedTerm the expected NaBL term
+     * @param inputTerm the input NaBL term
+     * @param spec the merged Statix spec
+     * @param termFactory the Stratego term factory
+     * @param resourceKey the resource key used to create term indices
+     * @param specName the name of the specification
+     * @param rootRuleName the name of the root rule
+     */
     private void doCompletenessTest(ITerm expectedTerm, ITerm inputTerm, StatixSpec spec, ITermFactory termFactory, ResourceKey resourceKey, String specName, String rootRuleName) throws InterruptedException, IOException {
         TermCompleter completer = new TermCompleter();
         StatixAnalyzer analyzer = new StatixAnalyzer(spec, termFactory, loggerFactory);
