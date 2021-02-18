@@ -15,6 +15,12 @@ dependencies {
 
 languageIntellijProject {
   adapterProject.set(project(":tiger.statix.spoofax"))
+  // We only need to manually provide TigerCompletionContributor and plugins.xml,
+  // but because we cannot choose to not generate plugins.xml (yet),
+  // we set it to manual and provide all the files.
+  compilerInput {
+    classKind(ClassKind.Manual)
+  }
 }
 
 intellij {
