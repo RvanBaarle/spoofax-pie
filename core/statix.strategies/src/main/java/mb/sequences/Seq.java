@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -470,6 +471,30 @@ public interface Seq<T> {
             }
             return count;
         };
+    }
+
+    /**
+     * Prints the sequence to the console.
+     *
+     * @param transform the function that transforms the sequence elements to a string
+     * @return the printed (and buffered) sequence
+     */
+    default Seq<T> debug(Function<T, String> transform) {
+        Seq<T> results = Seq.this.buffer();
+        try {
+            List<T> resultsList = results.toList().eval();
+            if(resultsList.isEmpty()) {
+                System.out.println("failed");
+            } else {
+                System.out.println(resultsList.size() + " results");
+                for(T result : resultsList) {
+                    System.out.println("- " + transform.apply(result));
+                }
+            }
+        } catch (InterruptedException ex) {
+            System.out.println("INTERRUPTED");
+        }
+        return results;
     }
 
     /**

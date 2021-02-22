@@ -83,11 +83,41 @@ public final class Strategies {
      * @return the resulting strategy
      */
     public static <CTX, I, O> Strategy<CTX, I, O> debug(
-        Consumer<? super O> action,
+        Function<O, String> transform,
         Strategy<CTX, I, O> strategy
     ) {
-        return DebugStrategy.<CTX, I, O>getInstance().apply(action, strategy);
+        return DebugStrategy.<CTX, I, O>getInstance().apply(transform, strategy);
     }
+
+//    /**
+//     * Asserts that the input matches the given predicate.
+//     *
+//     * @param <CTX> the type of context
+//     * @param <I> the type of input
+//     * @param <O> the type of outputs
+//     * @return the resulting strategy
+//     */
+//    public static <CTX, A1, I, O> Strategy1<CTX, A1, I, O> debug1(
+//        Function<O, String> transform,
+//        Strategy1<CTX, A1, I, O> strategy
+//    ) {
+//        return DebugStrategy.<CTX, I, O>getInstance().apply(transform, strategy);
+//    }
+//
+//    /**
+//     * Asserts that the input matches the given predicate.
+//     *
+//     * @param <CTX> the type of context
+//     * @param <I> the type of input
+//     * @param <O> the type of outputs
+//     * @return the resulting strategy
+//     */
+//    public static <CTX, A1, A2, I, O> Strategy2<CTX, A1, A2, I, O> debug2(
+//        Function<O, String> transform,
+//        Strategy2<CTX, A1, A2, I, O> strategy
+//    ) {
+//        return DebugStrategy.<CTX, I, O>getInstance().apply(transform, strategy);
+//    }
 
     /**
      * Ensures the sequence resulting from the given strategy is distinct.
@@ -203,43 +233,6 @@ public final class Strategies {
         Strategy<CTX, I, O> s2
     ) {
         return OrStrategy.<CTX, I, O>getInstance().apply(s1, s2);
-    }
-
-    /**
-     * Prints all values resulting from the given strategy.
-     *
-     * @param s the strategy
-     * @param <CTX> the type of context
-     * @param <I> the type of input
-     * @param <O> the type of outputs
-     * @return the resulting strategy
-     */
-    public static <CTX, I, O> Strategy<CTX, I, O> print(String prefix, Strategy<CTX, I, O> s) {
-        return debug(v -> System.out.println(prefix + v.toString()), s);
-    }
-
-    /**
-     * Prints all values resulting from the given strategy.
-     *
-     * @param s the strategy
-     * @param <CTX> the type of context
-     * @param <I> the type of input
-     * @param <O> the type of outputs
-     * @return the resulting strategy
-     */
-    public static <CTX, I, O> Strategy<CTX, I, O> print(Strategy<CTX, I, O> s) {
-        return print("", s);
-    }
-
-    /**
-     * Prints the value.
-     *
-     * @param <CTX> the type of context
-     * @param <T> the type of values
-     * @return the resulting strategy
-     */
-    public static <CTX, T> Strategy<CTX, T, T> print() {
-        return print(id());
     }
 
     /**

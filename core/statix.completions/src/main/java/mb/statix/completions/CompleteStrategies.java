@@ -15,6 +15,7 @@ import mb.statix.constraints.CUser;
 import mb.strategies.Strategies;
 import mb.strategies.Strategy;
 import mb.strategies.Strategy1;
+import mb.strategies.Strategy2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 
 import static mb.statix.search.CollectionExt.containsAny;
 import static mb.statix.strategies.SearchStrategies.*;
@@ -39,11 +41,11 @@ import static mb.strategies.Strategy1.define;
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> complete
         = define("complete", v ->
-            seq(expandAllRules(v))
+        print(v, seq(expandAllRules(v))
     //        .$(expandAllQueries(v))
     //        .$(expandDeterministic(v))
     //        .$(filterLiterals(v))
-            .$()
+            .$())
         );
 
     public static Strategy<SolverContext, SolverState, SolverState> complete(ITermVar v) {
@@ -55,7 +57,7 @@ import static mb.strategies.Strategy1.define;
      * Perform inference, and reject the resulting state if it has errors.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> assertValid
-        = define("assertValid", v -> seq(infer())
+        = define("assertValid", v -> print(v, seq(infer())
             // Remove states that have errors
             //.$(assertThat(s -> !s.hasErrors()))
             .$(assertThat(s -> {
@@ -67,7 +69,7 @@ import static mb.strategies.Strategy1.define;
             }))
             // Delay stuck queries
             .$(delayStuckQueries())
-            .$());
+            .$()));
 
     public static Strategy<SolverContext, SolverState, SolverState> assertValid(ITermVar v) {
         return assertValid.apply(v);
@@ -137,12 +139,12 @@ import static mb.strategies.Strategy1.define;
         = define("expandAllInjections", v -> {
             AtomicReference<Set<String>> visitedInjections = new AtomicReference<>(Collections.emptySet());
             return //seq(Strategies.<SolverContext, SolverState>accept(o -> visitedInjections.set(Collections.emptySet())))
-                seq(fixSet(try_(     // Fixset-try because we need to expand injections one-by-one
+                print(v, seq(fixSet(try_(     // Fixset-try because we need to expand injections one-by-one
                     seq(unwrapInjection(v))
                     .$(expandInjection(visitedInjections.get()))
                     .$()
                 )))
-                .$();
+                .$());
         });
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllInjections(ITermVar v) {
@@ -154,14 +156,14 @@ import static mb.strategies.Strategy1.define;
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllRules
         = define("expandAllRules", v ->
-        seq(limit(1, focusConstraint(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
+        print(v, seq(limit(1, focusConstraint(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
         // Expand the focussed rule
         .$(expandPredicateConstraint())
         // Recursively expand injections
         .$(expandAllInjections(v))
         // Perform inference and remove states that have errors
         .$(assertValid(v))
-        .$());
+        .$()));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllRules(ITermVar v) {
         return expandAllRules.apply(v);
@@ -171,34 +173,25 @@ import static mb.strategies.Strategy1.define;
      * Expand all query constraints that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
-        = define("expandAllQueries", v -> fixSet(try_(   // Expand each query constraint until there are none left
+        = define("expandAllQueries", v -> print(v, fixSet(try_(   // Expand each query constraint until there are none left
             seq(limit(1, focusConstraint(CResolveQuery.class)))
                 // Expand the query into its results
                 .$(expandQueryConstraint())
                 // Perform inference and remove states that have errors
                 .$(assertValid(v))
                 .$()
-        )));
+        ))));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllQueries(ITermVar v) {
         return expandAllQueries.apply(v);
     }
 
-//    public static <CTX, T, R> Strategy<CTX, T, R> defStrategy(String name, Strategy<CTX, T, R> body) {
-//
-//        return new Strategy<CTX, T, R>() {
-//            @Override public String getName() { return name; }
-//
-//            @Override public Seq<R> apply(CTX ctx, T input) {
-//                return body.apply(ctx, input);
-//            }
-//
-//            @Override
-//            public String toString() {
-//                return super.toString();
-//            }
-//        };
-//    }
+
+    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SolverState>, SolverState, SolverState> print
+        = Strategy2.define("print", (v, s) -> Strategies.debug(it -> it.project(v).toString(), s));
+    public static Strategy<SolverContext, SolverState, SolverState> print(ITermVar v, Strategy<SolverContext, SolverState, SolverState> s) {
+        return print.apply(v, s);
+    }
 
     /**
      * Expand anything deterministically.
