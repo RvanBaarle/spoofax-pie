@@ -2,6 +2,8 @@ package mb.strategies;
 
 import mb.sequences.Seq;
 
+import java.io.IOException;
+
 /**
  * The s1; s2; ...; sn strategy.
  */
@@ -18,8 +20,50 @@ public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<
     public String getName() { return "seq"; }
 
     @Override
-    public Seq<O> apply(CTX ctx, Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2, I input) {
-        return s1.apply(ctx, input).flatMap(it -> s2.apply(ctx, it));
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Strategy<CTX, I, O> apply(Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2) {
+        return new Strategy<CTX, I, O>() {
+            @Override
+            public String getName() { return "seq"; }
+
+            @Override
+            public boolean isAnonymous() { return false; }
+
+            @Override
+            public int getPrecedence() {
+                return 0;
+            }
+
+            @Override
+            public Seq<O> eval(CTX ctx, I input) {
+                return s1.eval(ctx, input).flatMap(it -> s2.eval(ctx, it));
+            }
+
+            @Override
+            public <A extends Appendable> A write(A buffer) throws IOException {
+                final Associativity associativity = Associativity.Left;
+                StrategyPP.writeLeft(buffer, s1, getPrecedence(), associativity);
+                buffer.append("; ");
+                StrategyPP.writeRight(buffer, s2, getPrecedence(), associativity);
+                return buffer;
+            }
+
+            @Override
+            public String toString() {
+                try {
+                    return write(new StringBuilder()).toString();
+                } catch(IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+        };
+    }
+
+    @Override
+    public Seq<O> eval(CTX ctx, Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2, I input) {
+        return s1.eval(ctx, input).flatMap(it -> s2.eval(ctx, it));
     }
 
     /**
@@ -46,5 +90,8 @@ public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<
         }
 
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

@@ -2,6 +2,8 @@ package mb.strategies;
 
 import mb.sequences.Seq;
 
+import java.io.IOException;
+
 /**
  * Provides initial values, ignoring the input.
  *
@@ -22,12 +24,18 @@ public final class BuildStrategy<CTX, I, O> implements Strategy1<CTX, Iterable<O
     public String getName() { return "build"; }
 
     @Override
-    public Seq<O> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<O> eval(
         CTX ctx,
         Iterable<O> iterable,
         I input
     ) {
         return Seq.from(iterable);
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

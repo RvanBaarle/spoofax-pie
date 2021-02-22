@@ -21,12 +21,18 @@ public final class IdStrategy<CTX, T> implements Strategy<CTX, T, T>{
     public String getName() { return "id"; }
 
     @Override
-    public Seq<T> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<T> eval(
         CTX ctx,
         T input
     ) {
         return Seq.of(input);
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }
 

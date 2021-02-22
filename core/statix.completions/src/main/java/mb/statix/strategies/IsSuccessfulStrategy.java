@@ -29,7 +29,7 @@ public final class IsSuccessfulStrategy implements Strategy<SolverContext, Solve
     }
 
     @Override
-    public Seq<SolverState> apply(SolverContext ctx, SolverState state) {
+    public Seq<SolverState> eval(SolverContext ctx, SolverState state) {
         if (state.hasErrors()) {
             @Nullable final ITermVar focusVar = ctx.getFocusVar();
             System.out.println("isSuccessful(): rejected: " + (focusVar != null ? state.project(focusVar) : ""));

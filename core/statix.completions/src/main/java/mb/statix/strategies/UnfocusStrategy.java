@@ -26,7 +26,7 @@ public final class UnfocusStrategy<C extends IConstraint> implements Strategy<So
     }
 
     @Override
-    public Seq<SolverState> apply(SolverContext ctx, FocusedSolverState<C> input) {
+    public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<C> input) {
         return Seq.of(input.getInnerState());
     }
 

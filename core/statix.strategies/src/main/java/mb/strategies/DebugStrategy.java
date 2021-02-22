@@ -24,13 +24,19 @@ public final class DebugStrategy<CTX, I, O> implements Strategy2<CTX, Consumer<?
     public String getName() { return "debug"; }
 
     @Override
-    public Seq<O> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<O> eval(
         CTX ctx,
         Consumer<? super O> action,
         Strategy<CTX, I, O> strategy,
         I input
     ) {
-        return strategy.apply(ctx, input).map(it -> { action.accept(it); return it; });
+        return strategy.eval(ctx, input).map(it -> { action.accept(it); return it; });
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

@@ -665,6 +665,34 @@ public interface Seq<T> {
         };
     }
 
+
+
+    /**
+     * Returns a sequence with the results from applying a transform function to each of the original elements.
+     *
+     * This operation buffers all results.
+     *
+     * @param initial the initial value
+     * @param operation the operation function
+     * @return the new sequence
+     */
+    default <R> Computation<R> fold(R initial, InterruptibleBiFunction<R, T, R> operation) {
+        Objects.requireNonNull(operation);
+
+        return new Computation<R>() {
+            @Override
+            public @Nullable R tryEval() throws InterruptedException {
+                R acc = initial;
+                final InterruptibleIterator<T> iterator = Seq.this.iterator();
+                while(iterator.hasNext()) {
+                    final T value = iterator.next();
+                    acc = operation.apply(acc, value);
+                }
+                return acc;
+            }
+        };
+    }
+
     /**
      * Returns a sequence with the results from applying a transform function to each of the original elements.
      *

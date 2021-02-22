@@ -22,11 +22,17 @@ public final class FailStrategy<CTX, I, O> implements Strategy<CTX, I, O>{
     public String getName() { return "fail"; }
 
     @Override
-    public Seq<O> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<O> eval(
         CTX ctx,
         I input
     ) {
         return Seq.empty();
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

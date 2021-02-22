@@ -27,7 +27,10 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
     }
 
     @Override
-    public Seq<T> apply(CTX ctx, Strategy<CTX, T, T> s, T input) {
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
         return () -> new ComputingInterruptibleIterator<T>() {
             // TODO: Can we optimize this to not compute all values in advance?
             @Override
@@ -38,7 +41,7 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
                 values.add(input);
                 while (true) {
                     for(T value : values) {
-                        final Seq<T> seq = s.apply(ctx, value);
+                        final Seq<T> seq = s.eval(ctx, value);
                         seq.iterator().forEachRemaining(newValues::add);
                     }
 
@@ -60,4 +63,8 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
             }
         };
     }
+
+    @Override
+    public String toString() { return getName(); }
+
 }

@@ -41,23 +41,23 @@ public final class CompleteStrategy implements Strategy<SolverContext, SolverSta
     }
 
     @Override
-    public Seq<SolverState> apply(SolverContext ctx, SolverState input) {
+    public Seq<SolverState> eval(SolverContext ctx, SolverState input) {
         Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> continuation = buildInnerCompletionStrategy(placeholderVar);
         return distinct(
             fixSet(
                 // Focus on a constraint that contains the var we're interested in
                 // Once the variable is no longer present, the focus will fail and the repeat will stop
-                seq(limit(1, focus(CUser.class, (c, s) -> constraintContainsVar(s, c, placeholderVar))))
+                seq(limit(1, focusConstraint(CUser.class, (c, s) -> constraintContainsVar(s, c, placeholderVar))))
                     .$(continuation)
                     .$()
             )
-        ).apply(ctx, input);
+        ).eval(ctx, input);
     }
 
     private Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> buildInnerCompletionStrategy(ITermVar placeholderVar) {
         return debug(s -> System.out.println(s), seq(Strategies.<SolverContext, FocusedSolverState<CUser>>id())
             // Expand the focussed rule
-            .$(expandRule())
+            .$(expandPredicateConstraint())
             // Perform inference
             .$(infer())
             // Remove states that have errors
@@ -68,9 +68,9 @@ public final class CompleteStrategy implements Strategy<SolverContext, SolverSta
             .$(assertThat(s -> !StrategoPlaceholders.isPlaceholder(s.project(placeholderVar))))
             // Repeat until all fails:
             // Focus on a query
-            .$(repeat(distinct(seq(limit(1, focus(CResolveQuery.class)))
+            .$(repeat(distinct(seq(limit(1, focusConstraint(CResolveQuery.class)))
                 // Expand the query into its results
-                .$(expandQuery())
+                .$(expandQueryConstraint())
                 // Perform inference
                 .$(infer())
                 // Remove states that have errors
@@ -86,13 +86,13 @@ public final class CompleteStrategy implements Strategy<SolverContext, SolverSta
                 // and try to expand each variable to a single result if possible.
                 // FIXME: projecting and gathering variables every time is not very efficient
                 // we could do it once for each state
-                seq(limit(1, focus(CUser.class, (c, s) -> {
+                seq(limit(1, focusConstraint(CUser.class, (c, s) -> {
                     final Multiset<ITermVar> innerVars = s.project(placeholderVar).getVars();
                     return constraintContainsAnyVar(s, c, innerVars);
                 } )))
                     // Expand the focussed rule, and ensure there is only one result
                     .$(single(
-                        seq(expandRule())
+                        seq(expandPredicateConstraint())
                             // Perform inference
                             .$(infer())
                             // Remove states that have errors

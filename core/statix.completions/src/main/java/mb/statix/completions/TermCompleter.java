@@ -8,6 +8,7 @@ import mb.sequences.Seq;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.constraints.CUser;
+import mb.strategies.Strategy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.ArrayList;
@@ -50,7 +51,10 @@ public final class TermCompleter {
      * @return the resulting states
      */
     public Seq<SolverState> completeNodes(SolverContext ctx, SolverState state, ITermVar placeholderVar) throws InterruptedException {
-        return new CompleteStrategy(placeholderVar).apply(ctx, state);
+        Strategy<SolverContext, SolverState, SolverState> strategy = CompleteStrategies.complete(placeholderVar);
+        System.out.println("COMPLETING: " + strategy);
+        return strategy.eval(ctx, state);
+//        return new CompleteStrategy(placeholderVar).apply(ctx, state);
     }
 
     private static boolean returnAndWrite(String msg, boolean value) {

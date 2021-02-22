@@ -50,7 +50,7 @@ public final class DelayStuckQueriesStrategy implements Strategy<SolverContext, 
     }
 
     @Override
-    public Seq<SolverState> apply(SolverContext ctx, SolverState input) {
+    public Seq<SolverState> eval(SolverContext ctx, SolverState input) {
         final IState.Immutable state = input.getState();
         final ICompleteness.Immutable completeness = input.getCompleteness();
 

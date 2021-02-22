@@ -22,12 +22,18 @@ public final class DistinctStrategy<CTX, I, O> implements Strategy1<CTX, Strateg
     public String getName() { return "distinct"; }
 
     @Override
-    public Seq<O> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s,
         I input
     ) {
-        return s.apply(ctx, input).distinct();
+        return s.eval(ctx, input).distinct();
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

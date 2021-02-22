@@ -22,15 +22,21 @@ public final class OrStrategy<CTX, I, O> implements Strategy2<CTX, Strategy<CTX,
     public String getName() { return "or"; }
 
     @Override
-    public Seq<O> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s1,
         Strategy<CTX, I, O> s2,
         I input
     ) {
-        final Seq<O> results1 = s1.apply(ctx, input);
-        final Seq<O> results2 = s2.apply(ctx, input);
+        final Seq<O> results1 = s1.eval(ctx, input);
+        final Seq<O> results2 = s2.eval(ctx, input);
         return results1.concatWith(results2);
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

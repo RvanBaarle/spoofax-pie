@@ -22,12 +22,17 @@ public final class SingleStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<
     public String getName() { return "single"; }
 
     @Override
-    public Seq<O> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s,
         I input
     ) {
-        return s.apply(ctx, input).single();
+        return s.eval(ctx, input).single();
     }
 
+    @Override
+    public String toString() { return getName(); }
 }

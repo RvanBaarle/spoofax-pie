@@ -1,5 +1,6 @@
 package mb.strategies;
 
+import mb.sequences.Computation;
 import mb.sequences.Seq;
 
 import java.util.function.Consumer;
@@ -26,6 +27,23 @@ public final class Strategies {
         Strategy<CTX, I, O> strategy
     ) {
         return AllStrategy.<CTX, I, O>getInstance().apply(predicate, strategy);
+    }
+
+    /**
+     * Accepts a consumer of the value.
+     *
+     * @param c the consumer
+     * @param <CTX> the type of context
+     * @param <T> the type of value
+     * @return the resulting strategy
+     */
+    public static <CTX, T> Strategy<CTX, T, T> accept(
+        Consumer<T> c
+    ) {
+        return (ctx, input) -> (Computation<T>)() -> {
+            c.accept(input);
+            return input;
+        };
     }
 
     /**
@@ -144,6 +162,15 @@ public final class Strategies {
         return GlcStrategy.<CTX, I, M, O>getInstance().apply(condition, onSuccess, onFailure);
     }
 
+
+    public static <CTX, I, M, O> Strategy<CTX, I, O> fold(
+        Strategy<CTX, I, M> s1,
+        M initial,
+        Strategy<CTX, M, O> operation
+    ) {
+        return null;
+    }
+
     /**
      * Limits the number of results from the given strategy.
      *
@@ -227,8 +254,8 @@ public final class Strategies {
     public static <CTX, I, O> Strategy<CTX, I, O> rec(Function<Strategy<CTX, I, O>, Strategy<CTX, I, O>> f) {
         return new Strategy<CTX, I, O>() {
             @Override
-            public Seq<O> apply(CTX ctx, I input) {
-                return f.apply(this).apply(ctx, input);
+            public Seq<O> eval(CTX ctx, I input) {
+                return f.apply(this).eval(ctx, input);
             }
         };
     }

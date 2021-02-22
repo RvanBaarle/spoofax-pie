@@ -22,14 +22,20 @@ public final class LimitStrategy<CTX, I, O> implements Strategy2<CTX, Integer, S
     public String getName() { return "limit"; }
 
     @Override
-    public Seq<O> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<O> eval(
         CTX ctx,
         Integer limit,
         Strategy<CTX, I, O> s,
         I input
     ) {
-        final Seq<O> values = s.apply(ctx, input);
+        final Seq<O> values = s.eval(ctx, input);
         return values.take(limit);
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

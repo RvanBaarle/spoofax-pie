@@ -29,7 +29,7 @@ public final class FocusStrategy<C extends IConstraint> implements Strategy2<Sol
     }
 
     @Override
-    public Seq<FocusedSolverState<C>> apply(SolverContext ctx, Class<C> constraintClass, BiPredicate<C, SolverState> predicate, SolverState input) {
+    public Seq<FocusedSolverState<C>> eval(SolverContext ctx, Class<C> constraintClass, BiPredicate<C, SolverState> predicate, SolverState input) {
         //noinspection unchecked
         Optional<C> focus = input.getConstraints().stream()
             .filter(c -> constraintClass.isAssignableFrom(c.getClass()))

@@ -26,7 +26,10 @@ public final class AllStrategy<CTX, I, O> implements Strategy2<CTX, Predicate<O>
     public String getName() { return "all"; }
 
     @Override
-    public Seq<O> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<O> eval(
         CTX ctx,
         Predicate<O> predicate,
         Strategy<CTX, I, O> strategy,
@@ -34,5 +37,8 @@ public final class AllStrategy<CTX, I, O> implements Strategy2<CTX, Predicate<O>
     ) {
         throw new UnsupportedOperationException("Not implemented");
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

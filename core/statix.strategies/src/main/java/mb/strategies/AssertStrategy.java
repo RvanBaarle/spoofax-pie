@@ -25,7 +25,10 @@ public final class AssertStrategy<CTX, T> implements Strategy1<CTX, Predicate<T>
     public String getName() { return "assert"; }
 
     @Override
-    public Seq<T> apply(
+    public boolean isAnonymous() { return false; }
+
+    @Override
+    public Seq<T> eval(
         CTX ctx,
         Predicate<T> predicate,
         T input
@@ -35,5 +38,8 @@ public final class AssertStrategy<CTX, T> implements Strategy1<CTX, Predicate<T>
             return input;
         };
     }
+
+    @Override
+    public String toString() { return getName(); }
 
 }

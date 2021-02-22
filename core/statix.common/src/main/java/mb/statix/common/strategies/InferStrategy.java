@@ -26,7 +26,7 @@ public final class InferStrategy implements Strategy<SolverContext, SolverState,
     private InferStrategy() {}
 
     @Override
-    public Computation<SolverState> apply(SolverContext ctx, SolverState state) {
+    public Computation<SolverState> eval(SolverContext ctx, SolverState state) {
         return () -> {
             final SolverResult result = Solver.solve(
                 ctx.getSpec(),
