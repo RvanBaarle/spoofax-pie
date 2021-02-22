@@ -1,21 +1,27 @@
 package mb.tiger.statix.intellij;
 
 import dagger.Component;
-import mb.spoofax.core.platform.ResourceServiceComponent;
+import mb.resource.dagger.ResourceServiceComponent;
 import mb.spoofax.intellij.IntellijLanguageComponent;
 import mb.spoofax.intellij.IntellijPlatformComponent;
+import mb.spoofax.intellij.log.IntellijLoggerComponent;
+import mb.tiger.statix.spoofax.SpoofaxModule;
+import mb.tiger.statix.spoofax.TigerModule;
+import mb.tiger.statix.spoofax.TigerModuleExt;
+import mb.tiger.statix.spoofax.TigerResourcesComponent;
+import mb.tiger.statix.spoofax.TigerScope;
 
-@mb.tiger.statix.spoofax.TigerScope
+@TigerScope
 @Component(
     modules = {
-        mb.tiger.statix.spoofax.TigerModule.class,
-        mb.tiger.statix.intellij.TigerIntellijModule.class, 
-        mb.tiger.statix.spoofax.SpoofaxModule.class,
-
-        mb.tiger.statix.spoofax.TigerModuleExt.class
+        TigerModule.class,
+        TigerIntellijModule.class,
+        SpoofaxModule.class,
+        TigerModuleExt.class
     },
     dependencies = {
-        mb.tiger.statix.spoofax.TigerResourcesComponent.class,
+        IntellijLoggerComponent.class,
+        TigerResourcesComponent.class,
         ResourceServiceComponent.class,
         IntellijPlatformComponent.class
     }

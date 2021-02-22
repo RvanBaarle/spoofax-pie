@@ -1,15 +1,9 @@
 package mb.tiger.statix.spoofax;
 
 import dagger.Component;
-import mb.spoofax.core.language.LanguageComponent;
+import mb.log.dagger.LoggerComponent;
+import mb.resource.dagger.ResourceServiceComponent;
 import mb.spoofax.core.platform.PlatformComponent;
-import mb.resource.ResourceService;
-import mb.resource.classloader.ClassLoaderResource;
-import mb.pie.api.Pie;
-import javax.inject.Provider;
-
-import mb.spoofax.core.platform.ResourceServiceComponent;
-import mb.tiger.statix.spoofax.TigerQualifier;
 
 @TigerScope
 @Component(
@@ -19,6 +13,7 @@ import mb.tiger.statix.spoofax.TigerQualifier;
         SpoofaxModule.class
     },
     dependencies = {
+        LoggerComponent.class,
         TigerResourcesComponent.class,
         ResourceServiceComponent.class,
         PlatformComponent.class

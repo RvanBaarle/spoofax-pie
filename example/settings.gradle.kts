@@ -78,7 +78,9 @@ fun String.includeProject(id: String, path: String = "$this/$id") {
 //
 //"multilang/generated".run {
 //  includeProject("signature")
+//  includeProject("signature.eclipse")
 //  includeProject("module")
+//  includeProject("module.eclipse")
 //
 //  includeProject("minisdf")
 //  includeProject("minisdf.eclipse")

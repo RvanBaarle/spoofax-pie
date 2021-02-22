@@ -31,6 +31,7 @@ include("statix.multilang.eclipse")
 include("spoofax2.common")
 
 include("spoofax.core")
+include("spoofax.test")
 
 include("spoofax.cli")
 include("spoofax.intellij")

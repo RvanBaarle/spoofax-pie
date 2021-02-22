@@ -2,10 +2,11 @@
 
 package mb.spoofax.compiler.gradle.plugin
 
+import mb.pie.dagger.PieComponent
 import mb.spoofax.compiler.dagger.*
 import mb.spoofax.compiler.gradle.*
 import mb.spoofax.compiler.platform.*
-import mb.spoofax.core.platform.ResourceServiceComponent
+import mb.resource.dagger.ResourceServiceComponent
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -66,15 +67,33 @@ open class IntellijPlugin : Plugin<Project> {
     project.plugins.apply(JavaLibraryPlugin::class.java)
     project.pluginManager.apply("org.jetbrains.intellij")
 
-    // Disable some IntelliJ plugin functionality to increase incrementality.
-    project.configure<IntelliJPluginExtension> {
-      instrumentCode = false
-    }
-    project.tasks.getByName("buildSearchableOptions").enabled = false
+    configureIntelliJPlugin(project) // Configure IntelliJ plugin early, before afterEvaluate.
 
     project.afterEvaluate {
       extension.adapterProjectFinalized.whenAdapterProjectFinalized {
-        configure(project, extension.languageProjectExtension.resourceServiceComponent, extension.languageProjectExtension.component, extension.compilerInputFinalized)
+        val components = extension.languageProjectExtension.components
+        configure(project, components.resourceServiceComponent, components.component, components.pieComponent, extension.compilerInputFinalized)
+      }
+    }
+  }
+
+  private fun configureIntelliJPlugin(project: Project) {
+    // Disable some IntelliJ plugin functionality to increase incrementality.
+    project.configure<IntelliJPluginExtension> {
+      version = "2020.2.4" // 2020.2.4 is the last version that can be built with Java 8.
+      instrumentCode = false // Skip non-incremental and slow code instrumentation.
+    }
+    project.tasks {
+      named("buildSearchableOptions") {
+        enabled = false // Skip non-incremental and slow `buildSearchableOptions` task from `org.jetbrains.intellij`.
+      }
+
+      named<org.jetbrains.intellij.tasks.RunIdeTask>("runIde") {
+        jbrVersion("11_0_2b159") // Set JBR version because the latest one cannot be downloaded.
+        // HACK: make task depend on the runtime classpath to forcefully make it depend on `spoofax.intellij`, which
+        //       `org.jetbrains.intellij` seems to ignore. This is probably because `spoofax.intellij` is a plugin
+        //       but is not listed as a plugin dependency. This hack may not work when publishing this plugin.
+        dependsOn(project.configurations.getByName("runtimeClasspath"))
       }
     }
   }
@@ -83,10 +102,11 @@ open class IntellijPlugin : Plugin<Project> {
     project: Project,
     resourceServiceComponent: ResourceServiceComponent,
     component: SpoofaxCompilerComponent,
+    pieComponent: PieComponent,
     input: IntellijProjectCompiler.Input
   ) {
     configureProject(project, resourceServiceComponent, component, input)
-    configureCompilerTask(project, resourceServiceComponent, component, input)
+    configureCompilerTask(project, resourceServiceComponent, component, pieComponent, input)
   }
 
   private fun configureProject(
@@ -109,6 +129,7 @@ open class IntellijPlugin : Plugin<Project> {
     project: Project,
     resourceServiceComponent: ResourceServiceComponent,
     component: SpoofaxCompilerComponent,
+    pieComponent: PieComponent,
     input: IntellijProjectCompiler.Input
   ) {
     val compileTask = project.tasks.register("compileIntellijProject") {
@@ -119,8 +140,8 @@ open class IntellijPlugin : Plugin<Project> {
       doLast {
         project.deleteDirectory(input.generatedJavaSourcesDirectory(), resourceServiceComponent.resourceService)
         project.deleteDirectory(input.generatedResourcesDirectory(), resourceServiceComponent.resourceService)
-        synchronized(component.pie) {
-          component.pie.newSession().use { session ->
+        synchronized(pieComponent.pie) {
+          pieComponent.pie.newSession().use { session ->
             session.require(component.intellijProjectCompiler.createTask(input))
           }
         }
