@@ -4,6 +4,7 @@ import mb.sequences.Function3;
 import mb.sequences.Seq;
 
 import java.io.IOException;
+import java.util.function.BiFunction;
 
 /**
  * A strategy.
@@ -19,283 +20,87 @@ import java.io.IOException;
 public interface Strategy3<CTX, A1, A2, A3, I, O> extends StrategyDecl {
 
     /**
-     * Defines a named Strategy with three arguments.
+     * Defines a named strategy with three arguments.
      *
-     * @param name the strategy name
-     * @param body the strategy body
+     * @param name the name of the strategy
+     * @param builder the strategy builder, which takes three arguments
      * @param <CTX> the type of context (invariant)
      * @param <A1> the type of the first argument (contravariant)
      * @param <A2> the type of the second argument (contravariant)
      * @param <A3> the type of the third argument (contravariant)
      * @param <I> the type of input (contravariant)
      * @param <O> the type of output (covariant)
-     * @return the strategy
+     * @return the built strategy
      */
-    static <CTX, A1, A2, A3, I, O> Strategy3<CTX, A1, A2, A3, I, O> define(String name, Function3<A1, A2, A3, Strategy<CTX, I, O>> body) {
-        return define(name, (ctx, p1, p2, p3, input) -> body.apply(p1, p2, p3).eval(ctx, input));
-    }
-
-    /**
-     * Defines a named Strategy with two arguments.
-     *
-     * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <A2> the type of the second argument (contravariant)
-     * @param <A3> the type of the third argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
-     */
-    static <CTX, A1, A2, A3, I, O> Strategy2<CTX, A2, A3, I, O> define(String name, Function3<A1, A2, A3, Strategy<CTX, I, O>> body, A1 arg1) {
-        return define(name, (ctx, p1, p2, p3, input) -> body.apply(p1, p2, p3).eval(ctx, input), arg1);
-    }
-
-    /**
-     * Defines a named Strategy with one argument.
-     *
-     * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <A2> the type of the second argument (contravariant)
-     * @param <A3> the type of the third argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
-     */
-    static <CTX, A1, A2, A3, I, O> Strategy1<CTX, A3, I, O> define(String name, Function3<A1, A2, A3, Strategy<CTX, I, O>> body, A1 arg1, A2 arg2) {
-        return define(name, (ctx, p1, p2, p3, input) -> body.apply(p1, p2, p3).eval(ctx, input), arg1, arg2);
-    }
-
-    /**
-     * Defines a named Strategy with no arguments.
-     *
-     * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <A2> the type of the second argument (contravariant)
-     * @param <A3> the type of the third argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
-     */
-    static <CTX, A1, A2, A3, I, O> Strategy<CTX, I, O> define(String name, Function3<A1, A2, A3, Strategy<CTX, I, O>> body, A1 arg1, A2 arg2, A3 arg3) {
-        return define(name, (ctx, p1, p2, p3, input) -> body.apply(p1, p2, p3).eval(ctx, input), arg1, arg2, arg3);
-    }
-
-    // ---
-
-    /**
-     * Defines a named Strategy with three arguments.
-     *
-     * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <A2> the type of the second argument (contravariant)
-     * @param <A3> the type of the third argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
-     */
-    static <CTX, A1, A2, A3, I, O> Strategy3<CTX, A1, A2, A3, I, O> define(String name, Strategy3<CTX, A1, A2, A3, I, O> body) {
+    static <CTX, A1, A2, A3, I, O> Strategy3<CTX, A1, A2, A3, I, O> define(String name, Function3<A1, A2, A3, Strategy<CTX, I, O>> builder) {
+        // Wraps a strategy builder, and gives it a name.
         return new Strategy3<CTX, A1, A2, A3, I, O>() {
-            @Override public Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, I input) {
-                return body.eval(ctx, arg1, arg2, arg3, input);
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public boolean isAnonymous() {
+                return false;
             }
 
             @Override
             public Strategy<CTX, I, O> apply(A1 arg1, A2 arg2, A3 arg3) {
-                // Direct to another implementation,
-                // to avoid wrapping the strategy twice.
-                final Strategy<CTX, I, O> partiallyApplied = body.apply(arg1, arg2, arg3);
-                return partiallyApplied.isAnonymous() ? Strategy.define(name, partiallyApplied) : partiallyApplied;
+                return builder.apply(arg1, arg2, arg3);
             }
 
             @Override
-            public Strategy1<CTX, A3, I, O> apply(A1 arg1, A2 arg2) {
-                // Direct to another implementation,
-                // to avoid wrapping the strategy twice.
-                final Strategy1<CTX, A3, I, O> partiallyApplied = body.apply(arg1, arg2);
-                return partiallyApplied.isAnonymous() ? Strategy1.define(name, partiallyApplied) : partiallyApplied;
+            public Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, I input) {
+                return apply(arg1, arg2, arg3).eval(ctx, input);
             }
 
             @Override
-            public Strategy2<CTX, A2, A3, I, O> apply(A1 arg1) {
-                // Direct to another implementation,
-                // to avoid wrapping the strategy twice.
-                final Strategy2<CTX, A2, A3, I, O> partiallyApplied = body.apply(arg1);
-                return partiallyApplied.isAnonymous() ? Strategy2.define(name, partiallyApplied) : partiallyApplied;
+            public String toString() {
+                return name;
             }
 
-            @Override public String getName() { return name; }
-
-            @Override public boolean isAnonymous() { return false; }
-
-            @Override public <A extends Appendable> A write(A buffer) throws IOException {
-                buffer.append(getName());
-                return buffer;
-            }
-
-            @Override public String toString() {
-                try {
-                    return write(new StringBuilder()).toString();
-                } catch(IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+            @Override
+            public Strategy3<CTX, A1, A2, A3, I, O> withName(String name) {
+                // Delegate to the inner strategy, to avoid wrapping twice
+                return define(name, builder);
             }
         };
     }
 
     /**
-     * Defines a named Strategy with two arguments.
+     * Names the strategy.
      *
      * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <A2> the type of the second argument (contravariant)
-     * @param <A3> the type of the third argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
+     * @return the named strategy
      */
-    static <CTX, A1, A2, A3, I, O> Strategy2<CTX, A2, A3, I, O> define(String name, Strategy3<CTX, A1, A2, A3, I, O> body, A1 arg1) {
-        return new Strategy2<CTX, A2, A3, I, O>() {
-            @Override public Seq<O> eval(CTX ctx, A2 arg2, A3 arg3, I input) {
-                return body.eval(ctx, arg1, arg2, arg3, input);
+    default Strategy3<CTX, A1, A2, A3, I, O> withName(String name) {
+        // Wraps a strategy and gives it a name.
+        return new Strategy3<CTX, A1, A2, A3, I, O>() {
+            @Override
+            public String getName() {
+                return name;
             }
 
             @Override
-            public Strategy<CTX, I, O> apply(A2 arg2, A3 arg3) {
-                // Direct to another implementation,
-                // to avoid wrapping the strategy twice.
-                return body.apply(arg1, arg2, arg3);
+            public boolean isAnonymous() {
+                return false;
             }
 
             @Override
-            public Strategy1<CTX, A3, I, O> apply(A2 arg2) {
-                // Direct to another implementation,
-                // to avoid wrapping the strategy twice.
-                return body.apply(arg1, arg2);
-            }
-
-            @Override public String getName() { return name; }
-
-            @Override public boolean isAnonymous() { return true; }
-
-            @Override public <A extends Appendable> A write(A buffer) throws IOException {
-                buffer.append(getName());
-                buffer.append('(');
-                buffer.append(arg1.toString());
-                buffer.append(')');
-                return buffer;
-            }
-
-            @Override public String toString() {
-                try {
-                    return write(new StringBuilder()).toString();
-                } catch(IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        };
-    }
-
-    /**
-     * Defines a named Strategy with one argument.
-     *
-     * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <A2> the type of the second argument (contravariant)
-     * @param <A3> the type of the third argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
-     */
-    static <CTX, A1, A2, A3, I, O> Strategy1<CTX, A3, I, O> define(String name, Strategy3<CTX, A1, A2, A3, I, O> body, A1 arg1, A2 arg2) {
-        return new Strategy1<CTX, A3, I, O>() {
-            @Override public Seq<O> eval(CTX ctx, A3 arg3, I input) {
-                return body.eval(ctx, arg1, arg2, arg3, input);
+            public Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, I input) {
+                return Strategy3.this.eval(ctx, arg1, arg2, arg3, input);
             }
 
             @Override
-            public Strategy<CTX, I, O> apply(A3 arg3) {
-                // Direct to another implementation,
-                // to avoid wrapping the strategy twice.
-                return body.apply(arg1, arg2, arg3);
+            public String toString() {
+                return name;
             }
 
-            @Override public String getName() { return name; }
-
-            @Override public boolean isAnonymous() { return true; }
-
-            @Override public <A extends Appendable> A write(A buffer) throws IOException {
-                buffer.append(getName());
-                buffer.append('(');
-                buffer.append(arg1.toString());
-                buffer.append(", ");
-                buffer.append(arg2.toString());
-                buffer.append(')');
-                return buffer;
-            }
-
-            @Override public String toString() {
-                try {
-                    return write(new StringBuilder()).toString();
-                } catch(IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-        };
-    }
-
-    /**
-     * Defines a named Strategy with no arguments.
-     *
-     * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <A2> the type of the second argument (contravariant)
-     * @param <A3> the type of the third argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
-     */
-    static <CTX, A1, A2, A3, I, O> Strategy<CTX, I, O> define(String name, Strategy3<CTX, A1, A2, A3, I, O> body, A1 arg1, A2 arg2, A3 arg3) {
-        return new Strategy<CTX, I, O>() {
-            @Override public Seq<O> eval(CTX ctx, I input) {
-                return body.eval(ctx, arg1, arg2, arg3, input);
-            }
-
-            @Override public String getName() { return name; }
-
-            @Override public boolean isAnonymous() { return true; }
-
-            @Override public <A extends Appendable> A write(A buffer) throws IOException {
-                buffer.append(getName());
-                buffer.append('(');
-                buffer.append(arg1.toString());
-                buffer.append(", ");
-                buffer.append(arg2.toString());
-                buffer.append(", ");
-                buffer.append(arg3.toString());
-                buffer.append(')');
-                return buffer;
-            }
-
-            @Override public String toString() {
-                try {
-                    return write(new StringBuilder()).toString();
-                } catch(IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+            @Override
+            public Strategy3<CTX, A1, A2, A3, I, O> withName(String name) {
+                // Delegate to the inner strategy, to avoid wrapping twice
+                return Strategy3.this.withName(name);
             }
         };
     }
@@ -313,7 +118,7 @@ public interface Strategy3<CTX, A1, A2, A3, I, O> extends StrategyDecl {
      * @return the resulting partially applied strategy
      */
     default Strategy2<CTX, A2, A3, I, O> apply(A1 arg1) {
-        return define(Strategy3.this.getName(), Strategy3.this, arg1);
+        return new AppliedStrategies.ApplStrategy3To2<CTX, A1, A2, A3, I, O>(Strategy3.this, arg1);
     }
 
     /**
@@ -327,7 +132,7 @@ public interface Strategy3<CTX, A1, A2, A3, I, O> extends StrategyDecl {
      * @return the resulting partially applied strategy
      */
     default Strategy1<CTX, A3, I, O> apply(A1 arg1, A2 arg2) {
-        return define(Strategy3.this.getName(), Strategy3.this, arg1, arg2);
+        return new AppliedStrategies.ApplStrategy3To1<CTX, A1, A2, A3, I, O>(Strategy3.this, arg1, arg2);
     }
 
     /**
@@ -339,7 +144,7 @@ public interface Strategy3<CTX, A1, A2, A3, I, O> extends StrategyDecl {
      * @return the resulting partially applied strategy
      */
     default Strategy<CTX, I, O> apply(A1 arg1, A2 arg2, A3 arg3) {
-        return define(Strategy3.this.getName(), Strategy3.this, arg1, arg2, arg3);
+        return new AppliedStrategies.ApplStrategy3To0<CTX, A1, A2, A3, I, O>(Strategy3.this, arg1, arg2, arg3);
     }
 
     /**

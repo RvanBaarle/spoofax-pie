@@ -17,121 +17,88 @@ import java.util.function.Function;
 public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
 
     /**
-     * Defines a named Strategy with one argument.
+     * Defines a named strategy with one argument.
      *
-     * @param name the strategy name
-     * @param body a function producing the strategy body
+     * @param name the name of the strategy
+     * @param builder the strategy builder, which takes one argument
      * @param <CTX> the type of context (invariant)
      * @param <A1> the type of the first argument (contravariant)
      * @param <I> the type of input (contravariant)
      * @param <O> the type of output (covariant)
-     * @return the strategy
+     * @return the built strategy
      */
-    static <CTX, A1, I, O> Strategy1<CTX, A1, I, O> define(String name, Function<A1, Strategy<CTX, I, O>> body) {
-        return define(name, (ctx, p1, input) -> body.apply(p1).eval(ctx, input));
-    }
-
-    /**
-     * Defines a named Strategy with one argument.
-     *
-     * @param name the strategy name
-     * @param body a function producing the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
-     */
-    static <CTX, A1, I, O> Strategy<CTX, I, O> define(String name, Function<A1, Strategy<CTX, I, O>> body, A1 arg1) {
-        return define(name, (ctx, p1, input) -> body.apply(p1).eval(ctx, input), arg1);
-    }
-
-    // ---
-
-    /**
-     * Defines a named Strategy with one argument.
-     *
-     * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
-     */
-    static <CTX, A1, I, O> Strategy1<CTX, A1, I, O> define(String name, Strategy1<CTX, A1, I, O> body) {
+    static <CTX, A1, I, O> Strategy1<CTX, A1, I, O> define(String name, Function<A1, Strategy<CTX, I, O>> builder) {
+        // Wraps a strategy builder, and gives it a name.
         return new Strategy1<CTX, A1, I, O>() {
-            @Override public Seq<O> eval(CTX ctx, A1 arg1, I input) {
-                return body.eval(ctx, arg1, input);
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public boolean isAnonymous() {
+                return false;
             }
 
             @Override
             public Strategy<CTX, I, O> apply(A1 arg1) {
-                // Direct to another implementation,
-                // to avoid wrapping the strategy twice.
-                final Strategy<CTX, I, O> partiallyApplied = body.apply(arg1);
-                return partiallyApplied.isAnonymous() ? Strategy.define(name, partiallyApplied) : partiallyApplied;
+                return builder.apply(arg1);
             }
 
-            @Override public String getName() { return name; }
-
-            @Override public boolean isAnonymous() { return false; }
-
-            @Override public <A extends Appendable> A write(A buffer) throws IOException {
-                buffer.append(getName());
-                return buffer;
+            @Override
+            public Seq<O> eval(CTX ctx, A1 arg1, I input) {
+                return apply(arg1).eval(ctx, input);
             }
 
-            @Override public String toString() {
-                try {
-                    return write(new StringBuilder()).toString();
-                } catch(IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+            @Override
+            public Strategy1<CTX, A1, I, O> withName(String name) {
+                // Delegate to the inner strategy, to avoid wrapping twice
+                return define(name, builder);
+            }
+
+            @Override
+            public String toString() {
+                return name;
             }
         };
     }
 
     /**
-     * Defines a named Strategy with no arguments.
+     * Names the strategy.
      *
      * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <A1> the type of the first argument (contravariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
+     * @return the named strategy
      */
-    static <CTX, A1, I, O> Strategy<CTX, I, O> define(String name, Strategy1<CTX, A1, I, O> body, A1 arg1) {
-        return new Strategy<CTX, I, O>() {
-            @Override public Seq<O> eval(CTX ctx, I input) {
-                return body.eval(ctx, arg1, input);
+    default Strategy1<CTX, A1, I, O> withName(String name) {
+        // Wraps a strategy and gives it a name.
+        return new Strategy1<CTX, A1, I, O>() {
+            @Override
+            public String getName() {
+                return name;
             }
 
-            @Override public String getName() { return name; }
-
-            @Override public boolean isAnonymous() { return true; }
-
-            @Override public <A extends Appendable> A write(A buffer) throws IOException {
-                buffer.append(getName());
-                buffer.append('(');
-                buffer.append(arg1.toString());
-                buffer.append(')');
-                return buffer;
+            @Override
+            public boolean isAnonymous() {
+                return false;
             }
 
-            @Override public String toString() {
-                try {
-                    return write(new StringBuilder()).toString();
-                } catch(IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+            @Override
+            public Seq<O> eval(CTX ctx, A1 arg1, I input) {
+                return Strategy1.this.eval(ctx, arg1, input);
+            }
+
+            @Override
+            public String toString() {
+                return name;
+            }
+
+            @Override
+            public Strategy1<CTX, A1, I, O> withName(String name) {
+                // Delegate to the inner strategy, to avoid wrapping twice
+                return Strategy1.this.withName(name);
             }
         };
     }
-
-
 
     @Override
     default int getArity() { return 1; }
@@ -143,7 +110,7 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
      * @return the resulting partially applied strategy
      */
     default Strategy<CTX, I, O> apply(A1 arg1) {
-        return define(Strategy1.this.getName(), Strategy1.this, arg1);
+        return new AppliedStrategies.ApplStrategy1To0<CTX, A1, I, O>(Strategy1.this, arg1);
     }
 
     /**

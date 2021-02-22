@@ -2,12 +2,10 @@ package mb.strategies;
 
 import mb.sequences.Seq;
 
-import java.io.IOException;
-
 /**
  * The s1; s2; ...; sn strategy.
  */
-public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<CTX, I, M>, Strategy<CTX, M, O>, I, O> {
+@SuppressWarnings("Convert2Diamond") public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<CTX, I, M>, Strategy<CTX, M, O>, I, O> {
 
     @SuppressWarnings("rawtypes")
     private static final SeqStrategy instance = new SeqStrategy();
@@ -42,21 +40,13 @@ public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<
             }
 
             @Override
-            public <A extends Appendable> A write(A buffer) throws IOException {
+            public String toString() {
+                final StringBuilder buffer = new StringBuilder();
                 final Associativity associativity = Associativity.Left;
                 StrategyPP.writeLeft(buffer, s1, getPrecedence(), associativity);
                 buffer.append("; ");
                 StrategyPP.writeRight(buffer, s2, getPrecedence(), associativity);
-                return buffer;
-            }
-
-            @Override
-            public String toString() {
-                try {
-                    return write(new StringBuilder()).toString();
-                } catch(IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+                return buffer.toString();
             }
         };
     }

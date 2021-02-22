@@ -12,15 +12,15 @@ public final class StrategyPP {
      * @param strategy the strategy to write
      * @param precedence the precedence of the parent strategy; a higher value indicates a higher precedence
      * @param associativity the associativity of the parent strategy
-     * @param <A> the type of buffer
-     * @throws IOException if an I/O exception occurred
+     * @return the buffer
      */
-    public static <A extends Appendable> void writeLeft(A buffer, StrategyDecl strategy, int precedence, Associativity associativity) throws IOException {
+    public static StringBuilder writeLeft(StringBuilder buffer, StrategyDecl strategy, int precedence, Associativity associativity) {
         boolean parenthesize = strategy.getPrecedence() > precedence
             || (strategy.getPrecedence() == precedence && associativity == Associativity.Right);
         if (parenthesize) buffer.append('(');
-        strategy.write(buffer);
+        buffer.append(strategy);
         if (parenthesize) buffer.append(')');
+        return buffer;
     }
 
     /**
@@ -30,15 +30,15 @@ public final class StrategyPP {
      * @param strategy the strategy to write
      * @param precedence the precedence of the parent strategy; a higher value indicates a higher precedence
      * @param associativity the associativity of the parent strategy
-     * @param <A> the type of buffer
-     * @throws IOException if an I/O exception occurred
+     * @return the buffer
      */
-    public static <A extends Appendable> void writeRight(A buffer, StrategyDecl strategy, int precedence, Associativity associativity) throws IOException {
+    public static StringBuilder writeRight(StringBuilder buffer, StrategyDecl strategy, int precedence, Associativity associativity) {
         boolean parenthesize = strategy.getPrecedence() > precedence
             || (strategy.getPrecedence() == precedence && associativity == Associativity.Left);
         if (parenthesize) buffer.append('(');
-        strategy.write(buffer);
+        buffer.append(strategy);
         if (parenthesize) buffer.append(')');
+        return buffer;
     }
 
 
@@ -48,13 +48,13 @@ public final class StrategyPP {
      * @param buffer the buffer to write to
      * @param strategy the strategy to write
      * @param precedence the precedence of the parent strategy; a higher value indicates a higher precedence
-     * @param <A> the type of buffer
-     * @throws IOException if an I/O exception occurred
+     * @return the buffer
      */
-    public static <A extends Appendable> void writeMiddle(A buffer, StrategyDecl strategy, int precedence) throws IOException {
+    public static StringBuilder writeMiddle(StringBuilder buffer, StrategyDecl strategy, int precedence) {
         boolean parenthesize = strategy.getPrecedence() > precedence;
         if (parenthesize) buffer.append('(');
-        strategy.write(buffer);
+        buffer.append(strategy);
         if (parenthesize) buffer.append(')');
+        return buffer;
     }
 }

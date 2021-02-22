@@ -26,34 +26,24 @@ public final class SingleStrategyTests {
     public void isNamed() throws IOException {
         // Arrange
         final Strategy1<Object, Strategy<Object, Object, String>, Object, String> strategy = SingleStrategy.getInstance();
-        final StringBuilder sb = new StringBuilder();
-
-        // Act
-        final StringBuilder sb2 = strategy.write(sb);
 
         // Assert
-        assertEquals(name, sb.toString());
         assertEquals(name, strategy.toString());
         assertEquals(name, strategy.getName());
         assertFalse(strategy.isAnonymous());
-        assertSame(sb, sb2);
     }
 
     @Test
     public void isAnonymous_whenApplied() throws IOException {
         // Arrange
         final Strategy1<Object, Strategy<Object, String, String>, String, String> strategy = SingleStrategy.getInstance();
-        final StringBuilder sb = new StringBuilder();
 
         // Act
         final Strategy<Object, String, String> appl = strategy.apply(Strategies.id());
-        final StringBuilder sb2 = appl.write(sb);
 
         // Assert
-        assertEquals(name + "(id)", sb.toString());
         assertEquals(name + "(id)", appl.toString());
         assertTrue(appl.isAnonymous());
-        assertSame(sb, sb2);
     }
 
     @Test

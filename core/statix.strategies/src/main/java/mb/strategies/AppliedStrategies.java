@@ -1,0 +1,184 @@
+package mb.strategies;
+
+import mb.sequences.Seq;
+
+/**
+ * Strategies that are partially applied.
+ */
+/* package private */ final class AppliedStrategies {
+    private AppliedStrategies() {}
+
+    public final static class ApplStrategy1To0<CTX, A1, I, O> implements Strategy<CTX, I, O> {
+
+        private final Strategy1<CTX, A1, I, O> strategy;
+        private final A1 arg1;
+
+        public ApplStrategy1To0(Strategy1<CTX, A1, I, O> strategy, A1 arg1) {
+            this.strategy = strategy;
+            this.arg1 = arg1;
+        }
+
+        @Override public Seq<O> eval(CTX ctx, I input) {
+            return strategy.eval(ctx, arg1, input);
+        }
+
+        @Override public String getName() { return strategy.getName(); }
+
+        @Override public boolean isAnonymous() { return true; }
+
+        @Override public String toString() {
+            return getName() + "(" + arg1 + ")";
+        }
+    }
+
+    public final static class ApplStrategy2To0<CTX, A1, A2, I, O> implements Strategy<CTX, I, O> {
+
+        private final Strategy2<CTX, A1, A2, I, O> strategy;
+        private final A1 arg1;
+        private final A2 arg2;
+
+        public ApplStrategy2To0(Strategy2<CTX, A1, A2, I, O> strategy, A1 arg1, A2 arg2) {
+            this.strategy = strategy;
+            this.arg1 = arg1;
+            this.arg2 = arg2;
+        }
+
+        @Override public Seq<O> eval(CTX ctx, I input) {
+            return strategy.eval(ctx, arg1, arg2, input);
+        }
+
+        @Override public String getName() { return strategy.getName(); }
+
+        @Override public boolean isAnonymous() { return true; }
+
+        @Override public String toString() {
+            return getName() + "(" + arg1 + ", " + arg2 + ")";
+        }
+    }
+
+    public final static class ApplStrategy3To0<CTX, A1, A2, A3, I, O> implements Strategy<CTX, I, O> {
+
+        private final Strategy3<CTX, A1, A2, A3, I, O> strategy;
+        private final A1 arg1;
+        private final A2 arg2;
+        private final A3 arg3;
+
+        public ApplStrategy3To0(Strategy3<CTX, A1, A2, A3, I, O> strategy, A1 arg1, A2 arg2, A3 arg3) {
+            this.strategy = strategy;
+            this.arg1 = arg1;
+            this.arg2 = arg2;
+            this.arg3 = arg3;
+        }
+
+        @Override public Seq<O> eval(CTX ctx, I input) {
+            return strategy.eval(ctx, arg1, arg2, arg3, input);
+        }
+
+        @Override public String getName() { return strategy.getName(); }
+
+        @Override public boolean isAnonymous() { return true; }
+
+        @Override public String toString() {
+            return getName() + "(" + arg1 + ", " + arg2 + ", " + arg3 + ")";
+        }
+    }
+
+    // --- //
+
+    public final static class ApplStrategy2To1<CTX, A1, A2, I, O> implements Strategy1<CTX, A2, I, O> {
+
+        private final Strategy2<CTX, A1, A2, I, O> strategy;
+        private final A1 arg1;
+
+        public ApplStrategy2To1(Strategy2<CTX, A1, A2, I, O> strategy, A1 arg1) {
+            this.strategy = strategy;
+            this.arg1 = arg1;
+        }
+
+        @Override
+        public Strategy<CTX, I, O> apply(A2 arg2) {
+            // Delegate to the inner strategy, to avoid wrapping twice
+            return strategy.apply(arg1, arg2);
+        }
+
+        @Override public Seq<O> eval(CTX ctx, A2 arg2, I input) {
+            return strategy.eval(ctx, arg1, arg2, input);
+        }
+
+        @Override public String getName() { return strategy.getName(); }
+
+        @Override public boolean isAnonymous() { return true; }
+
+        @Override public String toString() {
+            return getName() + "(" + arg1 + ")";
+        }
+    }
+
+    public final static class ApplStrategy3To1<CTX, A1, A2, A3, I, O> implements Strategy1<CTX, A3, I, O> {
+
+        private final Strategy3<CTX, A1, A2, A3, I, O> strategy;
+        private final A1 arg1;
+        private final A2 arg2;
+
+        public ApplStrategy3To1(Strategy3<CTX, A1, A2, A3, I, O> strategy, A1 arg1, A2 arg2) {
+            this.strategy = strategy;
+            this.arg1 = arg1;
+            this.arg2 = arg2;
+        }
+
+        @Override
+        public Strategy<CTX, I, O> apply(A3 arg3) {
+            // Delegate to the inner strategy, to avoid wrapping twice
+            return strategy.apply(arg1, arg2, arg3);
+        }
+
+        @Override public Seq<O> eval(CTX ctx, A3 arg3, I input) {
+            return strategy.eval(ctx, arg1, arg2, arg3, input);
+        }
+
+        @Override public String getName() { return strategy.getName(); }
+
+        @Override public boolean isAnonymous() { return true; }
+
+        @Override public String toString() {
+            return getName() + "(" + arg1 + ", " + arg2 + ")";
+        }
+    }
+
+    // --- //
+
+    public final static class ApplStrategy3To2<CTX, A1, A2, A3, I, O> implements Strategy2<CTX, A2, A3, I, O> {
+
+        private final Strategy3<CTX, A1, A2, A3, I, O> strategy;
+        private final A1 arg1;
+
+        public ApplStrategy3To2(Strategy3<CTX, A1, A2, A3, I, O> strategy, A1 arg1) {
+            this.strategy = strategy;
+            this.arg1 = arg1;
+        }
+
+        @Override
+        public Strategy<CTX, I, O> apply(A2 arg2, A3 arg3) {
+            // Delegate to the inner strategy, to avoid wrapping twice
+            return strategy.apply(arg1, arg2, arg3);
+        }
+
+        @Override
+        public Strategy1<CTX, A3, I, O> apply(A2 arg2) {
+            // Delegate to the inner strategy, to avoid wrapping twice
+            return strategy.apply(arg1, arg2);
+        }
+
+        @Override public Seq<O> eval(CTX ctx, A2 arg2, A3 arg3, I input) {
+            return strategy.eval(ctx, arg1, arg2, arg3, input);
+        }
+
+        @Override public String getName() { return strategy.getName(); }
+
+        @Override public boolean isAnonymous() { return true; }
+
+        @Override public String toString() {
+            return getName() + "(" + arg1 + ")";
+        }
+    }
+}

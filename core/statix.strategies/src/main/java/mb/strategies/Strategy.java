@@ -3,6 +3,7 @@ package mb.strategies;
 import mb.sequences.Seq;
 
 import java.io.IOException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -16,52 +17,52 @@ import java.util.function.Supplier;
 public interface Strategy<CTX, I, O> extends StrategyDecl {
 
     /**
-     * Defines a named Strategy with two arguments.
+     * Defines a named strategy with no arguments.
      *
-     * @param name the strategy name
-     * @param body the strategy body
+     * @param name the name of the strategy
+     * @param builder the strategy builder, which takes no arguments
      * @param <CTX> the type of context (invariant)
      * @param <I> the type of input (contravariant)
      * @param <O> the type of output (covariant)
-     * @return the strategy
+     * @return the built strategy
      */
-    static <CTX, I, O> Strategy<CTX, I, O> define(String name, Supplier<Strategy<CTX, I, O>> body) {
-        return define(name, (ctx, input) -> body.get().eval(ctx, input));
+    static <CTX, I, O> Strategy<CTX, I, O> define(String name, Supplier<Strategy<CTX, I, O>> builder) {
+        return builder.get().withName(name);
     }
 
-    // ---
-
     /**
-     * Defines a named Strategy with two arguments.
+     * Names the strategy.
      *
      * @param name the strategy name
-     * @param body the strategy body
-     * @param <CTX> the type of context (invariant)
-     * @param <I> the type of input (contravariant)
-     * @param <O> the type of output (covariant)
-     * @return the strategy
+     * @return the named strategy
      */
-    static <CTX, I, O> Strategy<CTX, I, O> define(String name, Strategy<CTX, I, O> body) {
+    default Strategy<CTX, I, O> withName(String name) {
+        // Wraps a strategy and gives it a name.
         return new Strategy<CTX, I, O>() {
-            @Override public Seq<O> eval(CTX ctx, I input) {
-                return body.eval(ctx, input);
+            @Override
+            public String getName() {
+                return name;
             }
 
-            @Override public String getName() { return name; }
-
-            @Override public boolean isAnonymous() { return false; }
-
-            @Override public <A extends Appendable> A write(A buffer) throws IOException {
-                buffer.append(getName());
-                return buffer;
+            @Override
+            public boolean isAnonymous() {
+                return false;
             }
 
-            @Override public String toString() {
-                try {
-                    return write(new StringBuilder()).toString();
-                } catch(IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+            @Override
+            public Seq<O> eval(CTX ctx, I input) {
+                return Strategy.this.eval(ctx, input);
+            }
+
+            @Override
+            public String toString() {
+                return name;
+            }
+
+            @Override
+            public Strategy<CTX, I, O> withName(String name) {
+                // Delegate to the inner strategy, to avoid wrapping twice
+                return Strategy.this.withName(name);
             }
         };
     }

@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static mb.statix.search.CollectionExt.containsAny;
 import static mb.statix.strategies.SearchStrategies.*;
 import static mb.strategies.Strategies.*;
+import static mb.strategies.Strategy1.define;
 
 @SuppressWarnings("Convert2Diamond") public final class CompleteStrategies {
     private CompleteStrategies() {
@@ -37,12 +38,13 @@ import static mb.strategies.Strategies.*;
      * Completes the given placeholder.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> complete
-        = Strategy1.define("complete", v ->
-        seq(expandAllRules(v))
-//        .$(expandAllQueries(v))
-//        .$(expandDeterministic(v))
-//        .$(filterLiterals(v))
-        .$());
+        = define("complete", v ->
+            seq(expandAllRules(v))
+    //        .$(expandAllQueries(v))
+    //        .$(expandDeterministic(v))
+    //        .$(filterLiterals(v))
+            .$()
+        );
 
     public static Strategy<SolverContext, SolverState, SolverState> complete(ITermVar v) {
         return complete.apply(v);
@@ -53,7 +55,7 @@ import static mb.strategies.Strategies.*;
      * Perform inference, and reject the resulting state if it has errors.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> assertValid
-        = Strategy1.define("assertValid", v -> seq(infer())
+        = define("assertValid", v -> seq(infer())
             // Remove states that have errors
             //.$(assertThat(s -> !s.hasErrors()))
             .$(assertThat(s -> {
@@ -78,7 +80,7 @@ import static mb.strategies.Strategies.*;
      * Otherwise, this strategy fails.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, Tuple3<String, ITermVar, SolverState>> unwrapInjection
-        = Strategy1.define("unwrapInjection", (ctx, v, s) -> {
+        = ((Strategy1<SolverContext, ITermVar, SolverState, Tuple3<String, ITermVar, SolverState>>)(ctx, v, s) -> {
             final ITerm term = s.project(v);
             if(!StrategoPlaceholders.isInjectionConstructor(term)) {
                 System.out.println("Injection?  NO: " + term);
@@ -91,7 +93,7 @@ import static mb.strategies.Strategies.*;
             final ITermVar injArg = StrategoPlaceholders.getInjectionArgument(appl);
             System.out.println("(\"" + sortName + "\", " + injArg + ")");
             return Seq.of(Tuple3.of(sortName, injArg, s));
-        });
+        }).withName("unwrapInjection");
 
     public static Strategy<SolverContext, SolverState, Tuple3<String, ITermVar, SolverState>> unwrapInjection(ITermVar v) {
         return unwrapInjection.apply(v);
@@ -101,7 +103,7 @@ import static mb.strategies.Strategies.*;
      * Expands an injection.
      */
     private static final Strategy1<SolverContext, Set<String>, Tuple3<String, ITermVar, SolverState>, SolverState> expandInjection
-        = Strategy1.define("expandInjection", (ctx, visitedInjections, tuple) -> {
+        = ((Strategy1<SolverContext, Set<String>, Tuple3<String, ITermVar, SolverState>, SolverState>)(ctx, visitedInjections, tuple) -> {
             final String injName = tuple.getComponent1();
             final ITermVar v = tuple.getComponent2();
             final SolverState s = tuple.getComponent3();
@@ -122,7 +124,7 @@ import static mb.strategies.Strategies.*;
                 System.out.println("- " + s1.project(v));
             }
             return apply;
-        });
+        }).withName("expandInjection");
 
     public static Strategy<SolverContext, Tuple3<String, ITermVar, SolverState>, SolverState> expandInjection(Set<String> visitedInjections) {
         return expandInjection.apply(visitedInjections);
@@ -132,7 +134,7 @@ import static mb.strategies.Strategies.*;
      * Expand predicate constraints on injections that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllInjections
-        = Strategy1.define("expandAllInjections", (ctx, v, input) -> {
+        = define("expandAllInjections", v -> {
             AtomicReference<Set<String>> visitedInjections = new AtomicReference<>(Collections.emptySet());
             return //seq(Strategies.<SolverContext, SolverState>accept(o -> visitedInjections.set(Collections.emptySet())))
                 seq(fixSet(try_(     // Fixset-try because we need to expand injections one-by-one
@@ -140,8 +142,7 @@ import static mb.strategies.Strategies.*;
                     .$(expandInjection(visitedInjections.get()))
                     .$()
                 )))
-                .$()
-                .eval(ctx, input);
+                .$();
         });
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllInjections(ITermVar v) {
@@ -152,14 +153,15 @@ import static mb.strategies.Strategies.*;
      * Expand predicate constraints that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllRules
-        = Strategy1.define("expandAllRules", v -> seq(limit(1, focusConstraint(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
-            // Expand the focussed rule
-            .$(expandPredicateConstraint())
-            // Recursively expand injections
-            .$(expandAllInjections(v))
-            // Perform inference and remove states that have errors
-            .$(assertValid(v))
-            .$());
+        = define("expandAllRules", v ->
+        seq(limit(1, focusConstraint(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
+        // Expand the focussed rule
+        .$(expandPredicateConstraint())
+        // Recursively expand injections
+        .$(expandAllInjections(v))
+        // Perform inference and remove states that have errors
+        .$(assertValid(v))
+        .$());
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllRules(ITermVar v) {
         return expandAllRules.apply(v);
@@ -169,7 +171,7 @@ import static mb.strategies.Strategies.*;
      * Expand all query constraints that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
-        = Strategy1.define("expandAllQueries", v -> fixSet(try_(   // Expand each query constraint until there are none left
+        = define("expandAllQueries", v -> fixSet(try_(   // Expand each query constraint until there are none left
             seq(limit(1, focusConstraint(CResolveQuery.class)))
                 // Expand the query into its results
                 .$(expandQueryConstraint())
@@ -202,7 +204,7 @@ import static mb.strategies.Strategies.*;
      * Expand anything deterministically.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
-        = Strategy1.define("expandDeterministic", v -> seq(focusConstraint(CUser.class, (constraint, state) -> {
+        = define("expandDeterministic", v -> seq(focusConstraint(CUser.class, (constraint, state) -> {
             final Multiset<ITermVar> innerVars = state.project(v).getVars();
             return containsAnyVar(innerVars, constraint, state);
         }))
@@ -222,8 +224,7 @@ import static mb.strategies.Strategies.*;
      * Remove literals and naked placeholders.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiterals
-        = Strategy1.define("filterLiterals", (ctx, v, input) -> Strategies.<SolverContext, SolverState>assertThat(s -> !StrategoPlaceholders.isPlaceholder(s.project(v)))
-            .eval(ctx, input));
+        = define("filterLiterals", v -> Strategies.assertThat(s -> !StrategoPlaceholders.isPlaceholder(s.project(v))));
 
     public static Strategy<SolverContext, SolverState, SolverState> filterLiterals(ITermVar v) {
         return filterLiterals.apply(v);

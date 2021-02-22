@@ -41,17 +41,4 @@ public interface StrategyDecl {
      */
     default int getPrecedence() { return Integer.MAX_VALUE; }
 
-    /**
-     * Writes a string representation of this strategy to the given buffer.
-     *
-     * @param buffer the buffer
-     * @param <A> the type of buffer
-     * @return the buffer
-     * @throws IOException if an I/O exception occurred
-     */
-    default <A extends Appendable> A write(A buffer) throws IOException {
-        buffer.append(toString());
-        return buffer;
-    }
-
 }
