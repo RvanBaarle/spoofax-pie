@@ -109,7 +109,7 @@ import static mb.strategies.Strategy2.define;
         final IApplTerm appl = (IApplTerm)term;
         final String sortName = StrategoPlaceholders.getInjectionSortName(appl);
         final ITermVar injArg = StrategoPlaceholders.getInjectionArgument(appl);
-        System.out.println("(\"" + sortName + "\", " + injArg + ")");
+//        System.out.println("(\"" + sortName + "\", " + injArg + ")");
         return Seq.of(Tuple3.of(sortName, injArg, s));
     }).withName("unwrapInjection");
 
@@ -142,7 +142,7 @@ import static mb.strategies.Strategy2.define;
         // TODO: Use visited list
         final Set<String> newVisitedInjections = setWithElement(visitedInjections, injName);
         // Expand the given variable in the state
-        Seq<SolverState> apply = complete(v, newVisitedInjections).eval(ctx, s);
+        final Seq<SolverState> apply = complete(v, newVisitedInjections).eval(ctx, s);
 //        System.out.println("Injection " + term + " expanded to: ");
 //        for(SolverState s1 : apply.buffer().asIterable()) {
 //            System.out.println("- " + s1.project(v));
