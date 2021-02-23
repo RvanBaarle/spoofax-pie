@@ -24,7 +24,8 @@ languageIntellijProject {
 }
 
 intellij {
-  version = "2020.3"
+  version = "2020.2.4" // 2020.2.4 is the last version that can be built with Java 8.
+//  version = "2020.3"
 }
 
 tasks {
