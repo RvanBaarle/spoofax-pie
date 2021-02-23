@@ -79,7 +79,7 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
     public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<CResolveQuery> input) {
         final CResolveQuery query = input.getFocus();
 
-        System.out.println("Expand query: " + query);
+//        System.out.println("Expand query: " + query);
 
         final IState.Immutable state = input.getInnerState().getState();
         final IUniDisunifier unifier = state.unifier();
@@ -114,28 +114,28 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
             dataWF, isAlways, isComplete);
         // @formatter:on
 
-        System.out.println("Expanding:");
+//        System.out.println("Expanding:");
 
         // Find all possible declarations the resolution could resolve to.
         final int declarationCount = countDeclarations(nameResolution, scope);
-        System.out.println("  ▶ found " + declarationCount + " declarations");
+//        System.out.println("  ▶ found " + declarationCount + " declarations");
 
         // For each declaration:
         final ArrayList<SolverState> output = new ArrayList<>();
         for (int i = 0; i < declarationCount; i++) {
             final List<SolverState> newStates = expandResolution(ctx.getSpec(), query, input.getInnerState(),
                 unifier, nameResolution, scope, i);
-            System.out.println("  ▶ added " + newStates.size() + " possible states");
+//            System.out.println("  ▶ added " + newStates.size() + " possible states");
             output.addAll(newStates);
         }
-        System.out.println("▶ expanded " + declarationCount + " declarations into " + output.size() + " possible states");
+//        System.out.println("▶ expanded " + declarationCount + " declarations into " + output.size() + " possible states");
 
-        @Nullable final ITermVar focusVar = ctx.getFocusVar();
-        if (focusVar != null) {
-            for(SolverState s : output) {
-                System.out.println("- " + s.project(focusVar));
-            }
-        }
+//        @Nullable final ITermVar focusVar = ctx.getFocusVar();
+//        if (focusVar != null) {
+//            for(SolverState s : output) {
+//                System.out.println("- " + s.project(focusVar));
+//            }
+//        }
 
         return Seq.from(output);
     }
@@ -163,7 +163,7 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
     ) {
         final Env<Scope, ITerm, ITerm, CEqual> env = resolveByIndex(nameResolution, scope, index);
 
-        System.out.println("  ▶ ▶ declaration " + index + " = " + env.matches.size() + " matches");
+//        System.out.println("  ▶ ▶ declaration " + index + " = " + env.matches.size() + " matches");
 
         // No matches, so no results
         if(env.matches.isEmpty()) {
@@ -179,20 +179,20 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
         // Unconditional rejects
         final List<Match<Scope, ITerm, ITerm, CEqual>> reqRejects = env.rejects;
 
-        System.out.println("  ▶ ▶ conditional matches " + optMatches);
-        System.out.println("  ▶ ▶ unconditional matches " + reqMatches);
-        System.out.println("  ▶ ▶ unconditional rejects " + reqRejects);
+//        System.out.println("  ▶ ▶ conditional matches " + optMatches);
+//        System.out.println("  ▶ ▶ unconditional matches " + reqMatches);
+//        System.out.println("  ▶ ▶ unconditional rejects " + reqRejects);
 
         // Group the conditional matches into groups that can be applied together
         final List<List<Match<Scope, ITerm, ITerm, CEqual>>> optMatchGroups = groupByCondition(unifier, optMatches);
 
         final List<SolverState> newStates = new ArrayList<>();
         for (List<Match<Scope, ITerm, ITerm, CEqual>> optMatchGroup : optMatchGroups) {
-            System.out.println("  ▶ ▶ ▶ match group " + optMatchGroup);
+//            System.out.println("  ▶ ▶ ▶ match group " + optMatchGroup);
             // Determine the range of sizes the query result set can be
             final Range<Integer> sizes = resultSize(query.resultTerm(), unifier, optMatchGroup.size());
 
-            System.out.println("  ▶ ▶ ▶ sizes " + sizes);
+//            System.out.println("  ▶ ▶ ▶ sizes " + sizes);
 
             // For each possible size:
             final List<SolverState> states = expandResolutionSets(
@@ -322,7 +322,7 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
         {
             final Stream<Collection<Match<Scope, ITerm, ITerm, CEqual>>> subsets = StreamUtils.subsetsOfSize(optMatches.stream(), size);
             final List<Collection<Match<Scope, ITerm, ITerm, CEqual>>> subsetsList = subsets.collect(Collectors.toList());
-            System.out.println("  ▶ ▶ ▶ for size " + size + ": " + subsetsList);
+//            System.out.println("  ▶ ▶ ▶ for size " + size + ": " + subsetsList);
             return subsetsList.stream().map(matches ->
                 updateSolverState(
                     spec, query, state,

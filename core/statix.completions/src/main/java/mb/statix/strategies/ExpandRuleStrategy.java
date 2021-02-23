@@ -37,19 +37,19 @@ public final class ExpandRuleStrategy extends AbstractStrategy<SolverContext, Fo
     @Override
     public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<CUser> state) {
         CUser focus = state.getFocus();
-        System.out.println("Expand rule: " + focus);
+//        System.out.println("Expand rule: " + focus);
 
         final ImmutableSet<Rule> rules = ctx.getSpec().rules().getOrderIndependentRules(focus.name());
         SolverState searchState = state.getInnerState();
         List<SolverState> output = RuleUtil.applyAll(searchState.getState(), rules, focus.args(), focus).stream()
             .map(t -> searchState.withApplyResult(t._2(), focus)).collect(Collectors.toList());
 
-        @Nullable final ITermVar focusVar = ctx.getFocusVar();
-        if (focusVar != null) {
-            for(SolverState s : output) {
-                System.out.println("- " + s.project(focusVar));
-            }
-        }
+//        @Nullable final ITermVar focusVar = ctx.getFocusVar();
+//        if (focusVar != null) {
+//            for(SolverState s : output) {
+//                System.out.println("- " + s.project(focusVar));
+//            }
+//        }
 
         return Seq.from(output);
     }

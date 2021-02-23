@@ -37,11 +37,11 @@ public final class FocusStrategy<C extends IConstraint> extends AbstractStrategy
             .map(c -> (C)c)
             .filter(c -> predicate.test(c, input))
             .findFirst();
-        if (focus.isPresent()) {
-            System.out.println("Focus: " + focus.get());
-        } else {
-            System.out.println("Focus: NONE");
-        }
+//        if (focus.isPresent()) {
+//            System.out.println("Focus: " + focus.get());
+//        } else {
+//            System.out.println("Focus: NONE");
+//        }
         return focus.map(c -> Seq.of(new FocusedSolverState<>(input, c))).orElseGet(Seq::empty);
     }
 

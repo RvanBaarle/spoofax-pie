@@ -27,25 +27,24 @@ public final class DebugStrategy<CTX, I, O> extends AbstractStrategy3<CTX, Funct
 
     @Override
     public Seq<O> eval(CTX ctx, Function<I, String> inTransform, Function<O, String> outTransform, Strategy<CTX, I, O> strategy, I input) {
-        System.out.println("▶ " + strategy);
+        System.out.println("▶ " + strategy + " ← " + inTransform.apply(input));
         final Seq<O> results = strategy.eval(ctx, input).buffer();
 
         final List<O> resultsList;
         try {
             resultsList = results.toList().eval();
         } catch (InterruptedException ex) {
-            System.out.print("◀︎ " + strategy + ": ");
-            System.out.println("INTERRUPTED");
+            System.out.println("◀︎ " + strategy + " ← " + inTransform.apply(input));
+            System.out.println("  INTERRUPTED");
             Thread.currentThread().interrupt();
             return Seq.empty();
         }
 
-        System.out.print("◀︎ " + strategy + ": ");
+        System.out.println("◀︎ " + strategy + " ← " + inTransform.apply(input));
         if(resultsList.isEmpty()) {
-            System.out.print("failed: ");
-            System.out.println(inTransform.apply(input));
+            System.out.println("  FAILED");
         } else {
-            System.out.println(resultsList.size() + " result" + (resultsList.size() > 1 ? "s" : ""));
+            System.out.println("  " + resultsList.size() + " result" + (resultsList.size() > 1 ? "s:" : ":"));
             for(O result : resultsList) {
                 System.out.print("  • ");
                 System.out.println(outTransform.apply(result));

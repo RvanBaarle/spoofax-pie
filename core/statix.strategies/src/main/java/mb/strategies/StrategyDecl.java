@@ -1,6 +1,7 @@
 package mb.strategies;
 
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -67,6 +68,8 @@ public interface StrategyDecl extends Writable {
             ((Writable)arg).writeTo(sb);
         } else if (arg instanceof Predicate) {
             sb.append("<predicate>");
+        } else if (arg instanceof BiPredicate) {
+            sb.append("<bipredicate>");
         } else if (arg instanceof Function) {
             sb.append("<function>");
         } else if (arg instanceof BiFunction) {
