@@ -46,8 +46,8 @@ import static mb.strategies.Strategy3.define;
         print(v, seq(expandAllRules(v))
             // Recursively expand injections
             .$(expandAllInjections(v, visitedInjections))
-    //        .$(expandAllQueries(v))
-    //        .$(expandDeterministic(v))
+            .$(expandAllQueries(v))
+            .$(expandDeterministic(v))
     //        .$(filterLiterals(v))
             .$())
         );
@@ -215,17 +215,18 @@ import static mb.strategies.Strategy3.define;
      * Expand anything deterministically.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
-        = define("expandDeterministic", v -> seq(focusConstraint(CUser.class, (constraint, state) -> {
+        = define("expandDeterministic", v ->
+        fixSet(try_(seq(focusConstraint(CUser.class, (constraint, state) -> {
             final Multiset<ITermVar> innerVars = state.project(v).getVars();
             return containsAnyVar(innerVars, constraint, state);
         }))
-            .$(single(
-                seq(expandPredicateConstraint())
-                    // Perform inference and remove states that have errors
-                    .$(assertValid(v))
-                    .$()
-            ))
-            .$());
+        .$(single(
+            seq(expandPredicateConstraint())
+            // Perform inference and remove states that have errors
+            .$(assertValid(v))
+            .$()
+        ))
+        .$())));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandDeterministic(ITermVar v) {
         return expandDeterministic.apply(v);
