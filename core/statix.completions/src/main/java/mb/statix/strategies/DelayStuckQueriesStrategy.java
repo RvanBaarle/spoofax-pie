@@ -25,6 +25,7 @@ import mb.statix.solver.completeness.ICompleteness;
 import mb.statix.solver.query.RegExpLabelWF;
 import mb.statix.solver.query.RelationLabelOrder;
 import mb.statix.spec.Spec;
+import mb.strategies.AbstractStrategy;
 import mb.strategies.Strategy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.metaborg.util.functions.Predicate2;
@@ -35,7 +36,7 @@ import java.util.Optional;
 /**
  * Delays stuck queries.
  */
-public final class DelayStuckQueriesStrategy implements Strategy<SolverContext, SolverState, SolverState> {
+public final class DelayStuckQueriesStrategy extends AbstractStrategy<SolverContext, SolverState, SolverState> {
 
     @SuppressWarnings("rawtypes")
     private static final DelayStuckQueriesStrategy instance = new DelayStuckQueriesStrategy();

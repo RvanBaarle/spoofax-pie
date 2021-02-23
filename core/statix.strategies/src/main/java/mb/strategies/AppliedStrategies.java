@@ -8,7 +8,7 @@ import mb.sequences.Seq;
 /* package private */ final class AppliedStrategies {
     private AppliedStrategies() {}
 
-    public final static class ApplStrategy1To0<CTX, A1, I, O> implements Strategy<CTX, I, O> {
+    public final static class ApplStrategy1To0<CTX, A1, I, O> extends AbstractStrategy<CTX, I, O> {
 
         private final Strategy1<CTX, A1, I, O> strategy;
         private final A1 arg1;
@@ -26,12 +26,15 @@ import mb.sequences.Seq;
 
         @Override public boolean isAnonymous() { return true; }
 
-        @Override public String toString() {
-            return getName() + "(" + arg1 + ")";
+        @Override public void writeTo(StringBuilder sb) {
+            sb.append(getName());
+            sb.append('(');
+            strategy.writeArg(sb, 1, arg1);
+            sb.append(')');
         }
     }
 
-    public final static class ApplStrategy2To0<CTX, A1, A2, I, O> implements Strategy<CTX, I, O> {
+    public final static class ApplStrategy2To0<CTX, A1, A2, I, O> extends AbstractStrategy<CTX, I, O> {
 
         private final Strategy2<CTX, A1, A2, I, O> strategy;
         private final A1 arg1;
@@ -51,12 +54,17 @@ import mb.sequences.Seq;
 
         @Override public boolean isAnonymous() { return true; }
 
-        @Override public String toString() {
-            return getName() + "(" + arg1 + ", " + arg2 + ")";
+        @Override public void writeTo(StringBuilder sb) {
+            sb.append(getName());
+            sb.append('(');
+            strategy.writeArg(sb, 1, arg1);
+            sb.append(", ");
+            strategy.writeArg(sb, 2, arg2);
+            sb.append(')');
         }
     }
 
-    public final static class ApplStrategy3To0<CTX, A1, A2, A3, I, O> implements Strategy<CTX, I, O> {
+    public final static class ApplStrategy3To0<CTX, A1, A2, A3, I, O> extends AbstractStrategy<CTX, I, O> {
 
         private final Strategy3<CTX, A1, A2, A3, I, O> strategy;
         private final A1 arg1;
@@ -78,14 +86,21 @@ import mb.sequences.Seq;
 
         @Override public boolean isAnonymous() { return true; }
 
-        @Override public String toString() {
-            return getName() + "(" + arg1 + ", " + arg2 + ", " + arg3 + ")";
+        @Override public void writeTo(StringBuilder sb) {
+            sb.append(getName());
+            sb.append('(');
+            strategy.writeArg(sb, 1, arg1);
+            sb.append(", ");
+            strategy.writeArg(sb, 2, arg2);
+            sb.append(", ");
+            strategy.writeArg(sb, 3, arg3);
+            sb.append(')');
         }
     }
 
     // --- //
 
-    public final static class ApplStrategy2To1<CTX, A1, A2, I, O> implements Strategy1<CTX, A2, I, O> {
+    public final static class ApplStrategy2To1<CTX, A1, A2, I, O> extends AbstractStrategy1<CTX, A2, I, O> {
 
         private final Strategy2<CTX, A1, A2, I, O> strategy;
         private final A1 arg1;
@@ -95,8 +110,7 @@ import mb.sequences.Seq;
             this.arg1 = arg1;
         }
 
-        @Override
-        public Strategy<CTX, I, O> apply(A2 arg2) {
+        @Override public Strategy<CTX, I, O> apply(A2 arg2) {
             // Delegate to the inner strategy, to avoid wrapping twice
             return strategy.apply(arg1, arg2);
         }
@@ -109,12 +123,15 @@ import mb.sequences.Seq;
 
         @Override public boolean isAnonymous() { return true; }
 
-        @Override public String toString() {
-            return getName() + "(" + arg1 + ")";
+        @Override public void writeTo(StringBuilder sb) {
+            sb.append(getName());
+            sb.append('(');
+            strategy.writeArg(sb, 1, arg1);
+            sb.append(')');
         }
     }
 
-    public final static class ApplStrategy3To1<CTX, A1, A2, A3, I, O> implements Strategy1<CTX, A3, I, O> {
+    public final static class ApplStrategy3To1<CTX, A1, A2, A3, I, O> extends AbstractStrategy1<CTX, A3, I, O> {
 
         private final Strategy3<CTX, A1, A2, A3, I, O> strategy;
         private final A1 arg1;
@@ -126,8 +143,7 @@ import mb.sequences.Seq;
             this.arg2 = arg2;
         }
 
-        @Override
-        public Strategy<CTX, I, O> apply(A3 arg3) {
+        @Override public Strategy<CTX, I, O> apply(A3 arg3) {
             // Delegate to the inner strategy, to avoid wrapping twice
             return strategy.apply(arg1, arg2, arg3);
         }
@@ -140,14 +156,19 @@ import mb.sequences.Seq;
 
         @Override public boolean isAnonymous() { return true; }
 
-        @Override public String toString() {
-            return getName() + "(" + arg1 + ", " + arg2 + ")";
+        @Override public void writeTo(StringBuilder sb) {
+            sb.append(getName());
+            sb.append('(');
+            strategy.writeArg(sb, 1, arg1);
+            sb.append(", ");
+            strategy.writeArg(sb, 2, arg2);
+            sb.append(')');
         }
     }
 
     // --- //
 
-    public final static class ApplStrategy3To2<CTX, A1, A2, A3, I, O> implements Strategy2<CTX, A2, A3, I, O> {
+    public final static class ApplStrategy3To2<CTX, A1, A2, A3, I, O> extends AbstractStrategy2<CTX, A2, A3, I, O> {
 
         private final Strategy3<CTX, A1, A2, A3, I, O> strategy;
         private final A1 arg1;
@@ -177,8 +198,11 @@ import mb.sequences.Seq;
 
         @Override public boolean isAnonymous() { return true; }
 
-        @Override public String toString() {
-            return getName() + "(" + arg1 + ")";
+        @Override public void writeTo(StringBuilder sb) {
+            sb.append(getName());
+            sb.append('(');
+            strategy.writeArg(sb, 1, arg1);
+            sb.append(')');
         }
     }
 }

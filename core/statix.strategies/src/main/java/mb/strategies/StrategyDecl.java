@@ -1,11 +1,15 @@
 package mb.strategies;
 
-import java.io.IOException;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * A strategy declaration.
  */
-public interface StrategyDecl {
+public interface StrategyDecl extends Writable {
 
     /**
      * Gets the name of the strategy.
@@ -40,5 +44,42 @@ public interface StrategyDecl {
      * @return the precedence, higher means higher precedence
      */
     default int getPrecedence() { return Integer.MAX_VALUE; }
+
+    /**
+     * Gets whether this is an atom strategy.
+     *
+     * @return {@code true} when this is an atom strategy;
+     * otherwise, {@code false} when this is a binary strategy
+     */
+    default boolean isAtom() { return true; }
+
+    /**
+     * Writes the specified argument to the specified {@link StringBuilder}.
+     *
+     * @param sb the {@link StringBuilder} to write to
+     * @param index the one-based index of the argument to write
+     * @param arg the argument to write
+     */
+    default void writeArg(StringBuilder sb, int index, Object arg) {
+        if (index < 1 || index > getArity()) throw new ArrayIndexOutOfBoundsException();
+
+        if (arg instanceof Writable) {
+            ((Writable)arg).writeTo(sb);
+        } else if (arg instanceof Predicate) {
+            sb.append("<predicate>");
+        } else if (arg instanceof Function) {
+            sb.append("<function>");
+        } else if (arg instanceof BiFunction) {
+            sb.append("<bifunction>");
+        } else if (arg instanceof Consumer) {
+            sb.append("<consumer>");
+        } else if (arg instanceof Supplier) {
+            sb.append("<supplier>");
+        } else if (arg instanceof Class) {
+            sb.append(((Class<?>)arg).getSimpleName());
+        } else {
+            sb.append(arg.toString());
+        }
+    }
 
 }

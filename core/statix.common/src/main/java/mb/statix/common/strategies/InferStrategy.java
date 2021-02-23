@@ -7,6 +7,7 @@ import mb.statix.common.SolverState;
 import mb.statix.solver.log.NullDebugContext;
 import mb.statix.solver.persistent.Solver;
 import mb.statix.solver.persistent.SolverResult;
+import mb.strategies.AbstractStrategy;
 import mb.strategies.Strategy;
 import org.metaborg.util.task.NullCancel;
 import org.metaborg.util.task.NullProgress;
@@ -14,9 +15,9 @@ import org.metaborg.util.task.NullProgress;
 /**
  * Performs inference on the search state.
  *
- * NOTE: Call the isSuccessful() strategy on this result to ensure it has no errors.
+ * Verify that the resulting solver state has no errors before continueing.
  */
-public final class InferStrategy implements Strategy<SolverContext, SolverState, SolverState> {
+public final class InferStrategy extends AbstractStrategy<SolverContext, SolverState, SolverState> {
 
     @SuppressWarnings("rawtypes")
     private static final InferStrategy instance = new InferStrategy();

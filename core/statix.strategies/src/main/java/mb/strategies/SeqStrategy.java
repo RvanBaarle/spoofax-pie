@@ -5,7 +5,8 @@ import mb.sequences.Seq;
 /**
  * The s1; s2; ...; sn strategy.
  */
-@SuppressWarnings("Convert2Diamond") public final class SeqStrategy<CTX, I, M, O> implements Strategy2<CTX, Strategy<CTX, I, M>, Strategy<CTX, M, O>, I, O> {
+@SuppressWarnings("Convert2Diamond")
+public final class SeqStrategy<CTX, I, M, O> extends AbstractStrategy2<CTX, Strategy<CTX, I, M>, Strategy<CTX, M, O>, I, O> {
 
     @SuppressWarnings("rawtypes")
     private static final SeqStrategy instance = new SeqStrategy();
@@ -18,16 +19,10 @@ import mb.sequences.Seq;
     public String getName() { return "seq"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Strategy<CTX, I, O> apply(Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2) {
-        return new Strategy<CTX, I, O>() {
+        return new AbstractStrategy<CTX, I, O>() {
             @Override
             public String getName() { return "seq"; }
-
-            @Override
-            public boolean isAnonymous() { return false; }
 
             @Override
             public int getPrecedence() {
@@ -35,18 +30,19 @@ import mb.sequences.Seq;
             }
 
             @Override
+            public boolean isAtom() { return false; }
+
+            @Override
             public Seq<O> eval(CTX ctx, I input) {
                 return s1.eval(ctx, input).flatMap(it -> s2.eval(ctx, it));
             }
 
             @Override
-            public String toString() {
-                final StringBuilder buffer = new StringBuilder();
+            public void writeTo(StringBuilder sb) {
                 final Associativity associativity = Associativity.Left;
-                StrategyPP.writeLeft(buffer, s1, getPrecedence(), associativity);
-                buffer.append("; ");
-                StrategyPP.writeRight(buffer, s2, getPrecedence(), associativity);
-                return buffer.toString();
+                StrategyPP.writeLeft(sb, s1, getPrecedence(), associativity);
+                sb.append("; ");
+                StrategyPP.writeRight(sb, s2, getPrecedence(), associativity);
             }
         };
     }
@@ -80,8 +76,5 @@ import mb.sequences.Seq;
         }
 
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

@@ -15,21 +15,6 @@ public final class Strategies {
     private Strategies() {}
 
     /**
-     * Asserts that the input matches the given predicate.
-     *
-     * @param <CTX> the type of context
-     * @param <I> the type of input
-     * @param <O> the type of outputs
-     * @return the resulting strategy
-     */
-    public static <CTX, I, O> Strategy<CTX, I, O> all(
-        Predicate<O> predicate,
-        Strategy<CTX, I, O> strategy
-    ) {
-        return AllStrategy.<CTX, I, O>getInstance().apply(predicate, strategy);
-    }
-
-    /**
      * Accepts a consumer of the value.
      *
      * @param c the consumer
@@ -83,10 +68,11 @@ public final class Strategies {
      * @return the resulting strategy
      */
     public static <CTX, I, O> Strategy<CTX, I, O> debug(
-        Function<O, String> transform,
+        Function<I, String> inTransform,
+        Function<O, String> outTransform,
         Strategy<CTX, I, O> strategy
     ) {
-        return DebugStrategy.<CTX, I, O>getInstance().apply(transform, strategy);
+        return DebugStrategy.<CTX, I, O>getInstance().apply(inTransform, outTransform, strategy);
     }
 
 //    /**

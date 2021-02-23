@@ -2,9 +2,7 @@ package mb.strategies;
 
 import mb.sequences.Seq;
 
-import java.io.IOException;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 /**
  * A strategy.
@@ -32,20 +30,15 @@ public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
      */
     static <CTX, A1, A2, I, O> Strategy2<CTX, A1, A2, I, O> define(String name, BiFunction<A1, A2, Strategy<CTX, I, O>> builder) {
         // Wraps a strategy builder, and gives it a name.
-        return new Strategy2<CTX, A1, A2, I, O>() {
+        return new AbstractStrategy2<CTX, A1, A2, I, O>() {
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public boolean isAnonymous() {
-                return false;
-            }
-
-            @Override
             public Strategy<CTX, I, O> apply(A1 arg1, A2 arg2) {
-                return builder.apply(arg1, arg2);
+                return builder.apply(arg1, arg2).withName(name);
             }
 
             @Override
@@ -58,11 +51,6 @@ public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
                 // Delegate to the inner strategy, to avoid wrapping twice
                 return define(name, builder);
             }
-
-            @Override
-            public String toString() {
-                return name;
-            }
         };
     }
 
@@ -74,25 +62,15 @@ public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
      */
     default Strategy2<CTX, A1, A2, I, O> withName(String name) {
         // Wraps a strategy and gives it a name.
-        return new Strategy2<CTX, A1, A2, I, O>() {
+        return new AbstractStrategy2<CTX, A1, A2, I, O>() {
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public boolean isAnonymous() {
-                return false;
-            }
-
-            @Override
             public Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, I input) {
                 return Strategy2.this.eval(ctx, arg1, arg2, input);
-            }
-
-            @Override
-            public String toString() {
-                return name;
             }
 
             @Override

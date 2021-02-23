@@ -9,7 +9,7 @@ import mb.sequences.Seq;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class SingleStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<CTX, I, O>, I, O>{
+public final class SingleStrategy<CTX, I, O> extends AbstractStrategy1<CTX, Strategy<CTX, I, O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final SingleStrategy instance = new SingleStrategy();
@@ -22,9 +22,6 @@ public final class SingleStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<
     public String getName() { return "single"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s,
@@ -32,7 +29,4 @@ public final class SingleStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<
     ) {
         return s.eval(ctx, input).single();
     }
-
-    @Override
-    public String toString() { return getName(); }
 }

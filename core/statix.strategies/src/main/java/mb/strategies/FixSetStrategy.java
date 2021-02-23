@@ -12,7 +12,7 @@ import java.util.Set;
  * @param <CTX> the type of context
  * @param <T> the type of values
  */
-public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX, T, T>, T, T>{
+public final class FixSetStrategy<CTX, T> extends AbstractStrategy1<CTX, Strategy<CTX, T, T>, T, T>{
 
     @SuppressWarnings("rawtypes")
     private static final FixSetStrategy instance = new FixSetStrategy();
@@ -25,9 +25,6 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
     public String getName() {
         return "fixSet";
     }
-
-    @Override
-    public boolean isAnonymous() { return false; }
 
     @Override
     public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
@@ -63,8 +60,5 @@ public final class FixSetStrategy<CTX, T> implements Strategy1<CTX, Strategy<CTX
             }
         };
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

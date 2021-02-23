@@ -12,7 +12,7 @@ import java.util.function.Predicate;
  * @param <CTX> the type of context
  * @param <T> the type of values
  */
-public final class AssertStrategy<CTX, T> implements Strategy1<CTX, Predicate<T>, T, T>{
+public final class AssertStrategy<CTX, T> extends AbstractStrategy1<CTX, Predicate<T>, T, T>{
 
     @SuppressWarnings("rawtypes")
     private static final AssertStrategy instance = new AssertStrategy();
@@ -25,9 +25,6 @@ public final class AssertStrategy<CTX, T> implements Strategy1<CTX, Predicate<T>
     public String getName() { return "assert"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Seq<T> eval(
         CTX ctx,
         Predicate<T> predicate,
@@ -38,8 +35,5 @@ public final class AssertStrategy<CTX, T> implements Strategy1<CTX, Predicate<T>
             return input;
         };
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

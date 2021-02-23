@@ -35,6 +35,7 @@ import mb.statix.solver.query.RegExpLabelWF;
 import mb.statix.solver.query.RelationLabelOrder;
 import mb.statix.spec.Spec;
 import mb.statix.spoofax.StatixTerms;
+import mb.strategies.AbstractStrategy;
 import mb.strategies.Strategy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.metaborg.util.functions.Predicate2;
@@ -60,7 +61,7 @@ import static mb.nabl2.terms.matching.TermMatch.M;
  * Expands the selected query.
  */
 @SuppressWarnings("UnstableApiUsage")
-public final class ExpandQueryStrategy implements Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> {
+public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> {
 
     @SuppressWarnings("rawtypes")
     private static final ExpandQueryStrategy instance = new ExpandQueryStrategy();

@@ -473,29 +473,29 @@ public interface Seq<T> {
         };
     }
 
-    /**
-     * Prints the sequence to the console.
-     *
-     * @param transform the function that transforms the sequence elements to a string
-     * @return the printed (and buffered) sequence
-     */
-    default Seq<T> debug(Function<T, String> transform) {
-        Seq<T> results = Seq.this.buffer();
-        try {
-            List<T> resultsList = results.toList().eval();
-            if(resultsList.isEmpty()) {
-                System.out.println("failed");
-            } else {
-                System.out.println(resultsList.size() + " results");
-                for(T result : resultsList) {
-                    System.out.println("- " + transform.apply(result));
-                }
-            }
-        } catch (InterruptedException ex) {
-            System.out.println("INTERRUPTED");
-        }
-        return results;
-    }
+//    /**
+//     * Prints the sequence to the console.
+//     *
+//     * @param transform the function that transforms the sequence elements to a string
+//     * @return the printed (and buffered) sequence
+//     */
+//    default Seq<T> debug(Function<T, String> transform) {
+//        Seq<T> results = Seq.this.buffer();
+//        try {
+//            List<T> resultsList = results.toList().eval();
+//            if(resultsList.isEmpty()) {
+//                System.out.println("failed");
+//            } else {
+//                System.out.println(resultsList.size() + " results");
+//                for(T result : resultsList) {
+//                    System.out.println("- " + transform.apply(result));
+//                }
+//            }
+//        } catch (InterruptedException ex) {
+//            System.out.println("INTERRUPTED");
+//        }
+//        return results;
+//    }
 
     /**
      * Returns a sequence with only distinct elements.

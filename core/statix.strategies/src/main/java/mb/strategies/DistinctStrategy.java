@@ -9,7 +9,7 @@ import mb.sequences.Seq;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class DistinctStrategy<CTX, I, O> implements Strategy1<CTX, Strategy<CTX, I, O>, I, O>{
+public final class DistinctStrategy<CTX, I, O> extends AbstractStrategy1<CTX, Strategy<CTX, I, O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final DistinctStrategy instance = new DistinctStrategy();
@@ -22,9 +22,6 @@ public final class DistinctStrategy<CTX, I, O> implements Strategy1<CTX, Strateg
     public String getName() { return "distinct"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s,
@@ -32,8 +29,5 @@ public final class DistinctStrategy<CTX, I, O> implements Strategy1<CTX, Strateg
     ) {
         return s.eval(ctx, input).distinct();
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

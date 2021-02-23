@@ -76,21 +76,21 @@ public final class SearchStrategies {
         return InferStrategy.getInstance();
     }
 
-    /**
-     * Performs inference on the search strategy, and asserts that it succeeded.
-     *
-     * @return the resulting strategy
-     */
-    public static Strategy<SolverContext, SolverState, SolverState> inferSuccess() {
-        return InferSuccessStrategy.getInstance();
-    }
-
-    /**
-     * Search strategy that only succeeds if the search state has no errors.
-     *
-     * @return the resulting strategy
-     */
-    public static Strategy<SolverContext, SolverState, SolverState> isSuccessful() { return IsSuccessfulStrategy.getInstance(); }
+//    /**
+//     * Performs inference on the search strategy, and asserts that it succeeded.
+//     *
+//     * @return the resulting strategy
+//     */
+//    public static Strategy<SolverContext, SolverState, SolverState> inferSuccess() {
+//        return InferSuccessStrategy.getInstance();
+//    }
+//
+//    /**
+//     * Search strategy that only succeeds if the search state has no errors.
+//     *
+//     * @return the resulting strategy
+//     */
+//    public static Strategy<SolverContext, SolverState, SolverState> isSuccessful() { return IsSuccessfulStrategy.getInstance(); }
 
 //    /**
 //     * Removes Ast ID constraints that where not solved.

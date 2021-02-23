@@ -11,7 +11,7 @@ import java.io.IOException;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class BuildStrategy<CTX, I, O> implements Strategy1<CTX, Iterable<O>, I, O>{
+public final class BuildStrategy<CTX, I, O> extends AbstractStrategy1<CTX, Iterable<O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final BuildStrategy instance = new BuildStrategy();
@@ -24,9 +24,6 @@ public final class BuildStrategy<CTX, I, O> implements Strategy1<CTX, Iterable<O
     public String getName() { return "build"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Seq<O> eval(
         CTX ctx,
         Iterable<O> iterable,
@@ -34,8 +31,5 @@ public final class BuildStrategy<CTX, I, O> implements Strategy1<CTX, Iterable<O
     ) {
         return Seq.from(iterable);
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

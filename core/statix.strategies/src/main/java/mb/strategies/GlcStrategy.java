@@ -14,7 +14,7 @@ import mb.sequences.Seq;
  * @param <M> the type of intermediates
  * @param <O> the type of outputs
  */
-public final class GlcStrategy<CTX, I, M, O> implements Strategy3<CTX, Strategy<CTX, I, M>, Strategy<CTX, M, O>, Strategy<CTX, I, O>, I, O>{
+public final class GlcStrategy<CTX, I, M, O> extends AbstractStrategy3<CTX, Strategy<CTX, I, M>, Strategy<CTX, M, O>, Strategy<CTX, I, O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final GlcStrategy instance = new GlcStrategy();
@@ -25,9 +25,6 @@ public final class GlcStrategy<CTX, I, M, O> implements Strategy3<CTX, Strategy<
 
     @Override
     public String getName() { return "glc"; }
-
-    @Override
-    public boolean isAnonymous() { return false; }
 
     @Override
     public Seq<O> eval(
@@ -63,8 +60,5 @@ public final class GlcStrategy<CTX, I, M, O> implements Strategy3<CTX, Strategy<
             }
         };
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

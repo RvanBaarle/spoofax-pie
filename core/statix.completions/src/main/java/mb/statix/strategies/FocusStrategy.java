@@ -5,6 +5,7 @@ import mb.statix.common.FocusedSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.solver.IConstraint;
+import mb.strategies.AbstractStrategy2;
 import mb.strategies.Strategy2;
 
 import java.util.Optional;
@@ -14,7 +15,7 @@ import java.util.function.BiPredicate;
 /**
  * Focus on a single constraint.
  */
-public final class FocusStrategy<C extends IConstraint> implements Strategy2<SolverContext, Class<C>, BiPredicate<C, SolverState>, SolverState, FocusedSolverState<C>> {
+public final class FocusStrategy<C extends IConstraint> extends AbstractStrategy2<SolverContext, Class<C>, BiPredicate<C, SolverState>, SolverState, FocusedSolverState<C>> {
 
     @SuppressWarnings("rawtypes")
     private static final FocusStrategy instance = new FocusStrategy();

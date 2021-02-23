@@ -8,7 +8,7 @@ import mb.sequences.Seq;
  * @param <CTX> the type of context
  * @param <T> the type of value
  */
-public final class IdStrategy<CTX, T> implements Strategy<CTX, T, T>{
+public final class IdStrategy<CTX, T> extends AbstractStrategy<CTX, T, T>{
 
     @SuppressWarnings("rawtypes")
     private static final IdStrategy instance = new IdStrategy();
@@ -21,9 +21,6 @@ public final class IdStrategy<CTX, T> implements Strategy<CTX, T, T>{
     public String getName() { return "id"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Seq<T> eval(
         CTX ctx,
         T input
@@ -31,15 +28,4 @@ public final class IdStrategy<CTX, T> implements Strategy<CTX, T, T>{
         return Seq.of(input);
     }
 
-    @Override
-    public String toString() { return getName(); }
-
 }
-
-
-//class Strats {
-//
-//    @SuppressWarnings("rawtypes") private static final Strategy id = IdStrategy.getInstance();
-//    @SuppressWarnings("unchecked") public static <CTX, T> Strategy<CTX, T, T> id() { return (Strategy<CTX, T, T>)id; }
-//
-//}

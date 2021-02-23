@@ -51,7 +51,7 @@ public final class TermCompleter {
      * @return the resulting states
      */
     public Seq<SolverState> completeNodes(SolverContext ctx, SolverState state, ITermVar placeholderVar) throws InterruptedException {
-        Strategy<SolverContext, SolverState, SolverState> strategy = CompleteStrategies.complete(placeholderVar);
+        Strategy<SolverContext, SolverState, SolverState> strategy = CompleteStrategies.complete(placeholderVar, Collections.emptySet());
         System.out.println("COMPLETING: " + strategy);
         return strategy.eval(ctx, state);
 //        return new CompleteStrategy(placeholderVar).apply(ctx, state);

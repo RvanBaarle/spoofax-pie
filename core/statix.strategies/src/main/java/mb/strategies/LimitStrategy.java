@@ -9,7 +9,7 @@ import mb.sequences.Seq;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class LimitStrategy<CTX, I, O> implements Strategy2<CTX, Integer, Strategy<CTX, I, O>, I, O>{
+public final class LimitStrategy<CTX, I, O> extends AbstractStrategy2<CTX, Integer, Strategy<CTX, I, O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final LimitStrategy instance = new LimitStrategy();
@@ -22,9 +22,6 @@ public final class LimitStrategy<CTX, I, O> implements Strategy2<CTX, Integer, S
     public String getName() { return "limit"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Seq<O> eval(
         CTX ctx,
         Integer limit,
@@ -34,8 +31,5 @@ public final class LimitStrategy<CTX, I, O> implements Strategy2<CTX, Integer, S
         final Seq<O> values = s.eval(ctx, input);
         return values.take(limit);
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

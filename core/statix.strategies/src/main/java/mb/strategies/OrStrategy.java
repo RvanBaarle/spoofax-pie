@@ -9,7 +9,7 @@ import mb.sequences.Seq;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class OrStrategy<CTX, I, O> implements Strategy2<CTX, Strategy<CTX, I, O>, Strategy<CTX, I, O>, I, O>{
+public final class OrStrategy<CTX, I, O> extends AbstractStrategy2<CTX, Strategy<CTX, I, O>, Strategy<CTX, I, O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final OrStrategy instance = new OrStrategy();
@@ -22,9 +22,6 @@ public final class OrStrategy<CTX, I, O> implements Strategy2<CTX, Strategy<CTX,
     public String getName() { return "or"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Seq<O> eval(
         CTX ctx,
         Strategy<CTX, I, O> s1,
@@ -35,8 +32,5 @@ public final class OrStrategy<CTX, I, O> implements Strategy2<CTX, Strategy<CTX,
         final Seq<O> results2 = s2.eval(ctx, input);
         return results1.concatWith(results2);
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

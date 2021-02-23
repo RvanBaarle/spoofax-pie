@@ -3,9 +3,6 @@ package mb.strategies;
 import mb.sequences.Function3;
 import mb.sequences.Seq;
 
-import java.io.IOException;
-import java.util.function.BiFunction;
-
 /**
  * A strategy.
  *
@@ -34,30 +31,20 @@ public interface Strategy3<CTX, A1, A2, A3, I, O> extends StrategyDecl {
      */
     static <CTX, A1, A2, A3, I, O> Strategy3<CTX, A1, A2, A3, I, O> define(String name, Function3<A1, A2, A3, Strategy<CTX, I, O>> builder) {
         // Wraps a strategy builder, and gives it a name.
-        return new Strategy3<CTX, A1, A2, A3, I, O>() {
+        return new AbstractStrategy3<CTX, A1, A2, A3, I, O>() {
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public boolean isAnonymous() {
-                return false;
-            }
-
-            @Override
             public Strategy<CTX, I, O> apply(A1 arg1, A2 arg2, A3 arg3) {
-                return builder.apply(arg1, arg2, arg3);
+                return builder.apply(arg1, arg2, arg3).withName(name);
             }
 
             @Override
             public Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, I input) {
                 return apply(arg1, arg2, arg3).eval(ctx, input);
-            }
-
-            @Override
-            public String toString() {
-                return name;
             }
 
             @Override
@@ -76,25 +63,15 @@ public interface Strategy3<CTX, A1, A2, A3, I, O> extends StrategyDecl {
      */
     default Strategy3<CTX, A1, A2, A3, I, O> withName(String name) {
         // Wraps a strategy and gives it a name.
-        return new Strategy3<CTX, A1, A2, A3, I, O>() {
+        return new AbstractStrategy3<CTX, A1, A2, A3, I, O>() {
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public boolean isAnonymous() {
-                return false;
-            }
-
-            @Override
             public Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, I input) {
                 return Strategy3.this.eval(ctx, arg1, arg2, arg3, input);
-            }
-
-            @Override
-            public String toString() {
-                return name;
             }
 
             @Override
@@ -158,4 +135,5 @@ public interface Strategy3<CTX, A1, A2, A3, I, O> extends StrategyDecl {
      * @return a lazy sequence of results
      */
     Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, I input);
+
 }

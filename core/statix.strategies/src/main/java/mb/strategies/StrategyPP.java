@@ -14,13 +14,12 @@ public final class StrategyPP {
      * @param associativity the associativity of the parent strategy
      * @return the buffer
      */
-    public static StringBuilder writeLeft(StringBuilder buffer, StrategyDecl strategy, int precedence, Associativity associativity) {
-        boolean parenthesize = strategy.getPrecedence() > precedence
-            || (strategy.getPrecedence() == precedence && associativity == Associativity.Right);
+    public static void writeLeft(StringBuilder buffer, StrategyDecl strategy, int precedence, Associativity associativity) {
+        boolean parenthesize = !strategy.isAtom() && (strategy.getPrecedence() < precedence
+            || (strategy.getPrecedence() == precedence && associativity == Associativity.Right));
         if (parenthesize) buffer.append('(');
         buffer.append(strategy);
         if (parenthesize) buffer.append(')');
-        return buffer;
     }
 
     /**
@@ -32,13 +31,12 @@ public final class StrategyPP {
      * @param associativity the associativity of the parent strategy
      * @return the buffer
      */
-    public static StringBuilder writeRight(StringBuilder buffer, StrategyDecl strategy, int precedence, Associativity associativity) {
-        boolean parenthesize = strategy.getPrecedence() > precedence
-            || (strategy.getPrecedence() == precedence && associativity == Associativity.Left);
+    public static void writeRight(StringBuilder buffer, StrategyDecl strategy, int precedence, Associativity associativity) {
+        boolean parenthesize = !strategy.isAtom() && (strategy.getPrecedence() < precedence
+            || (strategy.getPrecedence() == precedence && associativity == Associativity.Left));
         if (parenthesize) buffer.append('(');
         buffer.append(strategy);
         if (parenthesize) buffer.append(')');
-        return buffer;
     }
 
 
@@ -50,11 +48,10 @@ public final class StrategyPP {
      * @param precedence the precedence of the parent strategy; a higher value indicates a higher precedence
      * @return the buffer
      */
-    public static StringBuilder writeMiddle(StringBuilder buffer, StrategyDecl strategy, int precedence) {
-        boolean parenthesize = strategy.getPrecedence() > precedence;
+    public static void writeMiddle(StringBuilder buffer, StrategyDecl strategy, int precedence) {
+        boolean parenthesize = !strategy.isAtom() && strategy.getPrecedence() < precedence;
         if (parenthesize) buffer.append('(');
         buffer.append(strategy);
         if (parenthesize) buffer.append(')');
-        return buffer;
     }
 }

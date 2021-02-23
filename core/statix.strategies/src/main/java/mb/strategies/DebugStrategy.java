@@ -13,7 +13,7 @@ import java.util.function.Function;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class DebugStrategy<CTX, I, O> implements Strategy2<CTX, Function<O, String>, Strategy<CTX, I, O>, I, O>{
+public final class DebugStrategy<CTX, I, O> extends AbstractStrategy3<CTX, Function<I, String>, Function<O, String>, Strategy<CTX, I, O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final DebugStrategy instance = new DebugStrategy();
@@ -26,16 +26,32 @@ public final class DebugStrategy<CTX, I, O> implements Strategy2<CTX, Function<O
     public String getName() { return "debug"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
+    public Seq<O> eval(CTX ctx, Function<I, String> inTransform, Function<O, String> outTransform, Strategy<CTX, I, O> strategy, I input) {
+        System.out.println("▶ " + strategy);
+        final Seq<O> results = strategy.eval(ctx, input).buffer();
 
-    @Override
-    public Seq<O> eval(CTX ctx, Function<O, String> transform, Strategy<CTX, I, O> strategy, I input) {
-        Seq<O> results = strategy.eval(ctx, input);
-        System.out.print("▶ " + strategy + ": ");
-        return results.debug(transform);
+        final List<O> resultsList;
+        try {
+            resultsList = results.toList().eval();
+        } catch (InterruptedException ex) {
+            System.out.print("◀︎ " + strategy + ": ");
+            System.out.println("INTERRUPTED");
+            Thread.currentThread().interrupt();
+            return Seq.empty();
+        }
+
+        System.out.print("◀︎ " + strategy + ": ");
+        if(resultsList.isEmpty()) {
+            System.out.print("failed: ");
+            System.out.println(inTransform.apply(input));
+        } else {
+            System.out.println(resultsList.size() + " result" + (resultsList.size() > 1 ? "s" : ""));
+            for(O result : resultsList) {
+                System.out.print("  • ");
+                System.out.println(outTransform.apply(result));
+            }
+        }
+        return results;
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

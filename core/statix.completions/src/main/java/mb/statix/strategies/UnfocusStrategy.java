@@ -5,13 +5,14 @@ import mb.statix.common.FocusedSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.solver.IConstraint;
+import mb.strategies.AbstractStrategy;
 import mb.strategies.Strategy;
 
 
 /**
  * Unfocuses any constraint.
  */
-public final class UnfocusStrategy<C extends IConstraint> implements Strategy<SolverContext, FocusedSolverState<C>, SolverState> {
+public final class UnfocusStrategy<C extends IConstraint> extends AbstractStrategy<SolverContext, FocusedSolverState<C>, SolverState> {
 
     @SuppressWarnings("rawtypes")
     private static final UnfocusStrategy instance = new UnfocusStrategy();

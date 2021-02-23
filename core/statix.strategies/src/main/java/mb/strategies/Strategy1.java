@@ -2,7 +2,6 @@ package mb.strategies;
 
 import mb.sequences.Seq;
 
-import java.io.IOException;
 import java.util.function.Function;
 
 /**
@@ -29,20 +28,15 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
      */
     static <CTX, A1, I, O> Strategy1<CTX, A1, I, O> define(String name, Function<A1, Strategy<CTX, I, O>> builder) {
         // Wraps a strategy builder, and gives it a name.
-        return new Strategy1<CTX, A1, I, O>() {
+        return new AbstractStrategy1<CTX, A1, I, O>() {
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public boolean isAnonymous() {
-                return false;
-            }
-
-            @Override
             public Strategy<CTX, I, O> apply(A1 arg1) {
-                return builder.apply(arg1);
+                return builder.apply(arg1).withName(name);
             }
 
             @Override
@@ -55,11 +49,6 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
                 // Delegate to the inner strategy, to avoid wrapping twice
                 return define(name, builder);
             }
-
-            @Override
-            public String toString() {
-                return name;
-            }
         };
     }
 
@@ -71,25 +60,15 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
      */
     default Strategy1<CTX, A1, I, O> withName(String name) {
         // Wraps a strategy and gives it a name.
-        return new Strategy1<CTX, A1, I, O>() {
+        return new AbstractStrategy1<CTX, A1, I, O>() {
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public boolean isAnonymous() {
-                return false;
-            }
-
-            @Override
             public Seq<O> eval(CTX ctx, A1 arg1, I input) {
                 return Strategy1.this.eval(ctx, arg1, input);
-            }
-
-            @Override
-            public String toString() {
-                return name;
             }
 
             @Override

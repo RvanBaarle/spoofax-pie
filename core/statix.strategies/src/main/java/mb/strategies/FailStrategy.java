@@ -9,7 +9,7 @@ import mb.sequences.Seq;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class FailStrategy<CTX, I, O> implements Strategy<CTX, I, O>{
+public final class FailStrategy<CTX, I, O> extends AbstractStrategy<CTX, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final FailStrategy instance = new FailStrategy();
@@ -22,17 +22,11 @@ public final class FailStrategy<CTX, I, O> implements Strategy<CTX, I, O>{
     public String getName() { return "fail"; }
 
     @Override
-    public boolean isAnonymous() { return false; }
-
-    @Override
     public Seq<O> eval(
         CTX ctx,
         I input
     ) {
         return Seq.empty();
     }
-
-    @Override
-    public String toString() { return getName(); }
 
 }

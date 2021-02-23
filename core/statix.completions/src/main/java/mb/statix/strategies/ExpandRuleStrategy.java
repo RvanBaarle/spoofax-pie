@@ -9,6 +9,7 @@ import mb.statix.common.SolverState;
 import mb.statix.constraints.CUser;
 import mb.statix.spec.Rule;
 import mb.statix.spec.RuleUtil;
+import mb.strategies.AbstractStrategy;
 import mb.strategies.Strategy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * Expands the selected rule.
  */
-public final class ExpandRuleStrategy implements Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> {
+public final class ExpandRuleStrategy extends AbstractStrategy<SolverContext, FocusedSolverState<CUser>, SolverState> {
 
     @SuppressWarnings("rawtypes")
     private static final ExpandRuleStrategy instance = new ExpandRuleStrategy();

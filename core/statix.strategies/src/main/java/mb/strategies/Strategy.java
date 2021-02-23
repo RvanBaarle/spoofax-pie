@@ -2,8 +2,6 @@ package mb.strategies;
 
 import mb.sequences.Seq;
 
-import java.io.IOException;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -38,25 +36,15 @@ public interface Strategy<CTX, I, O> extends StrategyDecl {
      */
     default Strategy<CTX, I, O> withName(String name) {
         // Wraps a strategy and gives it a name.
-        return new Strategy<CTX, I, O>() {
+        return new AbstractStrategy<CTX, I, O>() {
             @Override
             public String getName() {
                 return name;
             }
 
             @Override
-            public boolean isAnonymous() {
-                return false;
-            }
-
-            @Override
             public Seq<O> eval(CTX ctx, I input) {
                 return Strategy.this.eval(ctx, input);
-            }
-
-            @Override
-            public String toString() {
-                return name;
             }
 
             @Override
