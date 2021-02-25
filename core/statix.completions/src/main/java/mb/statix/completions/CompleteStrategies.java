@@ -15,6 +15,7 @@ import mb.statix.common.StrategoPlaceholders;
 import mb.statix.constraints.CResolveQuery;
 import mb.statix.constraints.CUser;
 import mb.strategies.AbstractStrategy;
+import mb.strategies.AbstractStrategy1;
 import mb.strategies.Strategies;
 import mb.strategies.Strategy;
 import mb.strategies.Strategy1;
@@ -181,14 +182,23 @@ import static mb.strategies.Strategy2.define;
      * Expand all query constraints that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
-        = define("expandAllQueries", v -> debugState(v, fixSet(try_(   // Expand each query constraint until there are none left
-            seq(limit(1, focusConstraint(CResolveQuery.class)))
-                // Expand the query into its results
-                .$(debugCResolveQuery(v, expandQueryConstraint()))
-                // Perform inference and remove states that have errors
+        = define("expandAllQueries", v -> debugState(v, fixSet(
+            if_(
+                limit(1, focusConstraint(CResolveQuery.class)),
+                seq(debugCResolveQuery(v, expandQueryConstraint()))
                 .$(assertValid(v))
-                .$()
-        ))));
+                .$(),
+                id()
+            )
+//            try_(   // Expand each query constraint until there are none left
+//                seq(limit(1, focusConstraint(CResolveQuery.class)))
+//                // Expand the query into its results
+//                .$(debugCResolveQuery(v, expandQueryConstraint()))
+//                // Perform inference and remove states that have errors
+//                .$(assertValid(v))
+//                .$()
+//            )
+        )));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllQueries(ITermVar v) {
         return expandAllQueries.apply(v);
@@ -200,18 +210,18 @@ import static mb.strategies.Strategy2.define;
      * Expand anything deterministically.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
-        = define("expandDeterministic", v ->
-        fixSet(try_(seq(focusConstraint(CUser.class, (constraint, state) -> {
-            final Multiset<ITermVar> innerVars = state.project(v).getVars();
-            return containsAnyVar(innerVars, constraint, state);
-        }))
-        .$(single(
-            seq(expandPredicateConstraint())
-            // Perform inference and remove states that have errors
-            .$(assertValid(v))
-            .$()
-        ))
-        .$())));
+        = define("expandDeterministic", v -> debugState(v,
+        fixSet(try_(seq(printSolverState(focusConstraint(CUser.class, (constraint, state) -> {
+                final Multiset<ITermVar> innerVars = state.project(v).getVars();
+                return containsAnyVar(innerVars, constraint, state);
+            })))
+            .$(debugCUser(v, single(
+                seq(expandPredicateConstraint())
+                // Perform inference and remove states that have errors
+                .$(assertValid(v))
+                .$()
+            )))
+        .$()))));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandDeterministic(ITermVar v) {
         return expandDeterministic.apply(v);
@@ -338,6 +348,21 @@ import static mb.strategies.Strategy2.define;
         = Strategy2.define("debugCResolveQuery", (v, s) -> Strategies.debug(it -> it.getFocus().toString(), it -> it.project(v).toString(), s));
     public static Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> debugCResolveQuery(ITermVar v, Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> s) {
         return debugCResolveQuery.apply(v, s);
+    }
+
+    public static <SolverState, O> Strategy<SolverContext, SolverState, O> printSolverState(Strategy<SolverContext, SolverState, O> s) {
+        return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
+            @Override
+            public Seq<O> eval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
+                System.out.println("SOLVER STATE: " + input);
+                return s.eval(ctx, input);
+            }
+
+            @Override
+            public String getName() {
+                return "printSolverState";
+            }
+        }.apply(s);
     }
 
     /**
