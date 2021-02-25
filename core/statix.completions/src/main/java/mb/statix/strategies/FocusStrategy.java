@@ -8,8 +8,11 @@ import mb.statix.solver.IConstraint;
 import mb.strategies.AbstractStrategy2;
 import mb.strategies.Strategy2;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -32,17 +35,23 @@ public final class FocusStrategy<C extends IConstraint> extends AbstractStrategy
     @Override
     public Seq<FocusedSolverState<C>> eval(SolverContext ctx, Class<C> constraintClass, BiPredicate<C, SolverState> predicate, SolverState input) {
         //noinspection unchecked
-        Optional<C> focus = input.getConstraints().stream()
+//        Optional<C> focus = input.getConstraints().stream()
+//            .filter(c -> constraintClass.isAssignableFrom(c.getClass()))
+//            .map(c -> (C)c)
+//            .filter(c -> predicate.test(c, input))
+//            .findFirst();
+        Stream<C> focus = input.getConstraints().stream()
             .filter(c -> constraintClass.isAssignableFrom(c.getClass()))
             .map(c -> (C)c)
-            .filter(c -> predicate.test(c, input))
-            .findFirst();
+            .filter(c -> predicate.test(c, input));
+//            .collect(Collectors.toList());
 //        if (focus.isPresent()) {
 //            System.out.println("Focus: " + focus.get());
 //        } else {
 //            System.out.println("Focus: NONE");
 //        }
-        return focus.map(c -> Seq.of(new FocusedSolverState<>(input, c))).orElseGet(Seq::empty);
+        return Seq.from(focus.map(c -> new FocusedSolverState<>(input, c)).collect(Collectors.toList()));
+//        return focus.map(c -> Seq.of(new FocusedSolverState<>(input, c))).orElseGet(Seq::empty);
     }
 
 }
