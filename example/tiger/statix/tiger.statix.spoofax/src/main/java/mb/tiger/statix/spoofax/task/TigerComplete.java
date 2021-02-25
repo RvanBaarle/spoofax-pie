@@ -2,12 +2,10 @@ package mb.tiger.statix.spoofax.task;
 
 import mb.common.editing.TextEdit;
 import mb.common.region.Region;
-import mb.common.result.Result;
 import mb.common.style.StyleName;
 import mb.common.util.ListView;
 import mb.completions.common.CompletionItem;
 import mb.completions.common.CompletionResult;
-import mb.jsglr1.common.JSGLR1ParseException;
 import mb.log.api.Logger;
 import mb.log.api.LoggerFactory;
 import mb.nabl2.terms.ITerm;
@@ -156,10 +154,16 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         // 7) Format each completion as a proposal, with pretty-printed text
         List<String> completionStrings = completionTerms.stream().map(t -> {
             try {
-                @Nullable IStrategoTerm deexplicatedTerm = deexplicate(context, input, t);
-                if (deexplicatedTerm == null) return t.toString();  // Return the term when deexplication failed
-                @Nullable String prettyPrinted = prettyPrint(context, deexplicatedTerm, input.prettyPrinterFunction);
-                return prettyPrinted != null ? prettyPrinted : deexplicatedTerm.toString();    // Return the term when pretty-printing failed
+                @Nullable IStrategoTerm implicatedTerm = implicate(context, input, t);
+                if (implicatedTerm == null) {
+                    log.warn("Implication failed on: " + t);
+                    return t.toString();  // Return the term when implication failed
+                }
+                @Nullable String prettyPrinted = prettyPrint(context, implicatedTerm, input.prettyPrinterFunction);
+                if (prettyPrinted == null) {
+                    log.warn("Pretty-printing failed on: " + implicatedTerm);
+                }
+                return prettyPrinted != null ? prettyPrinted : implicatedTerm.toString();    // Return the term when pretty-printing failed
             } catch(ExecException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -309,7 +313,7 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         return input.preAnalyzeFunction.apply(context, term);
     }
 
-    private @Nullable IStrategoTerm deexplicate(ExecContext context, Input input, IStrategoTerm term) throws ExecException, InterruptedException {
+    private @Nullable IStrategoTerm implicate(ExecContext context, Input input, IStrategoTerm term) throws ExecException, InterruptedException {
         return input.postAnalyzeFunction.apply(context, term);
     }
 }

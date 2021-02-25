@@ -25,32 +25,51 @@ public final class DebugStrategy<CTX, I, O> extends AbstractStrategy3<CTX, Funct
     @Override
     public String getName() { return "debug"; }
 
+    private static int level = 1;
+
     @Override
     public Seq<O> eval(CTX ctx, Function<I, String> inTransform, Function<O, String> outTransform, Strategy<CTX, I, O> strategy, I input) {
-        System.out.println("▶ " + strategy + " ← " + inTransform.apply(input));
+        printLevelPrefix("▶");
+        System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
+        level += 1;
         final Seq<O> results = strategy.eval(ctx, input).buffer();
 
         final List<O> resultsList;
         try {
             resultsList = results.toList().eval();
         } catch (InterruptedException ex) {
-            System.out.println("◀︎ " + strategy + " ← " + inTransform.apply(input));
-            System.out.println("  INTERRUPTED");
+            level -= 1;
+            printLevelPrefix("◀");
+            System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
+            printLevelPrefix(" ");
+            System.out.println(" INTERRUPTED");
             Thread.currentThread().interrupt();
             return Seq.empty();
         }
 
-        System.out.println("◀︎ " + strategy + " ← " + inTransform.apply(input));
+
+        level -= 1;
+        printLevelPrefix("◀");
+        System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
         if(resultsList.isEmpty()) {
-            System.out.println("  FAILED");
+            printLevelPrefix(" ");
+            System.out.println(" FAILED");
         } else {
-            System.out.println("  " + resultsList.size() + " result" + (resultsList.size() > 1 ? "s:" : ":"));
+            printLevelPrefix(" ");
+            System.out.println(" " + resultsList.size() + " result" + (resultsList.size() > 1 ? "s:" : ":"));
             for(O result : resultsList) {
-                System.out.print("  • ");
+                printLevelPrefix(" ");
+                System.out.print(" • ");
                 System.out.println(outTransform.apply(result));
             }
         }
         return results;
+    }
+
+    private static void printLevelPrefix(String s) {
+        for (int i = 0; i < level; i++) {
+            System.out.print(s);
+        }
     }
 
 }

@@ -8,17 +8,19 @@ import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
 import mb.sequences.Seq;
 import mb.statix.common.FocusedSolverState;
+import mb.statix.common.PlaceholderVarMap;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.common.StrategoPlaceholders;
 import mb.statix.constraints.CResolveQuery;
 import mb.statix.constraints.CUser;
-import mb.statix.solver.IConstraint;
+import mb.strategies.AbstractStrategy;
 import mb.strategies.Strategies;
 import mb.strategies.Strategy;
 import mb.strategies.Strategy1;
 import mb.strategies.Strategy2;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,17 +38,29 @@ import static mb.strategies.Strategy2.define;
     private CompleteStrategies() {
     }
 
+    private static final Strategy2<SolverContext, ITermVar, PlaceholderVarMap, SolverState, IStrategoTerm> getCompletionProposals
+        = define("getCompletionProposals", (v, m) ->
+            seq(complete(v, Collections.emptySet()))
+            //.$(filterLiteralsAndPlaceholders(v))
+            .$(toTerm(v))
+            .$(replaceVariablesByPlaceholders(v, m))
+            .$(toStrategoTerm())
+            .$()
+        );
+
+    public static Strategy<SolverContext, SolverState, IStrategoTerm> getCompletionProposals(ITermVar v, PlaceholderVarMap placeholderVarMap) {
+        return getCompletionProposals.apply(v, placeholderVarMap);
+    }
 
     /**
      * Completes the given placeholder.
      */
     private static final Strategy2<SolverContext, ITermVar, Set<String>, SolverState, SolverState> complete
         = define("complete", (v, visitedInjections) -> debugState(v,
-            seq(expandAllRules(v))
+            seq(expandAllPredicates(v))
             .$(expandAllInjections(v, visitedInjections))
             .$(expandAllQueries(v))
             .$(expandDeterministic(v))
-    //        .$(filterLiterals(v))
             .$())
         );
 
@@ -57,8 +71,8 @@ import static mb.strategies.Strategy2.define;
     /**
      * Expand predicate constraints that contain the specified variable.
      */
-    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllRules
-        = define("expandAllRules", v ->
+    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllPredicates
+        = define("expandAllPredicates", v ->
         debugState(v, seq(limit(1, focusConstraint(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
             // Expand the focussed rule
             .$(expandPredicateConstraint())
@@ -66,8 +80,8 @@ import static mb.strategies.Strategy2.define;
             .$(assertValid(v))
             .$()));
 
-    public static Strategy<SolverContext, SolverState, SolverState> expandAllRules(ITermVar v) {
-        return expandAllRules.apply(v);
+    public static Strategy<SolverContext, SolverState, SolverState> expandAllPredicates(ITermVar v) {
+        return expandAllPredicates.apply(v);
     }
 
 
@@ -155,28 +169,6 @@ import static mb.strategies.Strategy2.define;
     }
 
 
-    /**
-     * Perform inference, and reject the resulting state if it has errors.
-     */
-    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> assertValid
-        = define("assertValid", v -> debugState(v, seq(infer())
-            // Remove states that have errors
-            //.$(assertThat(s -> !s.hasErrors()))
-            .$(assertThat(s -> {
-                boolean valid = !s.hasErrors();
-//                if(!valid) {
-//                    System.out.println("REJECTED: " + s.project(v));
-//                }
-                return valid;
-            }))
-            // Delay stuck queries
-            .$(delayStuckQueries())
-            .$()));
-
-    public static Strategy<SolverContext, SolverState, SolverState> assertValid(ITermVar v) {
-        return assertValid.apply(v);
-    }
-
 
 
 
@@ -203,23 +195,6 @@ import static mb.strategies.Strategy2.define;
     }
 
 
-    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SolverState>, SolverState, SolverState> debugState
-        = Strategy2.define("debugState", (v, s) -> Strategies.debug(it -> it.project(v).toString(), it -> it.project(v).toString(), s));
-    public static Strategy<SolverContext, SolverState, SolverState> debugState(ITermVar v, Strategy<SolverContext, SolverState, SolverState> s) {
-        return debugState.apply(v, s);
-    }
-
-    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, FocusedSolverState<CUser>, SolverState>, FocusedSolverState<CUser>, SolverState> debugCUser
-        = Strategy2.define("debugCUser", (v, s) -> Strategies.debug(it -> it.getFocus().toString(), it -> it.project(v).toString(), s));
-    public static Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> debugCUser(ITermVar v, Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> s) {
-        return debugCUser.apply(v, s);
-    }
-
-    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState>, FocusedSolverState<CResolveQuery>, SolverState> debugCResolveQuery
-        = Strategy2.define("debugCResolveQuery", (v, s) -> Strategies.debug(it -> it.getFocus().toString(), it -> it.project(v).toString(), s));
-    public static Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> debugCResolveQuery(ITermVar v, Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> s) {
-        return debugCResolveQuery.apply(v, s);
-    }
 
     /**
      * Expand anything deterministically.
@@ -245,12 +220,76 @@ import static mb.strategies.Strategy2.define;
     /**
      * Remove literals and naked placeholders.
      */
-    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiterals
-        = define("filterLiterals", v -> Strategies.assertThat(s -> !StrategoPlaceholders.isPlaceholder(s.project(v))));
+    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiteralsAndPlaceholders
+        = define("filterLiteralsAndPlaceholders", v -> Strategies.assertThat(s -> !StrategoPlaceholders.isPlaceholder(s.project(v))));
 
-    public static Strategy<SolverContext, SolverState, SolverState> filterLiterals(ITermVar v) {
-        return filterLiterals.apply(v);
+    public static Strategy<SolverContext, SolverState, SolverState> filterLiteralsAndPlaceholders(ITermVar v) {
+        return filterLiteralsAndPlaceholders.apply(v);
     }
+
+    /**
+     * Perform inference, and reject the resulting state if it has errors.
+     */
+    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> assertValid
+        = define("assertValid", v -> debugState(v, seq(infer())
+        // Remove states that have errors
+        //.$(assertThat(s -> !s.hasErrors()))
+        .$(assertThat(s -> {
+            boolean valid = !s.hasErrors();
+//                if(!valid) {
+//                    System.out.println("REJECTED: " + s.project(v));
+//                }
+            return valid;
+        }))
+        // Delay stuck queries
+        .$(delayStuckQueries())
+        .$()));
+
+    public static Strategy<SolverContext, SolverState, SolverState> assertValid(ITermVar v) {
+        return assertValid.apply(v);
+    }
+
+    /**
+     * Projects the focussed term variable to a tuple of the state and its projected term.
+     */
+    private static final Strategy1<SolverContext, ITermVar, SolverState, ITerm> toTerm
+        = define("toTerm", v -> map(s -> s.project(v)));
+
+    public static Strategy<SolverContext, SolverState, ITerm> toTerm(ITermVar v) {
+        return toTerm.apply(v);
+    }
+
+    /**
+     * Replaces the variables in the term by placeholders.
+     */
+    private static final Strategy2<SolverContext, ITermVar, PlaceholderVarMap, ITerm, ITerm> replaceVariablesByPlaceholders
+        = define("replaceVariablesByPlaceholders", (v, m) -> map(t -> StrategoPlaceholders.replaceVariablesByPlaceholders(t, m)));
+
+    public static Strategy<SolverContext, ITerm, ITerm> replaceVariablesByPlaceholders(ITermVar v, PlaceholderVarMap placeholderVarMap) {
+        return replaceVariablesByPlaceholders.apply(v, placeholderVarMap);
+    }
+
+    /**
+     * Replaces the variables in the term by placeholders.
+     */
+    private static final Strategy<SolverContext, ITerm, IStrategoTerm> toStrategoTerm
+        = new AbstractStrategy<SolverContext, ITerm, IStrategoTerm>() {
+            @Override
+            public Seq<IStrategoTerm> eval(SolverContext solverContext, ITerm input) {
+                // TODO: Make lazy
+                return Seq.of(solverContext.getStrategoTerms().toStratego(input));
+            }
+
+            @Override
+            public String getName() {
+                return "toStrategoTerm";
+            }
+        };
+
+    public static Strategy<SolverContext, ITerm, IStrategoTerm> toStrategoTerm() {
+        return toStrategoTerm;
+    }
+
 
 
     private static boolean containsVar(ITermVar var, CUser constraint, SolverState state) {
@@ -283,6 +322,23 @@ import static mb.strategies.Strategy2.define;
         return false;
     }
 
+    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SolverState>, SolverState, SolverState> debugState
+        = Strategy2.define("debugState", (v, s) -> Strategies.debug(it -> it.project(v).toString(), it -> it.project(v).toString(), s));
+    public static Strategy<SolverContext, SolverState, SolverState> debugState(ITermVar v, Strategy<SolverContext, SolverState, SolverState> s) {
+        return debugState.apply(v, s);
+    }
+
+    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, FocusedSolverState<CUser>, SolverState>, FocusedSolverState<CUser>, SolverState> debugCUser
+        = Strategy2.define("debugCUser", (v, s) -> Strategies.debug(it -> it.getFocus().toString(), it -> it.project(v).toString(), s));
+    public static Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> debugCUser(ITermVar v, Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> s) {
+        return debugCUser.apply(v, s);
+    }
+
+    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState>, FocusedSolverState<CResolveQuery>, SolverState> debugCResolveQuery
+        = Strategy2.define("debugCResolveQuery", (v, s) -> Strategies.debug(it -> it.getFocus().toString(), it -> it.project(v).toString(), s));
+    public static Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> debugCResolveQuery(ITermVar v, Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> s) {
+        return debugCResolveQuery.apply(v, s);
+    }
 
     /**
      * Creates a new set of the given set and thr given element.

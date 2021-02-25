@@ -1,6 +1,7 @@
 package mb.strategies;
 
 import mb.sequences.Computation;
+import mb.sequences.InterruptibleFunction;
 import mb.sequences.Seq;
 
 import java.util.function.Consumer;
@@ -30,6 +31,40 @@ public final class Strategies {
             return input;
         };
     }
+
+    /**
+     * Applies a function to the value.
+     *
+     * @param transform the function to apply
+     * @param <CTX> the type of context
+     * @param <T> the type of value
+     * @param <R> the type of result
+     * @return a singleton sequence with the result
+     */
+    public static <CTX, T, R> Strategy<CTX, T, R> map(
+        InterruptibleFunction<T, R> transform
+    ) {
+        return (ctx, input) -> (Computation<R>)() -> {
+            return transform.apply(input);
+        };
+    }
+
+//    /**
+//     * Applies a function to the value.
+//     *
+//     * @param transform the function to apply
+//     * @param <CTX> the type of context
+//     * @param <T> the type of value
+//     * @param <R> the type of result
+//     * @return a singleton sequence with the result
+//     */
+//    public static <CTX, T, R> Strategy<CTX, T, R> flatMap(
+//        InterruptibleFunction<T, Seq<R>> transform
+//    ) {
+//        return (ctx, input) -> (Seq<R>)() -> {
+//            return transform.apply(input);
+//        };
+//    }
 
     /**
      * Asserts that the input matches the given predicate.
@@ -179,13 +214,13 @@ public final class Strategies {
     }
 
 
-    public static <CTX, I, M, O> Strategy<CTX, I, O> fold(
-        Strategy<CTX, I, M> s1,
-        M initial,
-        Strategy<CTX, M, O> operation
-    ) {
-        return null;
-    }
+//    public static <CTX, I, M, O> Strategy<CTX, I, O> fold(
+//        Strategy<CTX, I, M> s1,
+//        M initial,
+//        Strategy<CTX, M, O> operation
+//    ) {
+//        return null;
+//    }
 
     /**
      * Limits the number of results from the given strategy.
@@ -249,8 +284,7 @@ public final class Strategies {
     public static <CTX, T> Strategy<CTX, T, T> repeat(
         Strategy<CTX, T, T> s
     ) {
-        // try(s ; repeat(s))
-        return rec(x -> try_(seq(s).$(x).$()));
+        return RepeatStrategy.<CTX, T>getInstance().apply(s);
     }
 
     /**
@@ -293,7 +327,6 @@ public final class Strategies {
     public static <CTX, T> Strategy<CTX, T, T> try_(
         Strategy<CTX, T, T> s
     ) {
-        // s < id + id
-        return if_(s, id(), id());
+        return TryStrategy.<CTX, T>getInstance().apply(s);
     }
 }
