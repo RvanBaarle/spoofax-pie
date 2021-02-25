@@ -7,6 +7,7 @@ dependencies {
   api(platform(project(":spoofax.depconstraints")))
 
   api("org.metaborg:common")
+  api("org.metaborg:log.api")
 
   compileOnly("org.checkerframework:checker-qual-android")
 
