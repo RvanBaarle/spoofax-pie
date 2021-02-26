@@ -211,7 +211,7 @@ import static mb.strategies.Strategy2.define;
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
         = define("expandDeterministic", v -> debugState(v,
-        fixSet(try_(seq(printSolverState(focusConstraint(CUser.class, (constraint, state) -> {
+        fixSet(try_(seq(printSolverState("EXPAND STATE", focusConstraint(CUser.class, (constraint, state) -> {
                 final Multiset<ITermVar> innerVars = state.project(v).getVars();
                 return containsAnyVar(innerVars, constraint, state);
             })))
@@ -241,7 +241,9 @@ import static mb.strategies.Strategy2.define;
      * Perform inference, and reject the resulting state if it has errors.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> assertValid
-        = define("assertValid", v -> debugState(v, seq(infer())
+        = define("assertValid", v -> debugState(v, printSolverState("BEFORE INFER",
+        seq(infer())
+        .$(printSolverState("AFTER INFER", id()))
         // Remove states that have errors
         //.$(assertThat(s -> !s.hasErrors()))
         .$(assertThat(s -> {
@@ -251,9 +253,10 @@ import static mb.strategies.Strategy2.define;
 //                }
             return valid;
         }))
-        // Delay stuck queries
-        .$(delayStuckQueries())
-        .$()));
+//        // Delay stuck queries
+//        .$(delayStuckQueries())
+//        .$(printSolverState("AFTER DELAY", id()))
+        .$())));
 
     public static Strategy<SolverContext, SolverState, SolverState> assertValid(ITermVar v) {
         return assertValid.apply(v);
@@ -350,11 +353,11 @@ import static mb.strategies.Strategy2.define;
         return debugCResolveQuery.apply(v, s);
     }
 
-    public static <SolverState, O> Strategy<SolverContext, SolverState, O> printSolverState(Strategy<SolverContext, SolverState, O> s) {
+    public static <SolverState, O> Strategy<SolverContext, SolverState, O> printSolverState(String prefix, Strategy<SolverContext, SolverState, O> s) {
         return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
             @Override
             public Seq<O> eval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
-                System.out.println("SOLVER STATE: " + input);
+                System.out.println(prefix + ": " + input);
                 return s.eval(ctx, input);
             }
 
