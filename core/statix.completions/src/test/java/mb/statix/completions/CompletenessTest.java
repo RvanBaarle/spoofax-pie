@@ -47,7 +47,7 @@ public class CompletenessTest {
 
     private static final SLF4JLoggerFactory loggerFactory = new SLF4JLoggerFactory();
     private static final Logger log = loggerFactory.create(CompletenessTest.class);
-    private static final String TESTPATH = "";//mb/statix/codecompletion";
+    private static final String TESTPATH = "/mb/statix/completions";
     private static final String TIGER_SPEC_PATH = TESTPATH + "/spec.aterm";
     private static final String TIGER_SPEC_SIMPLE1_PATH = TESTPATH + "/simple1/spec.aterm";
 

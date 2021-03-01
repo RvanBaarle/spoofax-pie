@@ -9,6 +9,7 @@ import org.spoofax.terms.io.binary.TermReader;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 @SuppressWarnings("unused")
 public final class MoreTermUtils {
@@ -33,15 +34,17 @@ public final class MoreTermUtils {
      * using the specified term factory.
      *
      * @param cls the class
-     * @param resource the resource path
+     * @param resourcePath the resource path
      * @param termFactory the term factory
      * @return the read term
      */
-    public static IStrategoTerm fromClassLoaderResources(Class<?> cls, String resource, ITermFactory termFactory) throws IOException {
-        try(final @Nullable InputStream inputStream = cls.getClassLoader().getResourceAsStream(resource)) {
-            if(inputStream == null) {
-                throw new RuntimeException("Cannot find ATerm resource '" + resource + "' in classloader resources");
-            }
+    public static IStrategoTerm fromClassLoaderResources(Class<?> cls, String resourcePath, ITermFactory termFactory) throws IOException {
+        @Nullable URL resource = cls.getResource(resourcePath);
+        if (resource == null) {
+            @Nullable URL root = cls.getResource("/");
+            throw new RuntimeException("Cannot find ATerm resource '" + resourcePath + "' in classloader resources relative to " + (root != null ? root.getPath() : "<unknown>") );
+        }
+        try(final InputStream inputStream = resource.openStream()) {
             return fromStream(inputStream, termFactory);
         }
     }
