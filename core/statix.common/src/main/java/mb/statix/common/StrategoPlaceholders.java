@@ -287,6 +287,12 @@ public final class StrategoPlaceholders {
             // LIST(_)
             // We make a singleton list with a placeholder. Similarly, we could opt to make an empty list.
             return TermBuild.B.newList(getPlaceholderFromSortTerm(term.getSubterm(0)));
+        } else if (TermUtils.isAppl(term, "STRING", 0)) {
+            // STRING()
+            // TODO: Find the original sort and insert that
+            //  Here we just insert $ID for any STRING, which is abviously incorrect
+            String name = TermUtils.toAppl(term).getConstructor().getName();
+            return TermBuild.B.newAppl("ID" + PLACEHOLDER_SUFFIX);
         } else if (TermUtils.isAppl(term, null, 0)) {
             // SCOPE()
             // STRING()
