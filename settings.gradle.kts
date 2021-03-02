@@ -19,7 +19,7 @@ if(gradle.parent == null) {
   includeBuildWithName("core", "spoofax3.core.root")
   // The 'lwb' (language workbench) composite build includes the meta-languages which in turn depend on Gradle plugins
   // from the 'core' composite build. Additionally, 'lwb' also contains Gradle plugins for building languages.
-  includeBuildWithName("lwb", "spoofax3.lwb.root")
+//  includeBuildWithName("lwb", "spoofax3.lwb.root")
   // The 'example' composite build has example languages, some based on Gradle plugins from 'core', and some based on
   // Gradle plugins from 'lwb'.
   includeBuildWithName("example", "spoofax3.example.root")
