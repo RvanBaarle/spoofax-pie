@@ -25,42 +25,53 @@ public final class DebugStrategy<CTX, I, O> extends AbstractStrategy3<CTX, Funct
     @Override
     public String getName() { return "debug"; }
 
+    public static boolean debug = false;
     private static int level = 1;
 
     @Override
     public Seq<O> eval(CTX ctx, Function<I, String> inTransform, Function<O, String> outTransform, Strategy<CTX, I, O> strategy, I input) {
-        printLevelPrefix("▶");
-        System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
+        if (debug) {
+            printLevelPrefix("▶");
+            System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
+        }
         level += 1;
-        final Seq<O> results = strategy.eval(ctx, input).buffer();
+        // TODO: Investigate why removing buffer() here is negative for performance!
+        Seq<O> results = strategy.eval(ctx, input).buffer();
+//        if (debug) {
+//            results = results.buffer();
+//        }
 
         final List<O> resultsList;
         try {
             resultsList = results.toList().eval();
         } catch (InterruptedException ex) {
             level -= 1;
-            printLevelPrefix("◀");
-            System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
-            printLevelPrefix(" ");
-            System.out.println(" INTERRUPTED");
+            if (debug) {
+                printLevelPrefix("◀");
+                System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
+                printLevelPrefix(" ");
+                System.out.println(" INTERRUPTED");
+            }
             Thread.currentThread().interrupt();
             return Seq.empty();
         }
 
 
         level -= 1;
-        printLevelPrefix("◀");
-        System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
-        if(resultsList.isEmpty()) {
-            printLevelPrefix(" ");
-            System.out.println(" FAILED");
-        } else {
-            printLevelPrefix(" ");
-            System.out.println(" " + resultsList.size() + " result" + (resultsList.size() > 1 ? "s:" : ":"));
-            for(O result : resultsList) {
+        if (debug) {
+            printLevelPrefix("◀");
+            System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));
+            if(resultsList.isEmpty()) {
                 printLevelPrefix(" ");
-                System.out.print(" • ");
-                System.out.println(outTransform.apply(result));
+                System.out.println(" FAILED");
+            } else {
+                printLevelPrefix(" ");
+                System.out.println(" " + resultsList.size() + " result" + (resultsList.size() > 1 ? "s:" : ":"));
+                for(O result : resultsList) {
+                    printLevelPrefix(" ");
+                    System.out.print(" • ");
+                    System.out.println(outTransform.apply(result));
+                }
             }
         }
         return results;

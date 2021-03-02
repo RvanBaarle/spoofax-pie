@@ -16,6 +16,7 @@ import mb.statix.constraints.CResolveQuery;
 import mb.statix.constraints.CUser;
 import mb.strategies.AbstractStrategy;
 import mb.strategies.AbstractStrategy1;
+import mb.strategies.DebugStrategy;
 import mb.strategies.Strategies;
 import mb.strategies.Strategy;
 import mb.strategies.Strategy1;
@@ -248,7 +249,7 @@ import static mb.strategies.Strategy2.define;
         //.$(assertThat(s -> !s.hasErrors()))
         .$(assertThat(s -> {
             boolean valid = !s.hasErrors();
-            if(!valid) {
+            if(!valid && DebugStrategy.debug) {
                 System.out.println("REJECTED: " + s.project(v));
             }
             return valid;
@@ -357,7 +358,9 @@ import static mb.strategies.Strategy2.define;
         return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
             @Override
             public Seq<O> eval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
-                System.out.println(prefix + ": " + input);
+                if (DebugStrategy.debug) {
+                    System.out.println(prefix + ": " + input);
+                }
                 return s.eval(ctx, input);
             }
 
