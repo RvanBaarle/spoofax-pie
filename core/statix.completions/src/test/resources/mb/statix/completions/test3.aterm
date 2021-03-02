@@ -2,14 +2,14 @@ Mod(
   Let(
     [ FunDecs(
         [ FunDec(
-            Id2Occ(Id-LEX2Id("fact"))
+            "fact"
           , []
-          , Tid(Occ2TypeId(Id2Occ(Id-LEX2Id("int"))))
-          , Let([], [Int(IntConst-LEX2IntConst("2"))])
+          , Tid("int")
+          , Let([], [Int("2")])
           )
         ]
       )
     ]
-  , [Int(IntConst-LEX2IntConst("3"))]
+  , [Int("3")]
   )
 )
