@@ -66,3 +66,5 @@ dependencies {
   testCompileOnly("org.immutables:value")
   testCompileOnly("javax.annotation:javax.annotation-api")
 }
+
+//tasks { withType<Test> { debug = true } }

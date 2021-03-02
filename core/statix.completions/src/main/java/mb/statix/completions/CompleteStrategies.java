@@ -248,14 +248,14 @@ import static mb.strategies.Strategy2.define;
         //.$(assertThat(s -> !s.hasErrors()))
         .$(assertThat(s -> {
             boolean valid = !s.hasErrors();
-//                if(!valid) {
-//                    System.out.println("REJECTED: " + s.project(v));
-//                }
+            if(!valid) {
+                System.out.println("REJECTED: " + s.project(v));
+            }
             return valid;
         }))
 //        // Delay stuck queries
-//        .$(delayStuckQueries())
-//        .$(printSolverState("AFTER DELAY", id()))
+        .$(delayStuckQueries())
+        .$(printSolverState("AFTER DELAY", id()))
         .$())));
 
     public static Strategy<SolverContext, SolverState, SolverState> assertValid(ITermVar v) {
