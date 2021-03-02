@@ -3,14 +3,18 @@ package mb.spoofax.intellij.editor;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.ui.LayeredIcon;
 import com.intellij.ui.RowIcon;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.SmartList;
 import com.intellij.util.ui.EmptyIcon;
+import mb.common.editing.TextEdit;
 import mb.common.region.Region;
 import mb.common.style.StyleNames;
 import mb.completions.common.CompletionItem;
@@ -79,6 +83,7 @@ public abstract class SpoofaxCompletionContributor extends CompletionContributor
             .create(proposal.getLabel())
             .withTailText(proposal.getParameters() + (proposal.getLocation().isEmpty() ? "" : " " + proposal.getLocation()))
             .withTypeText(proposal.getType().isEmpty() ? proposal.getDescription() : proposal.getType(), true)
+            .withInsertHandler((ctx, item) -> insertHandler(ctx, item, proposal))
             .withIcon(getIcon(StyleNames.of(proposal.getKind())));
     }
 
@@ -174,6 +179,23 @@ public abstract class SpoofaxCompletionContributor extends CompletionContributor
         } else {
             return kindIcon;
         }
+    }
+
+    private void insertHandler(InsertionContext context, LookupElement item, CompletionItem proposal) {
+        final Editor editor = context.getEditor();
+        final Document document = editor.getDocument();
+        final int startOffset = context.getStartOffset();
+        final int tailOffset = context.getTailOffset();
+        // First, we replace the automatically inserted text with an empty string
+        document.replaceString(startOffset, tailOffset, "");
+        // Then we apply our text edits, which includes edits that replace the placeholder, if any
+        // Note that we apply them back to front, such that an earlier text editor will not influence
+        // the offset of the later text edits
+        for (int i = (proposal.getEdits().size() - 1); i >= 0; i--) {
+            final TextEdit edit = proposal.getEdits().get(i);
+            document.replaceString(edit.getRegion().getStartOffset(), edit.getRegion().getEndOffset(), edit.getNewText());
+        }
+        assert Boolean.TRUE;
     }
 
 }
