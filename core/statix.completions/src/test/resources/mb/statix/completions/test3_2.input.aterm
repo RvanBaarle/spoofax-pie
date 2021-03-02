@@ -1,0 +1,14 @@
+Mod(
+  Let(
+    [ FunDecs(
+        [FunDec(
+           "fact"
+         , []
+         , Type-Plhdr()
+         , Let([], [Int("2")])
+         )]
+      )
+    ]
+  , [Int("3")]
+  )
+)

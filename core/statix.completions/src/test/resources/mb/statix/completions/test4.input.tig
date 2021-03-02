@@ -1,0 +1,5 @@
+let
+  function fact() : int =
+    let in $Exp end
+  in 3
+end
