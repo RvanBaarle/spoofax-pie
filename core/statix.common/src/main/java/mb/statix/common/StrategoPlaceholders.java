@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public final class StrategoPlaceholders {
 
     private static final String PLACEHOLDER_SUFFIX = "-Plhdr";
+    private static final String PLACEHOLDER_MULTIPLE_SUFFIX = "s-Plhdr";
 
     // Prevent instantiation.
     private StrategoPlaceholders() {}
@@ -128,7 +129,8 @@ public final class StrategoPlaceholders {
         return term.match(ListTerms.cases(
             cons -> TermBuild.B.newCons(replaceVariablesByPlaceholders(cons.getHead(), placeholderVarMap), replaceVariablesByPlaceholdersInList(cons.getTail(), placeholderVarMap), cons.getAttachments()),
             nil -> nil,
-            var -> TermBuild.B.newNil()// var    // FIXME: Should be make a placeholder for list tails?
+            var -> TermBuild.B.newCons(replaceVariablesByPlaceholders(var, placeholderVarMap), TermBuild.B.newNil())
+            //var -> TermBuild.B.newNil()// var    // FIXME: Should be make a placeholder for list tails?
         ));
     }
 
@@ -262,7 +264,7 @@ public final class StrategoPlaceholders {
     private static @Nullable ITerm getPlaceholderFromAnnotations(List<IStrategoTerm> annotations) {
         for(IStrategoTerm term : annotations) {
             if (!TermUtils.isAppl(term, "OfSort", 1)) continue; // OfSort(_)
-            return getPlaceholderFromSortTerm(term.getSubterm(0));
+            return getPlaceholderFromSortTerm(term.getSubterm(0), false);
         }
         // Not found.
         return null;
@@ -276,23 +278,24 @@ public final class StrategoPlaceholders {
      * @param term the sort term
      * @return the placeholder term; or {@code null} when not found
      */
-    private static @Nullable ITerm getPlaceholderFromSortTerm(IStrategoTerm term) {
+    private static @Nullable ITerm getPlaceholderFromSortTerm(IStrategoTerm term, boolean multiple) {
+        final String plhdrSuffix = multiple ? PLACEHOLDER_MULTIPLE_SUFFIX : PLACEHOLDER_SUFFIX;
         // TODO: Lots of things don't have sort names.
         // Perhaps we should follow the example of ?? and use "??" for all placeholders,
-        // or parse any $name$ within dollars as a placeholder, so we can describe the placeholder (and perhaps relate then: "$x$ = $x$ + 1").
+        // or parse any $name$ within dollars as a placeholder, so we can describe the placeholder (and perhaps relate them: "$x$ = $x$ + 1").
         if (TermUtils.isAppl(term, "SORT", 1)) {
             // SORT(_)
-            return TermBuild.B.newAppl(TermUtils.toJavaStringAt(term, 0) + PLACEHOLDER_SUFFIX);
+            return TermBuild.B.newAppl(TermUtils.toJavaStringAt(term, 0) + plhdrSuffix);
         } else if (TermUtils.isAppl(term, "LIST", 1)) {
             // LIST(_)
             // We make a singleton list with a placeholder. Similarly, we could opt to make an empty list.
-            return TermBuild.B.newList(getPlaceholderFromSortTerm(term.getSubterm(0)));
+            return TermBuild.B.newList(getPlaceholderFromSortTerm(term.getSubterm(0), true));
         } else if (TermUtils.isAppl(term, "STRING", 0)) {
             // STRING()
             // TODO: Find the original sort and insert that
             //  Here we just insert $ID for any STRING, which is abviously incorrect
             String name = TermUtils.toAppl(term).getConstructor().getName();
-            return TermBuild.B.newAppl("ID" + PLACEHOLDER_SUFFIX);
+            return TermBuild.B.newAppl("ID" + plhdrSuffix);
         } else if (TermUtils.isAppl(term, null, 0)) {
             // SCOPE()
             // STRING()
