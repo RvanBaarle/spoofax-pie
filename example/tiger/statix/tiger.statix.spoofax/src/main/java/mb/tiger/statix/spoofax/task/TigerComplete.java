@@ -319,7 +319,11 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
     }
 
     private @Nullable IStrategoTerm explicate(ExecContext context, Input input, IStrategoTerm term) throws ExecException, InterruptedException {
-        return input.preAnalyzeFunction.apply(context, term);
+        @Nullable IStrategoTerm explicated = input.preAnalyzeFunction.apply(context, term);
+        @Nullable IStrategoTerm upgraded = input.upgradePlaceholdersFunction.apply(context, explicated);
+        System.out.println("UPGRADED: " + upgraded);
+        @Nullable IStrategoTerm downgraded = input.upgradePlaceholdersFunction.apply(context, upgraded);
+        return downgraded;
     }
 
     private @Nullable IStrategoTerm implicate(ExecContext context, Input input, IStrategoTerm term) throws ExecException, InterruptedException {
