@@ -30,10 +30,13 @@ import mb.spoofax.core.language.command.arg.RawArgs;
 import mb.spoofax.core.language.menu.CommandAction;
 import mb.spoofax.core.language.menu.MenuItem;
 import mb.tiger.statix.spoofax.task.TigerComplete;
+import mb.tiger.statix.spoofax.task.TigerDowngradePlaceholders;
+import mb.tiger.statix.spoofax.task.TigerIsInj;
 import mb.tiger.statix.spoofax.task.TigerPostAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPreAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPrettyPrint;
 import mb.tiger.statix.spoofax.task.TigerStatixSpec;
+import mb.tiger.statix.spoofax.task.TigerUpgradePlaceholders;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.inject.Inject;
@@ -48,6 +51,9 @@ public class TigerInstance extends GeneratedTigerInstance {
     private final TigerPrettyPrint prettyPrintTaskDef;
     private final TigerPreAnalyze preAnalyzeTaskDef;
     private final TigerPostAnalyze postAnalyzeTaskDef;
+    private final TigerIsInj isInjTaskDef;
+    private final TigerUpgradePlaceholders upgradePlaceholdersTaskDef;
+    private final TigerDowngradePlaceholders downgradePlaceholdersTaskDef;
 
     @Inject public TigerInstance(
         mb.tiger.statix.spoofax.task.TigerParse tigerParse,
@@ -59,6 +65,9 @@ public class TigerInstance extends GeneratedTigerInstance {
         TigerPrettyPrint prettyPrintTaskDef,
         TigerPreAnalyze preAnalyzeTaskDef,
         TigerPostAnalyze postAnalyzeTaskDef,
+        TigerIsInj isInjTaskDef,
+        TigerUpgradePlaceholders upgradePlaceholdersTaskDef,
+        TigerDowngradePlaceholders downgradePlaceholdersTaskDef,
         mb.tiger.statix.spoofax.command.TigerCompileFileCommand tigerCompileFileCommand,
         mb.tiger.statix.spoofax.command.TigerCompileFileAltCommand tigerCompileFileAltCommand,
         mb.tiger.statix.spoofax.command.TigerCompileDirectoryCommand tigerCompileDirectoryCommand,
@@ -93,6 +102,9 @@ public class TigerInstance extends GeneratedTigerInstance {
         this.prettyPrintTaskDef = prettyPrintTaskDef;
         this.preAnalyzeTaskDef = preAnalyzeTaskDef;
         this.postAnalyzeTaskDef = postAnalyzeTaskDef;
+        this.isInjTaskDef = isInjTaskDef;
+        this.upgradePlaceholdersTaskDef = upgradePlaceholdersTaskDef;
+        this.downgradePlaceholdersTaskDef = downgradePlaceholdersTaskDef;
     }
 
 
@@ -104,7 +116,10 @@ public class TigerInstance extends GeneratedTigerInstance {
             tigerParse.createAstSupplier(resourceKey).map(Result::get),
             (c, t) -> prettyPrintTaskDef.createFunction().apply(c, new TigerPrettyPrint.Input(c2 -> t)),
             (c, t) -> preAnalyzeTaskDef.createFunction().apply(c, new TigerPreAnalyze.Input(c2 -> t)),
-            (c, t) -> postAnalyzeTaskDef.createFunction().apply(c, new TigerPostAnalyze.Input(c2 -> t))
+            (c, t) -> postAnalyzeTaskDef.createFunction().apply(c, new TigerPostAnalyze.Input(c2 -> t)),
+            (c, t) -> isInjTaskDef.createFunction().apply(c, new TigerIsInj.Input(c2 -> t)),    // Should be a predicate
+            (c, t) -> upgradePlaceholdersTaskDef.createFunction().apply(c, new TigerUpgradePlaceholders.Input(c2 -> t)),
+            (c, t) -> downgradePlaceholdersTaskDef.createFunction().apply(c, new TigerDowngradePlaceholders.Input(c2 -> t))
         ));
     }
 

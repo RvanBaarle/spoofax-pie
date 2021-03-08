@@ -51,6 +51,9 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         public final Function<IStrategoTerm, @Nullable String> prettyPrinterFunction;
         public final Function<IStrategoTerm, @Nullable IStrategoTerm> preAnalyzeFunction;
         public final Function<IStrategoTerm, @Nullable IStrategoTerm> postAnalyzeFunction;
+        public final Function<IStrategoTerm, @Nullable IStrategoTerm> isInjFunction;     // Should be a predicate
+        public final Function<IStrategoTerm, @Nullable IStrategoTerm> upgradePlaceholdersFunction;
+        public final Function<IStrategoTerm, @Nullable IStrategoTerm> downgradePlaceholdersFunction;
 
         public Input(Supplier<IStrategoTerm> supplier) {
             // This constructor is only here to satisfy the compiler
@@ -65,7 +68,10 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
             Supplier<IStrategoTerm> astSupplier,
             Function<IStrategoTerm, @Nullable String> prettyPrinterFunction,
             Function<IStrategoTerm, @Nullable IStrategoTerm> preAnalyzeFunction,
-            Function<IStrategoTerm, @Nullable IStrategoTerm> postAnalyzeFunction
+            Function<IStrategoTerm, @Nullable IStrategoTerm> postAnalyzeFunction,
+            Function<IStrategoTerm, @Nullable IStrategoTerm> isInjFunction,     // Should be a predicate
+            Function<IStrategoTerm, @Nullable IStrategoTerm> upgradePlaceholdersFunction,
+            Function<IStrategoTerm, @Nullable IStrategoTerm> downgradePlaceholdersFunction
         ) {
             this.resourceKey = resourceKey;
             this.caretLocation = caretLocation;
@@ -73,6 +79,9 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
             this.prettyPrinterFunction = prettyPrinterFunction;
             this.preAnalyzeFunction = preAnalyzeFunction;
             this.postAnalyzeFunction = postAnalyzeFunction;
+            this.isInjFunction = isInjFunction;
+            this.upgradePlaceholdersFunction = upgradePlaceholdersFunction;
+            this.downgradePlaceholdersFunction = downgradePlaceholdersFunction;
         }
     }
 

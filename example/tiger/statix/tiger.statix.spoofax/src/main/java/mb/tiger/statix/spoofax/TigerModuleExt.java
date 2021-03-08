@@ -8,10 +8,13 @@ import mb.pie.api.TaskDef;
 import mb.statix.common.StatixAnalyzer;
 import mb.tiger.statix.TigerAnalyzer;
 import mb.tiger.statix.TigerAnalyzerFactory;
+import mb.tiger.statix.spoofax.task.TigerDowngradePlaceholders;
+import mb.tiger.statix.spoofax.task.TigerIsInj;
 import mb.tiger.statix.spoofax.task.TigerPostAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPreAnalyze;
 import mb.tiger.statix.spoofax.task.TigerPrettyPrint;
 import mb.tiger.statix.spoofax.task.TigerStatixSpec;
+import mb.tiger.statix.spoofax.task.TigerUpgradePlaceholders;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 import java.util.HashSet;
@@ -37,7 +40,10 @@ public class TigerModuleExt {
         TigerStatixSpec statixSpec,
         TigerPrettyPrint prettyPrintTaskDef,
         TigerPreAnalyze preAnalyzeTaskDef,
-        TigerPostAnalyze postAnalyzeTaskDef
+        TigerPostAnalyze postAnalyzeTaskDef,
+        TigerIsInj isInjTaskDef,
+        TigerUpgradePlaceholders upgradePlaceholdersTaskDef,
+        TigerDowngradePlaceholders downgradePlaceholdersTaskDef
     ) {
         final HashSet<TaskDef<?, ?>> taskDefs = new HashSet<>();
         taskDefs.add(tigerComplete);
@@ -45,6 +51,9 @@ public class TigerModuleExt {
         taskDefs.add(prettyPrintTaskDef);
         taskDefs.add(preAnalyzeTaskDef);
         taskDefs.add(postAnalyzeTaskDef);
+        taskDefs.add(isInjTaskDef);
+        taskDefs.add(upgradePlaceholdersTaskDef);
+        taskDefs.add(downgradePlaceholdersTaskDef);
         return taskDefs;
     }
 
