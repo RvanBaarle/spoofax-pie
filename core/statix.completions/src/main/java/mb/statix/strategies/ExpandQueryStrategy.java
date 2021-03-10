@@ -111,6 +111,7 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
         final NameResolution<Scope, ITerm, ITerm, CEqual> nameResolution = new NameResolution<>(
             ctx.getSpec(),
             state.scopeGraph(),
+            ctx.getSpec().allLabels(),
             labelWF, labelOrd,
             dataWF, isAlways, isComplete);
         // @formatter:on
@@ -373,8 +374,8 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
         final ImmutableList.Builder<IConstraint> addConstraints = ImmutableList.builder();
 
         // The explicated match path must match the query result term
-        final List<ITerm> pathTerms = subEnv.matches.stream().map(m -> StatixTerms.explicate(m.path, spec.dataLabels()))
-                .collect(ImmutableList.toImmutableList());
+        final List<ITerm> pathTerms = subEnv.matches.stream().map(m -> StatixTerms.pathToTerm(m.path, spec.dataLabels()))
+            .collect(ImmutableList.toImmutableList());
         addConstraints.add(new CEqual(B.newList(pathTerms), query.resultTerm(), query));
         subEnv.matches.stream().flatMap(m -> Optionals.stream(m.condition)).forEach(addConstraints::add);
         subEnv.rejects.stream().flatMap(m -> Optionals.stream(m.condition)).forEach(condition -> {
@@ -386,7 +387,7 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
         final Iterable<IConstraint> remConstraints = Iterables2.singleton(query);
 
         // Update the given state with the added and removed constraints
-        return state.updateConstraints(addConstraints.build(), remConstraints);
+        return state.updateConstraints(spec, addConstraints.build(), remConstraints);
     }
 
     /**

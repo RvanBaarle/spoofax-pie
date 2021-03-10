@@ -95,6 +95,7 @@ public final class DelayStuckQueriesStrategy extends AbstractStrategy<SolverCont
         final NameResolution<Scope, ITerm, ITerm, CEqual> nameResolution = new NameResolution<>(
             spec,
             state.scopeGraph(),
+            spec.allLabels(),
             labelWF, labelOrd,
             dataWF, isAlways, isComplete);
         // @formatter:on

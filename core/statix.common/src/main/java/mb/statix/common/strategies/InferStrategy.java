@@ -4,6 +4,7 @@ import mb.sequences.Computation;
 import mb.sequences.Seq;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
+import mb.statix.solver.completeness.IsComplete;
 import mb.statix.solver.log.NullDebugContext;
 import mb.statix.solver.persistent.Solver;
 import mb.statix.solver.persistent.SolverResult;
@@ -35,6 +36,7 @@ public final class InferStrategy extends AbstractStrategy<SolverContext, SolverS
                 state.getConstraints(),
                 state.getDelays(),
                 state.getCompleteness(),
+                IsComplete.ALWAYS,
                 new NullDebugContext(),
                 new NullProgress(),
                 new NullCancel()

@@ -7,6 +7,7 @@ import mb.statix.common.FocusedSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.constraints.CUser;
+import mb.statix.spec.ApplyMode;
 import mb.statix.spec.Rule;
 import mb.statix.spec.RuleUtil;
 import mb.strategies.AbstractStrategy;
@@ -41,7 +42,7 @@ public final class ExpandRuleStrategy extends AbstractStrategy<SolverContext, Fo
 
         final ImmutableSet<Rule> rules = ctx.getSpec().rules().getOrderIndependentRules(focus.name());
         SolverState searchState = state.getInnerState();
-        List<SolverState> output = RuleUtil.applyAll(searchState.getState(), rules, focus.args(), focus).stream()
+        List<SolverState> output = RuleUtil.applyAll(searchState.getState().unifier(), rules, focus.args(), focus, ApplyMode.RELAXED).stream()
             .map(t -> searchState.withApplyResult(t._2(), focus)).collect(Collectors.toList());
 
 //        @Nullable final ITermVar focusVar = ctx.getFocusVar();

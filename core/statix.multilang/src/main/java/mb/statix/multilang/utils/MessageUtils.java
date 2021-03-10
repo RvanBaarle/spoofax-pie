@@ -9,6 +9,7 @@ import mb.jsglr.common.TermTracer;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.build.TermBuild;
 import mb.nabl2.terms.stratego.AStrategoAnnotations;
+import mb.nabl2.terms.stratego.StrategoAnnotations;
 import mb.nabl2.terms.stratego.TermIndex;
 import mb.nabl2.terms.stratego.TermOrigin;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
@@ -29,6 +30,7 @@ import org.spoofax.terms.attachments.ITermAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 
 import java.util.ArrayDeque;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.Optional;
 import java.util.stream.Collectors;

@@ -2,6 +2,7 @@ package mb.statix.common;
 
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import mb.nabl2.terms.IApplTerm;
+import mb.nabl2.terms.IAttachments;
 import mb.nabl2.terms.IListTerm;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
@@ -9,6 +10,7 @@ import mb.nabl2.terms.ListTerms;
 import mb.nabl2.terms.Terms;
 import mb.nabl2.terms.build.TermBuild;
 import mb.nabl2.terms.stratego.AStrategoAnnotations;
+import mb.nabl2.terms.stratego.StrategoAnnotations;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -247,8 +249,8 @@ public final class StrategoPlaceholders {
      * @param attachments the attachments of the term
      * @return the placeholder term; or {@code null} when not found
      */
-    private static @Nullable ITerm getPlaceholderFromAttachments(ImmutableClassToInstanceMap<Object> attachments) {
-        @Nullable AStrategoAnnotations annotations = (AStrategoAnnotations)attachments.get(AStrategoAnnotations.class);
+    private static @Nullable ITerm getPlaceholderFromAttachments(IAttachments attachments) {
+        @Nullable StrategoAnnotations annotations = attachments.get(StrategoAnnotations.class);
         if (annotations == null) return null;
         return getPlaceholderFromAnnotations(annotations.getAnnotationList());
     }

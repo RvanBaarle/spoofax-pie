@@ -141,10 +141,10 @@ public final class PlaceholderVarMap {
      * @return the origin's region; or {@code null} when it could not be determined
      */
     @Nullable private Region getRegion(ITerm term) {
-        @Nullable ImploderAttachment imploderAttachment = term.getAttachments().getInstance(ImploderAttachment.class);
+        @Nullable ImploderAttachment imploderAttachment = term.getAttachments().get(ImploderAttachment.class);
         if (imploderAttachment == null) {
             // Term didn't have an imploder attachment, but maybe it has an origin term with an imploder attachment?
-            @Nullable final TermOrigin termOrigin = term.getAttachments().getInstance(TermOrigin.class);
+            @Nullable final TermOrigin termOrigin = term.getAttachments().get(TermOrigin.class);
             if(termOrigin == null) return null;
             imploderAttachment = termOrigin.getImploderAttachment();
         }

@@ -1,6 +1,8 @@
 package mb.statix.common;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import io.usethesource.capsule.Map;
 import io.usethesource.capsule.Set;
@@ -11,7 +13,9 @@ import mb.nabl2.terms.unification.Unifiers;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
 import mb.nabl2.util.CapsuleUtil;
 import mb.statix.constraints.CConj;
+import mb.statix.constraints.CEqual;
 import mb.statix.constraints.CExists;
+import mb.statix.constraints.CInequal;
 import mb.statix.constraints.messages.IMessage;
 import mb.statix.constraints.messages.MessageKind;
 import mb.statix.solver.CriticalEdge;
@@ -27,6 +31,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.metaborg.util.functions.Function2;
 import org.metaborg.util.log.ILogger;
 import org.metaborg.util.log.LoggerUtils;
+import org.metaborg.util.optionals.Optionals;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,6 +39,8 @@ import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+
+import static mb.nabl2.terms.build.TermBuild.B;
 
 
 /**
@@ -52,8 +59,8 @@ public final class SolverState {
      * @return the resulting search state
      */
     public static SolverState of(Spec spec, IState.Immutable state, Iterable<? extends IConstraint> constraints) {
-        final ICompleteness.Transient completeness = Completeness.Transient.of(spec);
-        completeness.addAll(constraints, state.unifier());
+        final ICompleteness.Transient completeness = Completeness.Transient.of();
+        completeness.addAll(constraints, spec, state.unifier());
 
         return new SolverState(state, Map.Immutable.of(), CapsuleUtil.toSet(constraints), Map.Immutable.of(),
             null, completeness.freeze());
@@ -174,9 +181,9 @@ public final class SolverState {
      * @param focus the focus constraint
      * @return the updated search state
      */
-    public SolverState withApplyResult(ApplyResult result, IConstraint focus) {
+    public SolverState withApplyResult(SolverContext ctx, IConstraint focus, ApplyResult result, SolverState input) {
         final IConstraint applyConstraint = result.body();
-        final IState.Immutable applyState = result.state();
+        final IState.Immutable applyState = input.state;
         final IUniDisunifier.Immutable applyUnifier = applyState.unifier();
 
         // Update constraints
@@ -186,9 +193,8 @@ public final class SolverState {
 
         // Update completeness
         final ICompleteness.Transient completeness = this.getCompleteness().melt();
-        completeness.updateAll(result.diff().varSet(), applyUnifier);
-        completeness.add(applyConstraint, applyUnifier);
-        java.util.Set<CriticalEdge> removedEdges = completeness.remove(focus, applyUnifier);
+        completeness.add(applyConstraint, ctx.getSpec(), applyUnifier);
+        java.util.Set<CriticalEdge> removedEdges = completeness.remove(focus, ctx.getSpec(), applyUnifier);
 
         // Update delays
         final Map.Transient<IConstraint, Delay> delays = Map.Transient.of();
@@ -212,19 +218,18 @@ public final class SolverState {
      * @param remove the constraints to remove
      * @return the new search state
      */
-    public SolverState updateConstraints(Iterable<IConstraint> add, Iterable<IConstraint> remove) {
-
+    public SolverState updateConstraints(Spec spec, Iterable<IConstraint> add, Iterable<IConstraint> remove) {
         final ICompleteness.Transient completeness = this.completeness.melt();
         final Set.Transient<IConstraint> constraints = this.constraints.asTransient();
         final java.util.Set<CriticalEdge> removedEdges = Sets.newHashSet();
         add.forEach(c -> {
             if(constraints.__insert(c)) {
-                completeness.add(c, state.unifier());
+                completeness.add(c, spec, state.unifier());
             }
         });
         remove.forEach(c -> {
             if(constraints.__remove(c)) {
-                removedEdges.addAll(completeness.remove(c, state.unifier()));
+                removedEdges.addAll(completeness.remove(c, spec, state.unifier()));
             }
         });
         final Map.Transient<IConstraint, Delay> delays = Map.Transient.of();
