@@ -213,7 +213,7 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
         = define("expandDeterministic", v -> debugState(v,
         fixSet(try_(seq(printSolverState("EXPAND STATE", focusConstraint(CUser.class, (constraint, state) -> {
-                final Multiset<ITermVar> innerVars = state.project(v).getVars();
+                final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
                 return containsAnyVar(innerVars, constraint, state);
             })))
             .$(debugCUser(v, single(

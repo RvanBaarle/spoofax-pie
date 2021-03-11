@@ -181,9 +181,9 @@ public final class SolverState {
      * @param focus the focus constraint
      * @return the updated search state
      */
-    public SolverState withApplyResult(SolverContext ctx, IConstraint focus, ApplyResult result, SolverState input) {
+    public SolverState withApplyResult(SolverContext ctx, IConstraint focus, ApplyResult result) {
         final IConstraint applyConstraint = result.body();
-        final IState.Immutable applyState = input.state;
+        final IState.Immutable applyState = this.state;
         final IUniDisunifier.Immutable applyUnifier = applyState.unifier();
 
         // Update constraints

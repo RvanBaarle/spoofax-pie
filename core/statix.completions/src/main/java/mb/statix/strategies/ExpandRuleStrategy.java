@@ -43,7 +43,7 @@ public final class ExpandRuleStrategy extends AbstractStrategy<SolverContext, Fo
         final ImmutableSet<Rule> rules = ctx.getSpec().rules().getOrderIndependentRules(focus.name());
         SolverState searchState = state.getInnerState();
         List<SolverState> output = RuleUtil.applyAll(searchState.getState().unifier(), rules, focus.args(), focus, ApplyMode.RELAXED).stream()
-            .map(t -> searchState.withApplyResult(t._2(), focus)).collect(Collectors.toList());
+            .map(t -> searchState.withApplyResult(ctx, focus, t._2())).collect(Collectors.toList());
 
 //        @Nullable final ITermVar focusVar = ctx.getFocusVar();
 //        if (focusVar != null) {
