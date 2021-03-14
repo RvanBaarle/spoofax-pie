@@ -145,7 +145,7 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         SolverContext ctx = analyzer.createContext(placeholderVar);
         // TODO: Specify spec name and root rule name somewhere
         SolverState startState = analyzer.createStartState(statixAst, "static-semantics", "programOk")
-            .withExistentials(placeholderVarMap.getVars());
+            .withExistentials(placeholderVarMap.getVars(), ctx.getSpec());
         SolverState initialState = analyzer.analyze(ctx, startState);
         if (initialState.hasErrors()) {
             log.error("Completion failed: input program validation failed.\n" + initialState.toString());

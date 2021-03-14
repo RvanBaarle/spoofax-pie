@@ -12,6 +12,7 @@ import mb.nabl2.terms.unification.UnifierFormatter;
 import mb.nabl2.terms.unification.Unifiers;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
 import mb.nabl2.util.CapsuleUtil;
+import mb.nabl2.util.Tuple2;
 import mb.statix.constraints.CConj;
 import mb.statix.constraints.CEqual;
 import mb.statix.constraints.CExists;
@@ -23,6 +24,7 @@ import mb.statix.solver.Delay;
 import mb.statix.solver.IConstraint;
 import mb.statix.solver.IState;
 import mb.statix.solver.completeness.Completeness;
+import mb.statix.solver.completeness.CompletenessUtil;
 import mb.statix.solver.completeness.ICompleteness;
 import mb.statix.solver.persistent.SolverResult;
 import mb.statix.spec.ApplyResult;
@@ -156,7 +158,7 @@ public final class SolverState {
      * @param existentials the existentials to track
      * @return the new solver state
      */
-    public SolverState withExistentials(Iterable<ITermVar> existentials) {
+    public SolverState withExistentials(Iterable<ITermVar> existentials, Spec spec) {
         // We wrap all constraints in a conjunction,
         // and wrap the result in an existential constraint.
         IConstraint newConstraint;
@@ -167,7 +169,12 @@ public final class SolverState {
                 constraintList = new CConj(constraintList, iterator.next());
             }
             newConstraint = new CExists(existentials, constraintList);
-            return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness);
+            final Tuple2<IConstraint, ICompleteness.Immutable> initialConstraintAndCriticalEdges =
+                CompletenessUtil.precomputeCriticalEdges(newConstraint, spec.scopeExtensions());
+            newConstraint = initialConstraintAndCriticalEdges._1();
+            ICompleteness.Transient completeness = this.completeness.melt();
+            completeness.addAll(initialConstraintAndCriticalEdges._2(), state.unifier());
+            return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, completeness.freeze());
         } else {
             // No constraints, so what can you do? ¯\_(ツ)_/¯
             return this;
