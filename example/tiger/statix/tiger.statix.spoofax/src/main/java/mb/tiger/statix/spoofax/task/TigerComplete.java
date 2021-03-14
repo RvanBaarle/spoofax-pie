@@ -163,7 +163,12 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         // 7) Format each completion as a proposal, with pretty-printed text
         List<String> completionStrings = completionTerms.stream().map(t -> {
             try {
-                @Nullable IStrategoTerm implicatedTerm = implicate(context, input, t);
+                @Nullable IStrategoTerm downgradedTerm = downgrade(context, input, t);
+                if (downgradedTerm == null) {
+                    log.warn("Downgrading failed on: " + t);
+                    return t.toString();  // Return the term when downgrading failed
+                }
+                @Nullable IStrategoTerm implicatedTerm = implicate(context, input, downgradedTerm);
                 if (implicatedTerm == null) {
                     log.warn("Implication failed on: " + t);
                     return t.toString();  // Return the term when implication failed
@@ -223,8 +228,8 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
     private List<IStrategoTerm> complete(SolverContext ctx, SolverState state, ITermVar placeholderVar, PlaceholderVarMap placeholderVarMap) throws InterruptedException {
         List<TermCompleter.CompletionSolverProposal> proposalTerms = completer.complete(ctx, state, placeholderVar);
         return proposalTerms.stream().map(p -> {
-            ITerm replacedTerms = StrategoPlaceholders.replaceVariablesByPlaceholders(p.getTerm(), placeholderVarMap);
-            return strategoTerms.toStratego(replacedTerms);
+            //ITerm replacedTerms = StrategoPlaceholders.replaceVariablesByPlaceholders(p.getTerm(), placeholderVarMap);
+            return strategoTerms.toStratego(p.getTerm(), true);
         }).collect(Collectors.toList());
     }
 
@@ -318,17 +323,19 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         );
     }
 
-    private @Nullable IStrategoTerm explicate(ExecContext context, Input input, IStrategoTerm term) throws ExecException, InterruptedException {
-        @Nullable IStrategoTerm explicated = input.preAnalyzeFunction.apply(context, term);
-        @Nullable IStrategoTerm upgraded = input.upgradePlaceholdersFunction.apply(context, explicated);
-        System.out.println("UPGRADED: " + upgraded);
-        @Nullable IStrategoTerm downgraded = input.downgradePlaceholdersFunction.apply(context, upgraded);
-        System.out.println("DOWNGRADED: " + downgraded);
-        System.out.println("EXPLICATED: " + explicated);
-        return explicated;
+    private @Nullable IStrategoTerm explicate(ExecContext context, Input input, IStrategoTerm term) {
+        return input.preAnalyzeFunction.apply(context, term);
     }
 
-    private @Nullable IStrategoTerm implicate(ExecContext context, Input input, IStrategoTerm term) throws ExecException, InterruptedException {
+    private @Nullable IStrategoTerm implicate(ExecContext context, Input input, IStrategoTerm term) {
         return input.postAnalyzeFunction.apply(context, term);
+    }
+
+    private @Nullable IStrategoTerm upgrade(ExecContext context, Input input, IStrategoTerm term) {
+        return input.upgradePlaceholdersFunction.apply(context, term);
+    }
+
+    private @Nullable IStrategoTerm downgrade(ExecContext context, Input input, IStrategoTerm term) {
+        return input.downgradePlaceholdersFunction.apply(context, term);
     }
 }
