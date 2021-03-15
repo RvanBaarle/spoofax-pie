@@ -43,7 +43,8 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy2<SolverContext, ITermVar, PlaceholderVarMap, SolverState, IStrategoTerm> getCompletionProposals
         = define("getCompletionProposals", (v, m) ->
             seq(complete(v, Collections.emptySet()))
-            //.$(filterLiteralsAndPlaceholders(v))
+            .$(filterPlaceholders(v))
+            .$(filterLiteralPlaceholders(v))
             .$(toTerm(v))
             .$(replaceVariablesByPlaceholders(v, m))
             .$(toStrategoTerm())
@@ -258,6 +259,8 @@ import static mb.strategies.Strategy2.define;
                 seq(expandPredicateConstraint())
                 // Perform inference and remove states that have errors
                 .$(assertValid(v))
+                // Remove naked placeholders
+                .$(filterPlaceholders(v))
                 .$()
             )))
         .$()))));
@@ -266,14 +269,41 @@ import static mb.strategies.Strategy2.define;
         return expandDeterministic.apply(v);
     }
 
-    /**
-     * Remove literals and naked placeholders.
-     */
-    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiteralsAndPlaceholders
-        = define("filterLiteralsAndPlaceholders", v -> Strategies.assertThat(s -> !StrategoPlaceholders.isPlaceholder(s.project(v))));
+//    /**
+//     * Remove literals and naked placeholders.
+//     */
+//    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiteralsAndPlaceholders
+//        = define("filterLiteralsAndPlaceholders", v -> Strategies.assertThat(s -> !StrategoPlaceholders.isPlaceholder(s.project(v))));
+//
+//    public static Strategy<SolverContext, SolverState, SolverState> filterLiteralsAndPlaceholders(ITermVar v) {
+//        return filterLiteralsAndPlaceholders.apply(v);
+//    }
 
-    public static Strategy<SolverContext, SolverState, SolverState> filterLiteralsAndPlaceholders(ITermVar v) {
-        return filterLiteralsAndPlaceholders.apply(v);
+    /**
+     * Remove naked placeholders.
+     */
+    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterPlaceholders
+        = define("filterPlaceholders", v -> Strategies.assertThat(s -> {
+            final ITerm t = s.project(v);
+            return !StrategoPlaceholders.isPlaceholder(t) && !(t instanceof ITermVar);
+        }));
+
+    public static Strategy<SolverContext, SolverState, SolverState> filterPlaceholders(ITermVar v) {
+        return filterPlaceholders.apply(v);
+    }
+
+    /**
+     * Remove placeholders for literals.
+     */
+    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiteralPlaceholders
+        = define("filterLiteralPlaceholders", v -> Strategies.assertThat(s -> {
+        final ITerm t = s.project(v);
+        // TODO
+        return true;
+    }));
+
+    public static Strategy<SolverContext, SolverState, SolverState> filterLiteralPlaceholders(ITermVar v) {
+        return filterLiteralPlaceholders.apply(v);
     }
 
     /**
