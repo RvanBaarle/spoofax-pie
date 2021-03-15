@@ -32,6 +32,6 @@ public final class TigerIsInj extends StrategoTaskDefBase<TigerIsInj.Input, @Nul
     }
 
     @Override public @Nullable IStrategoTerm exec(ExecContext context, Input input) throws Exception {
-        return callStrategy("is-Tiger-inj", input.termSupplier.get(context));
+        return callStrategy("is-Tiger-inj-cons", input.termSupplier.get(context));
     }
 }

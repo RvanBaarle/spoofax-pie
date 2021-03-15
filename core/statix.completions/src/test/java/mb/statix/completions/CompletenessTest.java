@@ -33,6 +33,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.fail;
@@ -144,6 +145,9 @@ public class CompletenessTest {
             return;
         }
 
+        // TODO: Initialize this
+        final Predicate<ITerm> isInjPredicate = null;
+
         long completeStartTime = System.nanoTime();
         int stepCount = 0;
         completionExpectation = completionExpectation.withState(initialState);
@@ -162,7 +166,7 @@ public class CompletenessTest {
                     allDelayed = false;
                 }
 
-                List<TermCompleter.CompletionSolverProposal> proposals = completer.complete(ctx, state, var);
+                List<TermCompleter.CompletionSolverProposal> proposals = completer.complete(ctx, isInjPredicate, state, var);
                 // For each proposal, find the candidates that fit
                 final CompletionExpectation<? extends ITerm> currentCompletionExpectation = completionExpectation;
 //                log.info("------------------------------\n" +

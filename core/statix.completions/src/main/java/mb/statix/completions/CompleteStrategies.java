@@ -1,8 +1,6 @@
 package mb.statix.completions;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Multiset;
-import mb.data.Tuple3;
 import mb.nabl2.terms.IApplTerm;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
@@ -16,6 +14,7 @@ import mb.statix.constraints.CResolveQuery;
 import mb.statix.constraints.CUser;
 import mb.strategies.AbstractStrategy;
 import mb.strategies.AbstractStrategy1;
+import mb.strategies.AbstractStrategy2;
 import mb.strategies.DebugStrategy;
 import mb.strategies.Strategies;
 import mb.strategies.Strategy;
@@ -29,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static mb.statix.search.CollectionExt.containsAny;
 import static mb.statix.strategies.SearchStrategies.*;
@@ -95,9 +95,7 @@ import static mb.strategies.Strategy2.define;
         //AtomicReference<Set<String>> visitedInjections = new AtomicReference<>(Collections.emptySet());
         return //seq(Strategies.<SolverContext, SolverState>accept(o -> visitedInjections.set(Collections.emptySet())))
             debugState(v, seq(fixSet(try_(     // Fixset-try because we need to expand injections one-by-one
-                seq(unwrapInjection(v))
-                .$(expandInjection(visitedInjections))
-                .$()
+                expandInjection(visitedInjections, v)
             )))
             // Perform inference and remove states that have errors
             .$(assertValid(v))
@@ -108,67 +106,107 @@ import static mb.strategies.Strategy2.define;
         return expandAllInjections.apply(v, visitedInjections);
     }
 
-    /**
-     * If the project term is an injection (with a single argument), this unwraps the injection
-     * and returns a triple of (injection constructor name, injection argument, solver state).
-     * Otherwise, this strategy fails.
-     */
-    private static final Strategy1<SolverContext, ITermVar, SolverState, Tuple3<String, ITermVar, SolverState>> unwrapInjection
-        = ((Strategy1<SolverContext, ITermVar, SolverState, Tuple3<String, ITermVar, SolverState>>)(ctx, v, s) -> {
-        final ITerm term = s.project(v);
-        if(!StrategoPlaceholders.isInjectionConstructor(term)) {
-//            System.out.println("Injection?  NO: " + term);
-            return Seq.empty();
-//        } else {
-//            System.out.println("Injection? YES: " + term);
-        }
-        final IApplTerm appl = (IApplTerm)term;
-        final String sortName = StrategoPlaceholders.getInjectionSortName(appl);
-        final ITermVar injArg = StrategoPlaceholders.getInjectionArgument(appl);
-//        System.out.println("(\"" + sortName + "\", " + injArg + ")");
-        return Seq.of(Tuple3.of(sortName, injArg, s));
-    }).withName("unwrapInjection");
-
-    public static Strategy<SolverContext, SolverState, Tuple3<String, ITermVar, SolverState>> unwrapInjection(ITermVar v) {
-        return unwrapInjection.apply(v);
-    }
-
-    /**
-     * Expands an injection.
-     *
-     * This takes a tuple {@code (injectionName: string, injectionVar: ITermVar, solverState: SolverState)}
-     * and performs code completion on {@code injectionVar} in {@code solverState}.
-     *
-     * This strategy requires that there is a constraint on the {@code injectionVar},
-     * by having called {@code infer} ({@code assertValid}) on the solver state before calling this strategy.
-     */
-    private static final Strategy1<SolverContext, Set<String>, Tuple3<String, ITermVar, SolverState>, SolverState> expandInjection
-        = ((Strategy1<SolverContext, Set<String>, Tuple3<String, ITermVar, SolverState>, SolverState>)(ctx, visitedInjections, tuple) -> {
-        final String injName = tuple.getComponent1();
-        final ITermVar v = tuple.getComponent2();
-        final SolverState s = tuple.getComponent3();
-        // Check that we are not expanding a previously expanded injection
-        final ITerm term = s.project(v);
-        if(visitedInjections.contains(injName)) {
-//            System.out.println("Injection visited? YES: " + term);
-            return Seq.empty();
-//        } else {
-//            System.out.println("Injection visited?  NO: " + term);
-        }
-        // TODO: Use visited list
-        final Set<String> newVisitedInjections = setWithElement(visitedInjections, injName);
-        // Expand the given variable in the state
-        final Seq<SolverState> apply = complete(v, newVisitedInjections).eval(ctx, s);
-//        System.out.println("Injection " + term + " expanded to: ");
-//        for(SolverState s1 : apply.buffer().asIterable()) {
-//            System.out.println("- " + s1.project(v));
+//    /**
+//     * If the project term is an injection (with a single argument), this unwraps the injection
+//     * and returns a triple of (injection constructor name, injection argument, solver state).
+//     * Otherwise, this strategy fails.
+//     */
+//    private static final Strategy1<SolverContext, ITermVar, SolverState, Tuple3<String, ITermVar, SolverState>> unwrapInjection
+//        = ((Strategy1<SolverContext, ITermVar, SolverState, Tuple3<String, ITermVar, SolverState>>)(ctx, v, s) -> {
+//        final ITerm term = s.project(v);
+//        if(!StrategoPlaceholders.isInjectionConstructor(term)) {
+////            System.out.println("Injection?  NO: " + term);
+//            return Seq.empty();
+////        } else {
+////            System.out.println("Injection? YES: " + term);
 //        }
-        return apply;
-    }).withName("expandInjection");
+//        final IApplTerm appl = (IApplTerm)term;
+//        final String sortName = StrategoPlaceholders.getInjectionSortName(appl);
+//        final ITermVar injArg = StrategoPlaceholders.getInjectionArgument(appl);
+////        System.out.println("(\"" + sortName + "\", " + injArg + ")");
+//        return Seq.of(Tuple3.of(sortName, injArg, s));
+//    }).withName("unwrapInjection");
+//
+//    public static Strategy<SolverContext, SolverState, Tuple3<String, ITermVar, SolverState>> unwrapInjection(ITermVar v) {
+//        return unwrapInjection.apply(v);
+//    }
 
-    public static Strategy<SolverContext, Tuple3<String, ITermVar, SolverState>, SolverState> expandInjection(Set<String> visitedInjections) {
-        return expandInjection.apply(visitedInjections);
+    /**
+     * Expand the injection, if any.
+     */
+    public static class ExpandInjection extends AbstractStrategy2<SolverContext, Set<String>, ITermVar, SolverState, SolverState> {
+        public final Predicate<ITerm> isInjPredicate;
+
+        public ExpandInjection(Predicate<ITerm> isInjPredicate) {
+            this.isInjPredicate = isInjPredicate;
+        }
+
+        @Override public Seq<SolverState> eval(SolverContext ctx, Set<String> visitedInjections, ITermVar v, SolverState state) {
+            // Project the term
+            final ITerm term = state.project(v);
+
+            // Ensure it is an injection application with one argument which is a variable
+            if (!(term instanceof IApplTerm)) return Seq.empty();
+            final IApplTerm injTerm = (IApplTerm)term;
+            if (injTerm.getArgs().size() != 1) return Seq.empty();
+            final ITerm injArg = injTerm.getArgs().get(0);
+            if (!(injArg instanceof ITermVar) || !isInjPredicate.test(term)) return Seq.empty();
+
+            // Ensure the injection was not already visited
+            final String injName = injTerm.getOp();
+            final ITermVar injArgVar = (ITermVar)injArg;
+            if(visitedInjections.contains(injName)) return Seq.empty();
+            final Set<String> newVisitedInjections = setWithElement(visitedInjections, injName);
+
+            // Complete the injection
+            return complete(injArgVar, newVisitedInjections).eval(ctx, state);
+        }
+
+        @Override public String getName() { return "expandInjection"; }
     }
+
+    // FIXME: Dirty workaround; this is initialized somewhere else
+    static Strategy2<SolverContext, Set<String>, ITermVar, SolverState, SolverState> expandInjection;
+    public static Strategy<SolverContext, SolverState, SolverState> expandInjection(Set<String> visitedInjections, ITermVar v) {
+        return expandInjection.apply(visitedInjections, v);
+    }
+
+//    /**
+//     * Expands an injection.
+//     *
+//     * This takes a tuple {@code (injectionName: string, injectionVar: ITermVar, solverState: SolverState)}
+//     * and performs code completion on {@code injectionVar} in {@code solverState}.
+//     *
+//     * This strategy requires that there is a constraint on the {@code injectionVar},
+//     * by having called {@code infer} ({@code assertValid}) on the solver state before calling this strategy.
+//     */
+//    private static final Strategy1<SolverContext, Set<String>, Tuple3<String, ITermVar, SolverState>, SolverState> expandInjection
+//        = ((Strategy1<SolverContext, Set<String>, Tuple3<String, ITermVar, SolverState>, SolverState>)(ctx, visitedInjections, tuple) -> {
+//        final String injName = tuple.getComponent1();
+//        final ITermVar v = tuple.getComponent2();
+//        final SolverState s = tuple.getComponent3();
+//        // Check that we are not expanding a previously expanded injection
+//        final ITerm term = s.project(v);
+//        if(visitedInjections.contains(injName)) {
+////            System.out.println("Injection visited? YES: " + term);
+//            return Seq.empty();
+////        } else {
+////            System.out.println("Injection visited?  NO: " + term);
+//        }
+//        // TODO: Use visited list
+//        final Set<String> newVisitedInjections = setWithElement(visitedInjections, injName);
+//        // Expand the given variable in the state
+//        final Seq<SolverState> apply = complete(v, newVisitedInjections).eval(ctx, s);
+////        System.out.println("Injection " + term + " expanded to: ");
+////        for(SolverState s1 : apply.buffer().asIterable()) {
+////            System.out.println("- " + s1.project(v));
+////        }
+//        return apply;
+//    }).withName("expandInjection");
+//
+//    public static Strategy<SolverContext, Tuple3<String, ITermVar, SolverState>, SolverState> expandInjection(Set<String> visitedInjections) {
+//        return expandInjection.apply(visitedInjections);
+//    }
 
 
 

@@ -39,6 +39,7 @@ import javax.inject.Provider;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @TigerScope
@@ -158,26 +159,27 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
 
         // 5) Invoke the completer on the solver state, indicating the placeholder for which we want completions
         // 6) Get the possible completions back, as a list of ASTs with new solver states
-        List<IStrategoTerm> completionTerms = complete(ctx, initialState, placeholderVar, placeholderVarMap);
+        List<IStrategoTerm> completionTerms = complete(context, input, ctx, initialState, placeholderVar, placeholderVarMap);
 
         // 7) Format each completion as a proposal, with pretty-printed text
-        List<String> completionStrings = completionTerms.stream().map(t -> {
+        List<String> completionStrings = completionTerms.stream().map(proposal -> {
             try {
-                @Nullable IStrategoTerm downgradedTerm = downgrade(context, input, t);
+                @Nullable IStrategoTerm downgradedTerm = downgrade(context, input, proposal);
                 if (downgradedTerm == null) {
-                    log.warn("Downgrading failed on: " + t);
-                    return t.toString();  // Return the term when downgrading failed
+                    log.warn("Downgrading failed on proposal: " + proposal);
+                    return proposal.toString();  // Return the term when downgrading failed
                 }
                 @Nullable IStrategoTerm implicatedTerm = implicate(context, input, downgradedTerm);
                 if (implicatedTerm == null) {
-                    log.warn("Implication failed on: " + t);
-                    return t.toString();  // Return the term when implication failed
+                    log.warn("Implication failed on downgraded: " + downgradedTerm + "\nFrom proposal: " + proposal);
+                    return downgradedTerm.toString();  // Return the term when implication failed
                 }
                 @Nullable String prettyPrinted = prettyPrint(context, implicatedTerm, input.prettyPrinterFunction);
                 if (prettyPrinted == null) {
-                    log.warn("Pretty-printing failed on: " + implicatedTerm);
+                    log.warn("Pretty-printing failed on implicated: " + implicatedTerm + "\nFrom downgraded: " + downgradedTerm + "\nFrom proposal: " + proposal);
+                    return implicatedTerm.toString();  // Return the term when pretty-printing failed
                 }
-                return prettyPrinted != null ? prettyPrinted : implicatedTerm.toString();    // Return the term when pretty-printing failed
+                return prettyPrinted;
             } catch(ExecException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -225,10 +227,14 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         return prettyPrinterFunction.apply(context, term);
     }
 
-    private List<IStrategoTerm> complete(SolverContext ctx, SolverState state, ITermVar placeholderVar, PlaceholderVarMap placeholderVarMap) throws InterruptedException {
-        List<TermCompleter.CompletionSolverProposal> proposalTerms = completer.complete(ctx, state, placeholderVar);
+    private List<IStrategoTerm> complete(ExecContext execContext, Input input, SolverContext ctx, SolverState state, ITermVar placeholderVar, PlaceholderVarMap placeholderVarMap) throws InterruptedException {
+        final Predicate<ITerm> isInjPredicate = t -> {
+            final IStrategoTerm st = ctx.getStrategoTerms().toStratego(t, true);
+            final @Nullable IStrategoTerm result = input.isInjFunction.apply(execContext, st);
+            return result != null;
+        };
+        final List<TermCompleter.CompletionSolverProposal> proposalTerms = completer.complete(ctx, isInjPredicate, state, placeholderVar);
         return proposalTerms.stream().map(p -> {
-            //ITerm replacedTerms = StrategoPlaceholders.replaceVariablesByPlaceholders(p.getTerm(), placeholderVarMap);
             return strategoTerms.toStratego(p.getTerm(), true);
         }).collect(Collectors.toList());
     }

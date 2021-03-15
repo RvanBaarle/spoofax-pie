@@ -8,6 +8,7 @@ import mb.sequences.Seq;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.constraints.CUser;
+import mb.statix.generator.strategy.Expand;
 import mb.strategies.Strategy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static mb.statix.search.CollectionExt.containsAny;
 
@@ -31,14 +33,14 @@ public final class TermCompleter {
      * @param placeholderVar the var of the placeholder to complete
      * @return the resulting completion proposals
      */
-    public List<CompletionSolverProposal> complete(SolverContext ctx, SolverState state, ITermVar placeholderVar) throws InterruptedException {
+    public List<CompletionSolverProposal> complete(SolverContext ctx, Predicate<ITerm> isInjPredicate, SolverState state, ITermVar placeholderVar) throws InterruptedException {
         ITerm termInUnifier = state.getState().unifier().findRecursive(placeholderVar);
         if (!termInUnifier.equals(placeholderVar)) {
             // The variable we're looking for is already in the unifier
             return Collections.singletonList(new CompletionSolverProposal(state, termInUnifier));
         } else {
             // The variable we're looking for is not in the unifier
-            return completeNodes(ctx, state, placeholderVar).map(s -> new CompletionSolverProposal(s, s.project(placeholderVar))).toList().eval();
+            return completeNodes(ctx, isInjPredicate, state, placeholderVar).map(s -> new CompletionSolverProposal(s, s.project(placeholderVar))).toList().eval();
         }
     }
 
@@ -50,7 +52,8 @@ public final class TermCompleter {
      * @param placeholderVar the var of the placeholder to complete
      * @return the resulting states
      */
-    public Seq<SolverState> completeNodes(SolverContext ctx, SolverState state, ITermVar placeholderVar) throws InterruptedException {
+    public Seq<SolverState> completeNodes(SolverContext ctx, Predicate<ITerm> isInjPredicate, SolverState state, ITermVar placeholderVar) throws InterruptedException {
+        CompleteStrategies.expandInjection = new CompleteStrategies.ExpandInjection(isInjPredicate);
         Strategy<SolverContext, SolverState, SolverState> strategy = CompleteStrategies.complete(placeholderVar, Collections.emptySet());
         System.out.println("COMPLETING: " + strategy);
         return strategy.eval(ctx, state);
