@@ -133,6 +133,9 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         IStrategoTerm annotatedAst = StrategoTermIndices.index(explicatedAst, input.resourceKey.toString(), termFactory);
         ITerm tmpStatixAst = strategoTerms.fromStratego(annotatedAst);
         PlaceholderVarMap placeholderVarMap = new PlaceholderVarMap(input.resourceKey.toString());
+        // FIXME: Ideally we would know the sort of the placeholder
+        //  so we can use that sort to call the correct downgrade-placeholders-Lang-Sort strategy
+        // FIXME: We can generate: downgrade-placeholders-Lang(|sort) = where(<?"Exp"> sort); downgrade-placeholders-Lang-Exp
         ITerm statixAst = StrategoPlaceholders.replacePlaceholdersByVariables(tmpStatixAst, placeholderVarMap);
         @Nullable ITermVar placeholderVar = findPlaceholderAt(statixAst, input.caretLocation);
         if (placeholderVar == null) {
@@ -164,6 +167,8 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         // 7) Format each completion as a proposal, with pretty-printed text
         List<String> completionStrings = completionTerms.stream().map(proposal -> {
             try {
+                // TODO: We should call the correct downgrade-placeholders-Lang-Sort based on the
+                //  sort of the placeholder.
                 @Nullable IStrategoTerm downgradedTerm = downgrade(context, input, proposal);
                 if (downgradedTerm == null) {
                     log.warn("Downgrading failed on proposal: " + proposal);
