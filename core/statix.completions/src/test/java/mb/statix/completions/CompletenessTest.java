@@ -12,6 +12,7 @@ import mb.nabl2.terms.stratego.StrategoTermIndices;
 import mb.nabl2.terms.stratego.StrategoTerms;
 import mb.resource.DefaultResourceKey;
 import mb.resource.ResourceKey;
+import mb.statix.common.PlaceholderVarMap;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.common.StatixAnalyzer;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.TestFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
+import org.spoofax.terms.util.TermUtils;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -54,7 +56,7 @@ public class CompletenessTest {
 
     // TODO: Enable
     @TestFactory
-    @Disabled
+    //@Disabled
     public List<DynamicTest> completenessTests() {
         //noinspection ArraysAsListWithZeroOrOneArgument
         return Arrays.asList(
@@ -127,14 +129,15 @@ public class CompletenessTest {
 
         // Preparation
         long prepStartTime = System.nanoTime();
-        CompletionExpectation<? extends ITerm> completionExpectation = CompletionExpectation.fromTerm(inputTerm, expectedTerm, resourceKey.toString());
+        PlaceholderVarMap placeholderVarMap = new PlaceholderVarMap(resourceKey.toString());
+        CompletionExpectation<? extends ITerm> completionExpectation = CompletionExpectation.fromTerm(inputTerm, expectedTerm, placeholderVarMap);
 
         // Get the solver state of the program (whole project),
         // which should have some remaining constraints on the placeholders.
         SolverContext ctx = analyzer.createContext();
         long analyzeStartTime = System.nanoTime();
         SolverState startState = analyzer.createStartState(completionExpectation.getIncompleteAst(), specName, rootRuleName)
-            // TODO: Use withExistentials() to add the placeholder variable(s)
+            .withExistentials(placeholderVarMap.getVars())
             .precomputeCriticalEdges(ctx.getSpec());
         SolverState initialState = analyzer.analyze(ctx, startState);
         if (initialState.hasErrors()) {
@@ -146,8 +149,8 @@ public class CompletenessTest {
             return;
         }
 
-        // TODO: Initialize this
-        final Predicate<ITerm> isInjPredicate = null;
+        // We use a heuristic here.
+        final Predicate<ITerm> isInjPredicate = t -> t instanceof IApplTerm && ((IApplTerm)t).getArity() == 1 && ((IApplTerm)t).getOp().contains("2");
 
         long completeStartTime = System.nanoTime();
         int stepCount = 0;

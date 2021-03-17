@@ -23,9 +23,9 @@ import java.util.Set;
 @Value.Immutable(builder = false)
 abstract class AbstractCompletionExpectation<T extends ITerm> {
 
-    public static CompletionExpectation<? extends ITerm> fromTerm(ITerm incompleteTerm, ITerm completeTerm, String resourceName) {
+    public static CompletionExpectation<? extends ITerm> fromTerm(ITerm incompleteTerm, ITerm completeTerm, PlaceholderVarMap placeholderVarMap) {
         // Gather all the placeholders in the term
-        ITerm replacedTerm = StrategoPlaceholders.replacePlaceholdersByVariables(incompleteTerm, new PlaceholderVarMap(resourceName));
+        ITerm replacedTerm = StrategoPlaceholders.replacePlaceholdersByVariables(incompleteTerm, placeholderVarMap);
         // Does the term we got, including variables, match the expected term?
         Optional<ISubstitution.Immutable> optSubstitution = TermPattern.P.fromTerm(replacedTerm).match(completeTerm);
         if (!optSubstitution.isPresent()) throw new IllegalStateException("The incomplete term is not a match to the complete term.");
