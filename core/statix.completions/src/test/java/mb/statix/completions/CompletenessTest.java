@@ -133,8 +133,9 @@ public class CompletenessTest {
         // which should have some remaining constraints on the placeholders.
         SolverContext ctx = analyzer.createContext();
         long analyzeStartTime = System.nanoTime();
-        SolverState startState = analyzer.createStartState(completionExpectation.getIncompleteAst(), specName, rootRuleName);
-        // TODO: Use withExistentials() to add the placeholder variable(s)
+        SolverState startState = analyzer.createStartState(completionExpectation.getIncompleteAst(), specName, rootRuleName)
+            // TODO: Use withExistentials() to add the placeholder variable(s)
+            .precomputeCriticalEdges(ctx.getSpec());
         SolverState initialState = analyzer.analyze(ctx, startState);
         if (initialState.hasErrors()) {
             fail("Completion failed: input program validation failed.\n" + initialState.toString());

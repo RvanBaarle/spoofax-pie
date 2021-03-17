@@ -158,27 +158,56 @@ public final class SolverState {
      * @param existentials the existentials to track
      * @return the new solver state
      */
-    public SolverState withExistentials(Iterable<ITermVar> existentials, Spec spec) {
+    public SolverState withExistentials(Iterable<ITermVar> existentials) {
         // We wrap all constraints in a conjunction,
         // and wrap the result in an existential constraint.
-        IConstraint newConstraint;
-        Iterator<IConstraint> iterator = this.constraints.iterator();
-        if (iterator.hasNext()) {
-            IConstraint constraintList = iterator.next();
-            while(iterator.hasNext()) {
-                constraintList = new CConj(constraintList, iterator.next());
-            }
-            newConstraint = new CExists(existentials, constraintList);
-            final Tuple2<IConstraint, ICompleteness.Immutable> initialConstraintAndCriticalEdges =
-                CompletenessUtil.precomputeCriticalEdges(newConstraint, spec.scopeExtensions());
-            newConstraint = initialConstraintAndCriticalEdges._1();
-            ICompleteness.Transient completeness = this.completeness.melt();
-            completeness.addAll(initialConstraintAndCriticalEdges._2(), state.unifier());
-            return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, completeness.freeze());
-        } else {
+        SolverState newState = foldToSingleConstraint();
+        assert newState.constraints.size() <= 1;
+        if (newState.constraints.isEmpty()) {
             // No constraints, so what can you do? ¯\_(ツ)_/¯
             return this;
         }
+        final IConstraint constraint = this.constraints.iterator().next();
+        final IConstraint newConstraint = new CExists(existentials, constraint);
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness);
+    }
+
+    /**
+     * Folds the constraints into a single conjunction.
+     *
+     * @return the new solver state with a single conjunction
+     */
+    public SolverState foldToSingleConstraint() {
+        if (this.constraints.size() <= 1) return this;
+        Iterator<IConstraint> iterator = this.constraints.iterator();
+        // We wrap all constraints in a conjunction.
+        IConstraint newConstraint = iterator.next();
+        while(iterator.hasNext()) {
+            newConstraint = new CConj(newConstraint, iterator.next());
+        }
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness);
+    }
+
+    /**
+     * Pre-computes the critical edges.
+     *
+     * @param spec the spec
+     * @return the new solver state with pre-computed critical edges
+     */
+    public SolverState precomputeCriticalEdges(Spec spec) {
+        SolverState newState = foldToSingleConstraint();
+        assert newState.constraints.size() <= 1;
+        if (newState.constraints.isEmpty()) {
+            // No constraints, so what can you do? ¯\_(ツ)_/¯
+            return this;
+        }
+        final IConstraint constraint = newState.constraints.iterator().next();
+        final Tuple2<IConstraint, ICompleteness.Immutable> result =
+            CompletenessUtil.precomputeCriticalEdges(constraint, spec.scopeExtensions());
+        final IConstraint newConstraint = result._1();
+        ICompleteness.Transient completeness = this.completeness.melt();
+        completeness.addAll(result._2(), state.unifier());
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, completeness.freeze());
     }
 
     /**
