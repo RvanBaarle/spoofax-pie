@@ -28,7 +28,7 @@ public class TigerIntellijModule {
 
     @Provides @TigerScope
     static Icon provideFileIcon() {
-        return IconLoader.getIcon("META-INF/fileIcon.svg");
+        return IconLoader.getIcon("/META-INF/fileIcon.svg");
     }
 
 
