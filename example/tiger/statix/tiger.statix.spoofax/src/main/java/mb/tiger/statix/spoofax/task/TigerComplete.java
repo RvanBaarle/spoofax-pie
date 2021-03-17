@@ -239,9 +239,10 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
             return result != null;
         };
         final List<TermCompleter.CompletionSolverProposal> proposalTerms = completer.complete(ctx, isInjPredicate, state, placeholderVar);
-        return proposalTerms.stream().map(p -> {
-            return strategoTerms.toStratego(p.getTerm(), true);
-        }).collect(Collectors.toList());
+        return proposalTerms.stream()
+            .filter(p -> !StrategoPlaceholders.containsLiteralVar(p.getTerm()))
+            .map(p -> strategoTerms.toStratego(p.getTerm(), true))
+            .collect(Collectors.toList());
     }
 
     /**

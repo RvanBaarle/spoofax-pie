@@ -27,10 +27,93 @@ import java.util.stream.Collectors;
 public final class StrategoPlaceholders {
 
     private static final String PLACEHOLDER_SUFFIX = "-Plhdr";
-    private static final String PLACEHOLDER_MULTIPLE_SUFFIX = "s-Plhdr";
 
     // Prevent instantiation.
     private StrategoPlaceholders() {}
+
+    /**
+     * Determines whether the term contains a variable whose sort is a literal.
+     *
+     * @param term the term to check
+     * @return {@code true} when the term contains a variable whose sort is a literal;
+     * otherwise, {@code false}
+     */
+    public static boolean containsLiteralVar(ITerm term) {
+        return term.match(Terms.<Boolean>casesFix(
+            (m, appl) ->  {
+                if (isPlaceholder(appl)) {
+                    // Placeholder
+                    return isLiteralSort(getSortFromAttachments(appl.getAttachments()));
+                } else {
+                    return appl.getArgs().stream().anyMatch(a -> a.match(m));
+                }
+            },
+            (m, list) -> list.match(ListTerms.<Boolean>casesFix(
+                (lm, cons) -> cons.getHead().match(m) || cons.getTail().match(lm),
+                (lm, nil) -> false,
+                (lm, var) -> isLiteralSort(getSortFromAttachments(var.getAttachments()))
+            )),
+            (m, string) -> false,
+            (m, integer) -> false,
+            (m, blob) -> false,
+            (m, var) -> isLiteralSort(getSortFromAttachments(var.getAttachments()))
+        ));
+    }
+
+    /**
+     * Gets the sort of the term from its attachments.
+     *
+     * @param attachments the attachments of the term
+     * @return the sort; or {@code null} when not found
+     */
+    private static @Nullable IStrategoTerm getSortFromAttachments(IAttachments attachments) {
+        @Nullable StrategoAnnotations annotations = attachments.get(StrategoAnnotations.class);
+        if (annotations == null) return null;
+        return getSortFromAnnotations(annotations.getAnnotationList());
+    }
+
+    /**
+     * Gets the sort of the term from its annotations.
+     *
+     * This code looks for an annotation of the form {@code OfSort(_)}.
+     *
+     * @param annotations the annotations of the term
+     * @return the sort; or {@code null} when not found
+     */
+    private static @Nullable IStrategoTerm getSortFromAnnotations(List<IStrategoTerm> annotations) {
+        for(IStrategoTerm term : annotations) {
+            if (!TermUtils.isAppl(term, "OfSort", 1)) continue; // OfSort(_)
+            return term.getSubterm(0);
+        }
+        // Not found.
+        return null;
+    }
+
+    /**
+     * Determines whether the sort is a literal.
+     *
+     * The sort term is the term that's contained in the {@code OfSort(_)} annotation.
+     *
+     * @param term the sort term; or {@code null}
+     * @return {@code true} when it is a literal; otherwise, {@code false}
+     */
+    private static boolean isLiteralSort(@Nullable IStrategoTerm term) {
+        if (term == null) return false;
+        if (!TermUtils.isAppl(term)) throw new UnsupportedOperationException("Unknown sort: " + term);
+        IStrategoAppl appl = TermUtils.toAppl(term);
+        switch (appl.getConstructor().getName()) {
+            case "STRING":
+                return true;
+            case "SORT":
+            case "LIST":
+            case "SCOPE":
+            case "OCCURRENCE":
+            case "PATH":
+                return false;
+            default:
+                throw new UnsupportedOperationException("Unknown sort: " + term);
+        }
+    }
 
     /**
      * Determines whether the given term is a placeholder term.
@@ -72,6 +155,13 @@ public final class StrategoPlaceholders {
     public static boolean isPlaceholder(ITerm term) {
         return term instanceof IApplTerm && isPlaceholder((IApplTerm)term);
     }
+
+
+
+
+    // ---------
+
+
 
     /**
      * Replaces placeholders by term variables.
@@ -266,7 +356,7 @@ public final class StrategoPlaceholders {
     private static @Nullable ITerm getPlaceholderFromAnnotations(List<IStrategoTerm> annotations) {
         for(IStrategoTerm term : annotations) {
             if (!TermUtils.isAppl(term, "OfSort", 1)) continue; // OfSort(_)
-            return getPlaceholderFromSortTerm(term.getSubterm(0), false);
+            return getPlaceholderFromSortTerm(term.getSubterm(0));
         }
         // Not found.
         return null;
@@ -280,24 +370,23 @@ public final class StrategoPlaceholders {
      * @param term the sort term
      * @return the placeholder term; or {@code null} when not found
      */
-    private static @Nullable ITerm getPlaceholderFromSortTerm(IStrategoTerm term, boolean multiple) {
-        final String plhdrSuffix = multiple ? PLACEHOLDER_MULTIPLE_SUFFIX : PLACEHOLDER_SUFFIX;
+    private static @Nullable ITerm getPlaceholderFromSortTerm(IStrategoTerm term) {
         // TODO: Lots of things don't have sort names.
         // Perhaps we should follow the example of ?? and use "??" for all placeholders,
         // or parse any $name$ within dollars as a placeholder, so we can describe the placeholder (and perhaps relate them: "$x$ = $x$ + 1").
         if (TermUtils.isAppl(term, "SORT", 1)) {
             // SORT(_)
-            return TermBuild.B.newAppl(TermUtils.toJavaStringAt(term, 0) + plhdrSuffix);
+            return TermBuild.B.newAppl(TermUtils.toJavaStringAt(term, 0) + PLACEHOLDER_SUFFIX);
         } else if (TermUtils.isAppl(term, "LIST", 1)) {
             // LIST(_)
             // We make a singleton list with a placeholder. Similarly, we could opt to make an empty list.
-            return TermBuild.B.newList(getPlaceholderFromSortTerm(term.getSubterm(0), true));
+            return TermBuild.B.newList(getPlaceholderFromSortTerm(term.getSubterm(0)));
         } else if (TermUtils.isAppl(term, "STRING", 0)) {
             // STRING()
             // TODO: Find the original sort and insert that
             //  Here we just insert $ID for any STRING, which is abviously incorrect
             String name = TermUtils.toAppl(term).getConstructor().getName();
-            return TermBuild.B.newAppl("ID" + plhdrSuffix);
+            return TermBuild.B.newAppl("ID" + PLACEHOLDER_SUFFIX);
         } else if (TermUtils.isAppl(term, null, 0)) {
             // SCOPE()
             // STRING()
@@ -310,4 +399,6 @@ public final class StrategoPlaceholders {
             throw new UnsupportedOperationException("Unknown sort: " + term);
         }
     }
+
+
 }
