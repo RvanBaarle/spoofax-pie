@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @TigerScope
 public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable CompletionResult> {
@@ -240,13 +241,34 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
             return result != null;
         };
         final List<TermCompleter.CompletionSolverProposal> proposalTerms = completer.complete(ctx, isInjPredicate, state, placeholderVar);
-        return proposalTerms.stream()
+        return orderProposals(proposalTerms.stream()
             .filter(p -> !StrategoPlaceholders.containsLiteralVar(p.getTerm())      // Don't show proposals that require a literal to be filled out, such as an ID, string literal, int literal
                       && !StrategoPlaceholders.isPlaceholder(p.getTerm())           // Don't show proposals of naked placeholder constructors (e.g., Exp-Plhdr())
                       && !(p.getTerm() instanceof ITermVar))                        // Don't show proposals of naked term variables (e.g., $Exp0, which would become a Stratego placeholder eventually)
-            // TODO: Order the proposals
+            )
             .map(p -> strategoTerms.toStratego(p.getTerm(), true))
             .collect(Collectors.toList());
+    }
+
+    // TODO: This should be part of the completion strategy, so we can check that our ordering puts the most likely candidates first
+    //  when doing the completeness tests.
+    /**
+     * Orders the proposals.
+     *
+     * We want to order deeper terms before shallower ones,
+     * and terms with less placeholders before terms with more placeholders.
+     *
+     * @param proposals the proposals to order
+     * @return the ordered proposals
+     */
+    private Stream<TermCompleter.CompletionSolverProposal> orderProposals(Stream<TermCompleter.CompletionSolverProposal> proposals) {
+        // We score each proposal on both its shallowness (higher score means more shallow) and its number of placeholders.
+        // for(a in b)
+        // a
+        // for(a in $Exp)
+        // for($ID in $Exp)
+        // TODO
+        return proposals;
     }
 
     /**

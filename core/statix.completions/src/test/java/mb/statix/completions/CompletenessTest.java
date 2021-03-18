@@ -60,12 +60,12 @@ public class CompletenessTest {
     public List<DynamicTest> completenessTests() {
         //noinspection ArraysAsListWithZeroOrOneArgument
         return Arrays.asList(
-//            completenessTest(TESTPATH + "/simple1/test1.aterm", TESTPATH + "/simple1/test1.input.aterm", TIGER_SPEC_SIMPLE1_PATH, "statics", "programOK")
-//            completenessTest(TESTPATH + "/test1.aterm", TESTPATH + "/test1.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk")
-//            completenessTest(TESTPATH + "/test2.aterm", TESTPATH + "/test2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk")
-            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk")
-//            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3_2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk")
-//            completenessTest(TESTPATH + "/test4.aterm", TESTPATH + "/test4.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk")
+            completenessTest(TESTPATH + "/simple1/test1.aterm", TESTPATH + "/simple1/test1.input.aterm", TIGER_SPEC_SIMPLE1_PATH, "statics", "programOK"),
+            completenessTest(TESTPATH + "/test1.aterm", TESTPATH + "/test1.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+            completenessTest(TESTPATH + "/test2.aterm", TESTPATH + "/test2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3_2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+            completenessTest(TESTPATH + "/test4.aterm", TESTPATH + "/test4.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk")
         );
     }
 
