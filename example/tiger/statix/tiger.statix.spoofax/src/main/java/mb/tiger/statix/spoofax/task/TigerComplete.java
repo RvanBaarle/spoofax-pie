@@ -241,7 +241,10 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         };
         final List<TermCompleter.CompletionSolverProposal> proposalTerms = completer.complete(ctx, isInjPredicate, state, placeholderVar);
         return proposalTerms.stream()
-            .filter(p -> !StrategoPlaceholders.containsLiteralVar(p.getTerm()))
+            .filter(p -> !StrategoPlaceholders.containsLiteralVar(p.getTerm())      // Don't show proposals that require a literal to be filled out, such as an ID, string literal, int literal
+                      && !StrategoPlaceholders.isPlaceholder(p.getTerm())           // Don't show proposals of naked placeholder constructors (e.g., Exp-Plhdr())
+                      && !(p.getTerm() instanceof ITermVar))                        // Don't show proposals of naked term variables (e.g., $Exp0, which would become a Stratego placeholder eventually)
+            // TODO: Order the proposals
             .map(p -> strategoTerms.toStratego(p.getTerm(), true))
             .collect(Collectors.toList());
     }
