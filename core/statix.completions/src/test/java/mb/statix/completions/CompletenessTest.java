@@ -155,6 +155,10 @@ public class CompletenessTest {
         long completeStartTime = System.nanoTime();
         int stepCount = 0;
         completionExpectation = completionExpectation.withState(initialState);
+        // Perform a breadth-first search of completions:
+        //  For each incomplete variable, we perform completion.
+        //  If any of the variables result in one candidate, this candidate is applied.
+        //  If none of the variables result in one candidate (i.e., there's no progress), then completion fails.
         while (!completionExpectation.isComplete()) {
 
             boolean allDelayed = true;

@@ -1,6 +1,7 @@
 package mb.statix.strategies;
 
-import mb.statix.common.FocusedSolverState;
+import mb.nabl2.terms.ITermVar;
+import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.common.strategies.InferStrategy;
@@ -31,7 +32,7 @@ public final class SearchStrategies {
      *
      * @return the resulting strategy
      */
-    public static Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> expandQueryConstraint() {
+    public static Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> expandQueryConstraint() {
         return ExpandQueryStrategy.getInstance();
     }
 
@@ -40,8 +41,8 @@ public final class SearchStrategies {
      *
      * @return the resulting strategy
      */
-    public static Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> expandPredicateConstraint() {
-        return ExpandRuleStrategy.getInstance();
+    public static Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState> expandPredicateConstraint(ITermVar v) {
+        return ExpandRuleStrategy.getInstance().apply(v);
     }
 
     /**
@@ -52,8 +53,8 @@ public final class SearchStrategies {
      * @param <C> the type of constraints to focus on
      * @return the resulting strategy
      */
-    public static <C extends IConstraint> Strategy<SolverContext, SolverState, FocusedSolverState<C>> focusConstraint(Class<C> constraintClass, BiPredicate<C, SolverState> predicate) {
-        return FocusStrategy.<C>getInstance().apply(constraintClass, predicate);
+    public static <C extends IConstraint> Strategy<SolverContext, SolverState, SelectedConstraintSolverState<C>> selectConstraints(Class<C> constraintClass, BiPredicate<C, SolverState> predicate) {
+        return SelectStrategy.<C>getInstance().apply(constraintClass, predicate);
     }
 
     /**
@@ -63,8 +64,8 @@ public final class SearchStrategies {
      * @param <C> the type of constraints to focus on
      * @return the resulting strategy
      */
-    public static <C extends IConstraint> Strategy<SolverContext, SolverState, FocusedSolverState<C>> focusConstraint(Class<C> constraintClass) {
-        return focusConstraint(constraintClass, (c, s) -> true);
+    public static <C extends IConstraint> Strategy<SolverContext, SolverState, SelectedConstraintSolverState<C>> selectConstraints(Class<C> constraintClass) {
+        return selectConstraints(constraintClass, (c, s) -> true);
     }
 
     /**
@@ -106,7 +107,7 @@ public final class SearchStrategies {
      *
      * @return the resulting strategy
      */
-    public static <C extends IConstraint> Strategy<SolverContext, FocusedSolverState<C>, SolverState> unfocus() {
+    public static <C extends IConstraint> Strategy<SolverContext, SelectedConstraintSolverState<C>, SolverState> unfocus() {
         return UnfocusStrategy.getInstance();
     }
 }

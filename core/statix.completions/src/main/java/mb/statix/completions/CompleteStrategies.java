@@ -5,7 +5,7 @@ import mb.nabl2.terms.IApplTerm;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
 import mb.sequences.Seq;
-import mb.statix.common.FocusedSolverState;
+import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.PlaceholderVarMap;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
@@ -76,12 +76,18 @@ import static mb.strategies.Strategy2.define;
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllPredicates
         = define("expandAllPredicates", v ->
-        debugState(v, seq(limit(1, focusConstraint(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
+        // We need to repeat this, because there might be more than one constraint that limit(1, select..) might select.
+        // For example, (and this happened), the first selected constraint may be subtypeOf(), which when completed
+        // doesn't result in any additional syntax. We first need to expand the next constraint, typeOfType()
+        // to get actually a useful result.
+        // An example where this happens is in this program, on the $Type placeholder:
+        //   let function $ID(): $Type = $Exp in 3 end
+        debugState(v, repeat(seq(limit(1, selectConstraints(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
             // Expand the focussed rule
-            .$(expandPredicateConstraint())
+            .$(expandPredicateConstraint(v))
             // Perform inference and remove states that have errors
             .$(assertValid(v))
-            .$()));
+            .$())));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllPredicates(ITermVar v) {
         return expandAllPredicates.apply(v);
@@ -152,7 +158,7 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
         = define("expandAllQueries", v -> debugState(v, fixSet(
             if_(
-                limit(1, focusConstraint(CResolveQuery.class)),
+                limit(1, selectConstraints(CResolveQuery.class)),
                 seq(debugCResolveQuery(v, expandQueryConstraint()))
                 .$(assertValid(v))
                 .$(),
@@ -171,12 +177,12 @@ import static mb.strategies.Strategy2.define;
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
         = define("expandDeterministic", v -> debugState(v,
-        fixSet(try_(seq(printSolverState("EXPAND STATE", focusConstraint(CUser.class, (constraint, state) -> {
+        fixSet(try_(seq(printSolverState("EXPAND STATE", selectConstraints(CUser.class, (constraint, state) -> {
                 final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
                 return containsAnyVar(innerVars, constraint, state);
             })))
             .$(debugCUser(v, single(
-                seq(expandPredicateConstraint())
+                seq(expandPredicateConstraint(v))
                 // Perform inference and remove states that have errors
                 .$(assertValid(v))
                 // Remove naked placeholders
@@ -328,15 +334,15 @@ import static mb.strategies.Strategy2.define;
         return debugState.apply(v, s);
     }
 
-    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, FocusedSolverState<CUser>, SolverState>, FocusedSolverState<CUser>, SolverState> debugCUser
-        = Strategy2.define("debugCUser", (v, s) -> Strategies.debug(it -> it.getFocus().toString(), it -> it.project(v).toString(), s));
-    public static Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> debugCUser(ITermVar v, Strategy<SolverContext, FocusedSolverState<CUser>, SolverState> s) {
+    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState>, SelectedConstraintSolverState<CUser>, SolverState> debugCUser
+        = Strategy2.define("debugCUser", (v, s) -> Strategies.debug(it -> it.getSelected().toString(), it -> it.project(v).toString(), s));
+    public static Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState> debugCUser(ITermVar v, Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState> s) {
         return debugCUser.apply(v, s);
     }
 
-    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState>, FocusedSolverState<CResolveQuery>, SolverState> debugCResolveQuery
-        = Strategy2.define("debugCResolveQuery", (v, s) -> Strategies.debug(it -> it.getFocus().toString(), it -> it.project(v).toString(), s));
-    public static Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> debugCResolveQuery(ITermVar v, Strategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> s) {
+    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState>, SelectedConstraintSolverState<CResolveQuery>, SolverState> debugCResolveQuery
+        = Strategy2.define("debugCResolveQuery", (v, s) -> Strategies.debug(it -> it.getSelected().toString(), it -> it.project(v).toString(), s));
+    public static Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> debugCResolveQuery(ITermVar v, Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> s) {
         return debugCResolveQuery.apply(v, s);
     }
 

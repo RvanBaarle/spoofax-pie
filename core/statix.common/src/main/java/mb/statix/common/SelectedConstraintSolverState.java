@@ -12,44 +12,44 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
- * A focused search state.
+ * A search state with a selected constraint.
  *
- * @param <C> the type of constraint to focus on
+ * @param <C> the type of selected constraint
  */
-public final class FocusedSolverState<C extends IConstraint> {
+public final class SelectedConstraintSolverState<C extends IConstraint> {
 
     private final SolverState solverState;
 
-    private final C focus;
-    private final Set.Immutable<IConstraint> unfocused;
+    private final C selected;
+    private final Set.Immutable<IConstraint> unselected;
 
-    public FocusedSolverState(SolverState solverState, C focus) {
+    public SelectedConstraintSolverState(SolverState solverState, C selected) {
         this.solverState = solverState;
         Set.Immutable<IConstraint> constraints = solverState.getConstraints();
-        if(!constraints.contains(focus)) {
+        if(!constraints.contains(selected)) {
             throw new IllegalArgumentException("The focus constraint is not one of the constraints in the state.");
         }
-        this.focus = focus;
-        this.unfocused = constraints.__remove(focus);
+        this.selected = selected;
+        this.unselected = constraints.__remove(selected);
     }
 
     public SolverState getInnerState() {
         return solverState;
     }
 
-    public C getFocus() {
-        return focus;
+    public C getSelected() {
+        return selected;
     }
 
-    public Set<IConstraint> getUnfocused() {
-        return unfocused;
+    public Set<IConstraint> getUnselected() {
+        return unselected;
     }
 
     @Override public String toString() {
         StringWriter out = new StringWriter();
         PrintWriter writer = new PrintWriter(out);
         try {
-            writer.println("FocusedSearchState:");
+            writer.println("SelectedConstraintSolverState:");
             write(writer, (t, u) -> new UnifierFormatter(u, 2).format(t));
         } catch (IOException e) {
             // This can never happen.
@@ -60,8 +60,8 @@ public final class FocusedSolverState<C extends IConstraint> {
 
     public void write(PrintWriter writer, Function2<ITerm, IUniDisunifier, String> prettyprinter) throws IOException {
         final IUniDisunifier unifier = getInnerState().getState().unifier();
-        writer.println("| focus:");
-        writer.println("|   " + focus.toString(t -> prettyprinter.apply(t, unifier)));
+        writer.println("| selected:");
+        writer.println("|   " + selected.toString(t -> prettyprinter.apply(t, unifier)));
         this.getInnerState().write(writer, prettyprinter);
     }
 

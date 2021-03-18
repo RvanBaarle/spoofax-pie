@@ -10,7 +10,7 @@ import mb.nabl2.terms.ITermVar;
 import mb.nabl2.terms.ListTerms;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
 import mb.sequences.Seq;
-import mb.statix.common.FocusedSolverState;
+import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.constraints.CAstId;
@@ -37,7 +37,6 @@ import mb.statix.spec.Spec;
 import mb.statix.spoofax.StatixTerms;
 import mb.strategies.AbstractStrategy;
 import mb.strategies.DebugStrategy;
-import mb.strategies.Strategy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.metaborg.util.functions.Predicate2;
 import org.metaborg.util.iterators.Iterables2;
@@ -62,7 +61,7 @@ import static mb.nabl2.terms.matching.TermMatch.M;
  * Expands the selected query.
  */
 @SuppressWarnings("UnstableApiUsage")
-public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, FocusedSolverState<CResolveQuery>, SolverState> {
+public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> {
 
     @SuppressWarnings("rawtypes")
     private static final ExpandQueryStrategy instance = new ExpandQueryStrategy();
@@ -77,8 +76,8 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, F
     }
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<CResolveQuery> input) {
-        final CResolveQuery query = input.getFocus();
+    public Seq<SolverState> eval(SolverContext ctx, SelectedConstraintSolverState<CResolveQuery> input) {
+        final CResolveQuery query = input.getSelected();
 
         if (DebugStrategy.debug) System.out.println("Expand query: " + query);
 

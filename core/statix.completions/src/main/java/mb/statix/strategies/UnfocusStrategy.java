@@ -1,18 +1,17 @@
 package mb.statix.strategies;
 
 import mb.sequences.Seq;
-import mb.statix.common.FocusedSolverState;
+import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.solver.IConstraint;
 import mb.strategies.AbstractStrategy;
-import mb.strategies.Strategy;
 
 
 /**
  * Unfocuses any constraint.
  */
-public final class UnfocusStrategy<C extends IConstraint> extends AbstractStrategy<SolverContext, FocusedSolverState<C>, SolverState> {
+public final class UnfocusStrategy<C extends IConstraint> extends AbstractStrategy<SolverContext, SelectedConstraintSolverState<C>, SolverState> {
 
     @SuppressWarnings("rawtypes")
     private static final UnfocusStrategy instance = new UnfocusStrategy();
@@ -27,7 +26,7 @@ public final class UnfocusStrategy<C extends IConstraint> extends AbstractStrate
     }
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, FocusedSolverState<C> input) {
+    public Seq<SolverState> eval(SolverContext ctx, SelectedConstraintSolverState<C> input) {
         return Seq.of(input.getInnerState());
     }
 

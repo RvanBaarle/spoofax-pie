@@ -344,7 +344,7 @@ public final class SolverState {
             for (Map.Entry<ITermVar, ITermVar> existential : existentials.entrySet()) {
                 String var = prettyprinter.apply(existential.getKey(), Unifiers.Immutable.of());
                 String term = prettyprinter.apply(existential.getValue(), unifier);
-                writer.println("|   " + var + " : " + term);
+                writer.println("|   " + var + " : " + term + " = " + project(existential.getValue()));
             }
         } else {
             writer.println("| vars: <null>");
