@@ -90,6 +90,7 @@ open class IntellijPlugin : Plugin<Project> {
 
       named<org.jetbrains.intellij.tasks.RunIdeTask>("runIde") {
         jbrVersion("11_0_2b159") // Set JBR version because the latest one cannot be downloaded.
+        jvmArgs("-Xmx2G")
         // HACK: make task depend on the runtime classpath to forcefully make it depend on `spoofax.intellij`, which
         //       `org.jetbrains.intellij` seems to ignore. This is probably because `spoofax.intellij` is a plugin
         //       but is not listed as a plugin dependency. This hack may not work when publishing this plugin.
