@@ -2,3 +2,6 @@
 	path = example/tiger/spoofaxcore
 	url = git@github.com:MetaBorgCube/metaborg-tiger.git
 	branch = tiger-statix
+[submodule "example/minics"]
+	path = example/minics
+	url = git@github.com:MetaBorgCube/metaborg-mini-csharp.git

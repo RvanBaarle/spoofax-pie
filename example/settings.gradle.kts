@@ -53,6 +53,15 @@ fun String.includeProject(id: String, path: String = "$this/$id") {
   includeProject("tiger.statix.intellij", "tiger/statix/tiger.statix.intellij")
 }
 
+"minics".run {
+  includeProject("minics.spoofaxcore")
+  includeProject("minics")
+  includeProject("minics.spoofax")
+  includeProject("minics.cli")
+  includeProject("minics.eclipse")
+  includeProject("minics.intellij")
+}
+
 "mod".run {
   includeProject("mod.spoofaxcore")
   includeProject("mod")
