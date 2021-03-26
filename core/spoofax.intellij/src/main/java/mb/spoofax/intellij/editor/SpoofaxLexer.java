@@ -78,7 +78,7 @@ public final class SpoofaxLexer extends LexerBase {
     public void start(CharSequence buffer, int startOffset, int endOffset, int initialState) {
         assert initialState == 0;
         if (startOffset < 0 || startOffset > buffer.length()) {
-            logger.warn("Start offset {}} out of range {}-{}", startOffset, 0, buffer.length());
+            logger.warn("Start offset {} out of range {}-{}", startOffset, 0, buffer.length());
             startOffset = IntUtil.clamp(startOffset, 0, buffer.length());
         }
         if (endOffset < startOffset || endOffset > buffer.length()) {
