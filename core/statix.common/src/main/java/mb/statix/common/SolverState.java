@@ -99,12 +99,14 @@ public final class SolverState {
     private final ICompleteness.Immutable completeness;
     private final Map.Immutable<IConstraint, IMessage> messages;
 
-    protected SolverState(IState.Immutable state,
-                          Map.Immutable<IConstraint, IMessage> messages,
-                          Set.Immutable<IConstraint> constraints,
-                          Map.Immutable<IConstraint, Delay> delays,
-                          @Nullable ImmutableMap<ITermVar, ITermVar> existentials,
-                          ICompleteness.Immutable completeness) {
+    protected SolverState(
+        IState.Immutable state,
+        Map.Immutable<IConstraint, IMessage> messages,
+        Set.Immutable<IConstraint> constraints,
+        Map.Immutable<IConstraint, Delay> delays,
+        @Nullable ImmutableMap<ITermVar, ITermVar> existentials,
+        ICompleteness.Immutable completeness
+    ) {
         this.state = state;
         this.messages = messages;
         this.constraints = constraints;

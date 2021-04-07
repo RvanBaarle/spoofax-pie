@@ -28,7 +28,7 @@ public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
      * @param <O> the type of output (covariant)
      * @return the built strategy
      */
-    static <CTX, A1, A2, I, O> Strategy2<CTX, A1, A2, I, O> define(String name, BiFunction<A1, A2, Strategy<CTX, I, O>> builder) {
+    static <CTX, A1, A2, I, O> Strategy2<CTX, A1, A2, I, O> define(String name, String param1, String param2, BiFunction<A1, A2, Strategy<CTX, I, O>> builder) {
         // Wraps a strategy builder, and gives it a name.
         return new AbstractStrategy2<CTX, A1, A2, I, O>() {
             @Override
@@ -37,19 +37,28 @@ public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
             }
 
             @Override
+            public String getParamName(int index) {
+                switch (index) {
+                    case 0: return param1;
+                    case 1: return param2;
+                    default: return super.getParamName(index);
+                }
+            }
+
+            @Override
             public Strategy<CTX, I, O> apply(A1 arg1, A2 arg2) {
                 return builder.apply(arg1, arg2).withName(name);
             }
 
             @Override
-            public Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, I input) {
+            protected Seq<O> innerEval(CTX ctx, A1 arg1, A2 arg2, I input) {
                 return apply(arg1, arg2).eval(ctx, input);
             }
 
             @Override
-            public Strategy2<CTX, A1, A2, I, O> withName(String name) {
+            public Strategy2<CTX, A1, A2, I, O> withName(String name, String param1, String param2) {
                 // Delegate to the inner strategy, to avoid wrapping twice
-                return define(name, builder);
+                return define(name, param1, param2, builder);
             }
         };
     }
@@ -60,7 +69,7 @@ public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
      * @param name the strategy name
      * @return the named strategy
      */
-    default Strategy2<CTX, A1, A2, I, O> withName(String name) {
+    default Strategy2<CTX, A1, A2, I, O> withName(String name, String param1, String param2) {
         // Wraps a strategy and gives it a name.
         return new AbstractStrategy2<CTX, A1, A2, I, O>() {
             @Override
@@ -69,14 +78,23 @@ public interface Strategy2<CTX, A1, A2, I, O> extends StrategyDecl {
             }
 
             @Override
-            public Seq<O> eval(CTX ctx, A1 arg1, A2 arg2, I input) {
+            public String getParamName(int index) {
+                switch (index) {
+                    case 0: return param1;
+                    case 1: return param2;
+                    default: return super.getParamName(index);
+                }
+            }
+
+            @Override
+            protected Seq<O> innerEval(CTX ctx, A1 arg1, A2 arg2, I input) {
                 return Strategy2.this.eval(ctx, arg1, arg2, input);
             }
 
             @Override
-            public Strategy2<CTX, A1, A2, I, O> withName(String name) {
+            public Strategy2<CTX, A1, A2, I, O> withName(String name, String param1, String param2) {
                 // Delegate to the inner strategy, to avoid wrapping twice
-                return Strategy2.this.withName(name);
+                return Strategy2.this.withName(name, param1, param2);
             }
         };
     }

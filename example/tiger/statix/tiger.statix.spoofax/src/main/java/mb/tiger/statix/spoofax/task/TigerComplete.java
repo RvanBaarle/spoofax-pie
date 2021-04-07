@@ -28,6 +28,8 @@ import mb.statix.common.SolverState;
 import mb.statix.common.StatixAnalyzer;
 import mb.statix.common.StrategoPlaceholders;
 import mb.statix.completions.TermCompleter;
+import mb.strategies.DebugEventHandler;
+import mb.strategies.StrategyEventHandler;
 import mb.tiger.statix.spoofax.TigerScope;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -37,6 +39,7 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.io.Serializable;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -147,24 +150,27 @@ public class TigerComplete implements TaskDef<TigerComplete.Input, @Nullable Com
         // 4) Get the solver state of the program (whole project),
         //    which should have some remaining constraints on the placeholder.
         //    TODO: What to do when the file is semantically incorrect? Recovery?
-        SolverContext ctx = analyzer.createContext(placeholderVar);
-        // TODO: Specify spec name and root rule name somewhere
-        SolverState startState = analyzer.createStartState(statixAst, "static-semantics", "programOk")
-            .withExistentials(placeholderVarMap.getVars())
-            .precomputeCriticalEdges(ctx.getSpec());
-        SolverState initialState = analyzer.analyze(ctx, startState);
-        if (initialState.hasErrors()) {
-            log.error("Completion failed: input program validation failed.\n" + initialState.toString());
-            return null;    // Cannot complete when analysis fails.
-        }
-        if (initialState.getConstraints().isEmpty()) {
-            log.error("Completion failed: no constraints left, nothing to complete.\n" + initialState.toString());
-            return null;    // Cannot complete when there are no constraints left.
-        }
+        List<IStrategoTerm> completionTerms;
+        try(final StrategyEventHandler eventHandler = StrategyEventHandler.none()) {
+            SolverContext ctx = analyzer.createContext(eventHandler, null);//placeholderVar);
+            // TODO: Specify spec name and root rule name somewhere
+            SolverState startState = analyzer.createStartState(statixAst, "static-semantics", "programOk")
+                .withExistentials(placeholderVarMap.getVars())
+                .precomputeCriticalEdges(ctx.getSpec());
+            SolverState initialState = analyzer.analyze(ctx, startState);
+            if(initialState.hasErrors()) {
+                log.error("Completion failed: input program validation failed.\n" + initialState.toString());
+                return null;    // Cannot complete when analysis fails.
+            }
+            if(initialState.getConstraints().isEmpty()) {
+                log.error("Completion failed: no constraints left, nothing to complete.\n" + initialState.toString());
+                return null;    // Cannot complete when there are no constraints left.
+            }
 
-        // 5) Invoke the completer on the solver state, indicating the placeholder for which we want completions
-        // 6) Get the possible completions back, as a list of ASTs with new solver states
-        List<IStrategoTerm> completionTerms = complete(context, input, ctx, initialState, placeholderVar, placeholderVarMap);
+            // 5) Invoke the completer on the solver state, indicating the placeholder for which we want completions
+            // 6) Get the possible completions back, as a list of ASTs with new solver states
+            completionTerms = complete(context, input, ctx, initialState, placeholderVar, placeholderVarMap);
+        }
 
         // 7) Format each completion as a proposal, with pretty-printed text
         List<String> completionStrings = completionTerms.stream().map(proposal -> {

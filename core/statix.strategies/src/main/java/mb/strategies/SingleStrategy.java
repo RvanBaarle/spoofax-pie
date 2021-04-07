@@ -21,8 +21,16 @@ public final class SingleStrategy<CTX, I, O> extends AbstractStrategy1<CTX, Stra
     @Override
     public String getName() { return "single"; }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "s";
+            default: return super.getParamName(index);
+        }
+    }
+
     @Override
-    public Seq<O> eval(
+    protected Seq<O> innerEval(
         CTX ctx,
         Strategy<CTX, I, O> s,
         I input

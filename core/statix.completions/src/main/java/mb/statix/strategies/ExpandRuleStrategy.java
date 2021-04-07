@@ -36,8 +36,16 @@ public final class ExpandRuleStrategy extends AbstractStrategy1<SolverContext, I
         return "expandRule";
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "focus";
+            default: return super.getParamName(index);
+        }
+    }
+
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, @Nullable ITermVar focus, SelectedConstraintSolverState<CUser> state) {
+    protected Seq<SolverState> innerEval(SolverContext ctx, @Nullable ITermVar focus, SelectedConstraintSolverState<CUser> state) {
         CUser selected = state.getSelected();
         if (DebugStrategy.debug) {
             System.out.println("EXPAND RULE: " + selected);

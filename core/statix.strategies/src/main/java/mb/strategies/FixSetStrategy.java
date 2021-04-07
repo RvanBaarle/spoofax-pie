@@ -26,8 +26,16 @@ public final class FixSetStrategy<CTX, T> extends AbstractStrategy1<CTX, Strateg
         return "fixSet";
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "s";
+            default: return super.getParamName(index);
+        }
+    }
+
     @Override
-    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+    protected Seq<T> innerEval(CTX ctx, Strategy<CTX, T, T> s, T input) {
         return () -> new ComputingInterruptibleIterator<T>() {
             // TODO: Can we optimize this to not compute all values in advance?
             @Override

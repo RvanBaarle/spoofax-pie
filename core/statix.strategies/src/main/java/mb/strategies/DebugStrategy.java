@@ -25,11 +25,21 @@ public final class DebugStrategy<CTX, I, O> extends AbstractStrategy3<CTX, Funct
     @Override
     public String getName() { return "debug"; }
 
-    public static boolean debug = true;
+    @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "inTransform";
+            case 1: return "outTransform";
+            case 2: return "strategy";
+            default: return super.getParamName(index);
+        }
+    }
+
+    public static boolean debug = false;
     private static int level = 1;
 
     @Override
-    public Seq<O> eval(CTX ctx, Function<I, String> inTransform, Function<O, String> outTransform, Strategy<CTX, I, O> strategy, I input) {
+    protected Seq<O> innerEval(CTX ctx, Function<I, String> inTransform, Function<O, String> outTransform, Strategy<CTX, I, O> strategy, I input) {
         if (debug) {
             printLevelPrefix("▶");
             System.out.println(" " + strategy + " ⟸ " + inTransform.apply(input));

@@ -11,6 +11,7 @@ import mb.statix.constraints.CUser;
 import mb.statix.solver.IConstraint;
 import mb.statix.solver.persistent.State;
 import mb.statix.spec.Spec;
+import mb.strategies.StrategyEventHandler;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spoofax.interpreter.terms.ITermFactory;
 
@@ -43,8 +44,8 @@ public class StatixAnalyzer {
      *
      * @return the solver context
      */
-    public SolverContext createContext() {
-        return createContext(null);
+    public SolverContext createContext(StrategyEventHandler eventHandler) {
+        return createContext(eventHandler, null);
     }
 
     /**
@@ -53,8 +54,8 @@ public class StatixAnalyzer {
      * @param focusVar the focus variable; or {@code null}
      * @return the solver context
      */
-    public SolverContext createContext(@Nullable ITermVar focusVar) {
-        return new SolverContext(spec.getSpec(), focusVar, strategoTerms);
+    public SolverContext createContext(StrategyEventHandler eventHandler, @Nullable ITermVar focusVar) {
+        return new SolverContext(eventHandler, spec.getSpec(), focusVar, strategoTerms);
     }
 
     public SolverState createStartState(ITerm statixAst, String specName, String rootRuleName) {

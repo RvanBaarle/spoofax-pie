@@ -22,7 +22,16 @@ public final class LimitStrategy<CTX, I, O> extends AbstractStrategy2<CTX, Integ
     public String getName() { return "limit"; }
 
     @Override
-    public Seq<O> eval(
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "limit";
+            case 1: return "s";
+            default: return super.getParamName(index);
+        }
+    }
+
+    @Override
+    protected Seq<O> innerEval(
         CTX ctx,
         Integer limit,
         Strategy<CTX, I, O> s,

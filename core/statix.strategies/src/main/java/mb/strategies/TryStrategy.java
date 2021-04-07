@@ -22,12 +22,20 @@ public final class TryStrategy<CTX, T> extends AbstractStrategy1<CTX, Strategy<C
     private TryStrategy() {}
 
     @Override
-    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+    protected Seq<T> innerEval(CTX ctx, Strategy<CTX, T, T> s, T input) {
         return if_(s, id(), id()).eval(ctx, input);
     }
 
     @Override
     public String getName() {
         return "try";
+    }
+
+    @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "s";
+            default: return super.getParamName(index);
+        }
     }
 }

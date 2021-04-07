@@ -3,6 +3,7 @@ package mb.statix.strategies;
 import com.google.common.collect.Maps;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
+import mb.sequences.Computation;
 import mb.sequences.Seq;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
@@ -51,7 +52,7 @@ public final class DelayStuckQueriesStrategy extends AbstractStrategy<SolverCont
     }
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, SolverState input) {
+    protected Seq<SolverState> innerEval(SolverContext ctx, SolverState input) {
         final IState.Immutable state = input.getState();
         final ICompleteness.Immutable completeness = input.getCompleteness();
 

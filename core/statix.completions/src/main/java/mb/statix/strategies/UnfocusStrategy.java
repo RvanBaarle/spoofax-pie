@@ -1,5 +1,6 @@
 package mb.statix.strategies;
 
+import mb.sequences.Computation;
 import mb.sequences.Seq;
 import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.SolverContext;
@@ -26,7 +27,7 @@ public final class UnfocusStrategy<C extends IConstraint> extends AbstractStrate
     }
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, SelectedConstraintSolverState<C> input) {
+    protected Seq<SolverState> innerEval(SolverContext ctx, SelectedConstraintSolverState<C> input) {
         return Seq.of(input.getInnerState());
     }
 

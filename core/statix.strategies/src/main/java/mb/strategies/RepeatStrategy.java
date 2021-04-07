@@ -20,7 +20,7 @@ public final class RepeatStrategy<CTX, T> extends AbstractStrategy1<CTX, Strateg
     private RepeatStrategy() {}
 
     @Override
-    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+    protected Seq<T> innerEval(CTX ctx, Strategy<CTX, T, T> s, T input) {
         // = try(s ; repeat(s))
         // = rec x : try(s ; x)
         return Strategies.<CTX, T, T>rec(x -> try_(seq(s).$(x).$())).eval(ctx, input);
@@ -29,5 +29,13 @@ public final class RepeatStrategy<CTX, T> extends AbstractStrategy1<CTX, Strateg
     @Override
     public String getName() {
         return "repeat";
+    }
+
+    @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "s";
+            default: return super.getParamName(index);
+        }
     }
 }

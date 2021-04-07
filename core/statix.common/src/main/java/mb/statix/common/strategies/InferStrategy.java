@@ -28,7 +28,7 @@ public final class InferStrategy extends AbstractStrategy<SolverContext, SolverS
     private InferStrategy() {}
 
     @Override
-    public Computation<SolverState> eval(SolverContext ctx, SolverState state) {
+    protected Computation<SolverState> innerEval(SolverContext ctx, SolverState state) {
         return () -> {
             final SolverResult result = Solver.solve(
                 ctx.getSpec(),

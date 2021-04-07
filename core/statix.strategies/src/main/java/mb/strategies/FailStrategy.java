@@ -22,7 +22,7 @@ public final class FailStrategy<CTX, I, O> extends AbstractStrategy<CTX, I, O>{
     public String getName() { return "fail"; }
 
     @Override
-    public Seq<O> eval(
+    protected Seq<O> innerEval(
         CTX ctx,
         I input
     ) {

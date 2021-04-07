@@ -19,10 +19,28 @@ public final class SeqStrategy<CTX, I, M, O> extends AbstractStrategy2<CTX, Stra
     public String getName() { return "seq"; }
 
     @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "s1";
+            case 1: return "s2";
+            default: return super.getParamName(index);
+        }
+    }
+
+    @Override
     public Strategy<CTX, I, O> apply(Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2) {
         return new AbstractStrategy<CTX, I, O>() {
             @Override
             public String getName() { return "seq"; }
+
+            @Override
+            public String getParamName(int index) {
+                switch (index) {
+                    case 0: return "s1";
+                    case 1: return "s2";
+                    default: return super.getParamName(index);
+                }
+            }
 
             @Override
             public int getPrecedence() {
@@ -33,7 +51,7 @@ public final class SeqStrategy<CTX, I, M, O> extends AbstractStrategy2<CTX, Stra
             public boolean isAtom() { return false; }
 
             @Override
-            public Seq<O> eval(CTX ctx, I input) {
+            protected Seq<O> innerEval(CTX ctx, I input) {
                 return s1.eval(ctx, input).flatMap(it -> s2.eval(ctx, it));
             }
 
@@ -48,7 +66,7 @@ public final class SeqStrategy<CTX, I, M, O> extends AbstractStrategy2<CTX, Stra
     }
 
     @Override
-    public Seq<O> eval(CTX ctx, Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2, I input) {
+    protected Seq<O> innerEval(CTX ctx, Strategy<CTX, I, M> s1, Strategy<CTX, M, O> s2, I input) {
         return s1.eval(ctx, input).flatMap(it -> s2.eval(ctx, it));
     }
 

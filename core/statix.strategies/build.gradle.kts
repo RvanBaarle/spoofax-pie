@@ -10,6 +10,7 @@ dependencies {
   api("org.metaborg:log.api")
 
   compileOnly("org.checkerframework:checker-qual-android")
+  api("org.yaml:snakeyaml")
 
   testCompileOnly("org.checkerframework:checker-qual-android")
   testImplementation("org.metaborg:log.backend.slf4j")

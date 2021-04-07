@@ -1,5 +1,6 @@
 package mb.statix.strategies;
 
+import mb.sequences.Computation;
 import mb.sequences.Seq;
 import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.SolverContext;
@@ -31,7 +32,16 @@ public final class SelectStrategy<C extends IConstraint> extends AbstractStrateg
     }
 
     @Override
-    public Seq<SelectedConstraintSolverState<C>> eval(SolverContext ctx, Class<C> constraintClass, BiPredicate<C, SolverState> predicate, SolverState input) {
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "constraintClass";
+            case 1: return "predicate";
+            default: return super.getParamName(index);
+        }
+    }
+
+    @Override
+    protected Seq<SelectedConstraintSolverState<C>> innerEval(SolverContext ctx, Class<C> constraintClass, BiPredicate<C, SolverState> predicate, SolverState input) {
 
 //        Optional<C> focus = input.getConstraints().stream()
 //            .filter(c -> constraintClass.isAssignableFrom(c.getClass()))

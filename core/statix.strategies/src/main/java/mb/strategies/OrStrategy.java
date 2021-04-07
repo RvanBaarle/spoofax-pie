@@ -22,7 +22,16 @@ public final class OrStrategy<CTX, I, O> extends AbstractStrategy2<CTX, Strategy
     public String getName() { return "or"; }
 
     @Override
-    public Seq<O> eval(
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "s1";
+            case 1: return "s2";
+            default: return super.getParamName(index);
+        }
+    }
+
+    @Override
+    protected Seq<O> innerEval(
         CTX ctx,
         Strategy<CTX, I, O> s1,
         Strategy<CTX, I, O> s2,

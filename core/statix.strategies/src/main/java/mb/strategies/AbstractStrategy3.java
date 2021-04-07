@@ -18,7 +18,14 @@ import mb.sequences.Seq;
  */
 public abstract class AbstractStrategy3<CTX, A1, A2, A3, T, R> implements Strategy3<CTX, A1, A2, A3, T, R> {
 
-    @Override public abstract Seq<R> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, T input);
+    @Override public final Seq<R> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, T input) {
+        final StrategyEventHandler eventHandler = ctx instanceof Context ? ((Context)ctx).getEventHandler() : null;
+        final T newInput = eventHandler != null ? eventHandler.enter(this, ctx, arg1, arg2, arg3, input) : input;
+        Seq<R> output = innerEval(ctx, arg1, arg2, arg3, newInput);
+        return eventHandler != null ? eventHandler.leave(this, ctx, output) : output;
+    }
+
+    protected abstract Seq<R> innerEval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, T input);
 
     @Override public abstract String getName();
 

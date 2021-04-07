@@ -9,6 +9,7 @@ import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
 import mb.nabl2.terms.ListTerms;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
+import mb.sequences.Computation;
 import mb.sequences.Seq;
 import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.SolverContext;
@@ -76,7 +77,7 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, S
     }
 
     @Override
-    public Seq<SolverState> eval(SolverContext ctx, SelectedConstraintSolverState<CResolveQuery> input) {
+    protected Seq<SolverState> innerEval(SolverContext ctx, SelectedConstraintSolverState<CResolveQuery> input) {
         final CResolveQuery query = input.getSelected();
 
         if (DebugStrategy.debug) System.out.println("Expand query: " + query);

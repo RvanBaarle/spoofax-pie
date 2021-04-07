@@ -4,6 +4,7 @@ import mb.nabl2.terms.ITermVar;
 import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
+import mb.statix.common.strategies.WithFocusStrategy;
 import mb.statix.common.strategies.InferStrategy;
 import mb.statix.constraints.CResolveQuery;
 import mb.statix.constraints.CUser;
@@ -75,6 +76,10 @@ public final class SearchStrategies {
      */
     public static Strategy<SolverContext, SolverState, SolverState> infer() {
         return InferStrategy.getInstance();
+    }
+
+    public static <I, O> Strategy<SolverContext, I, O> withFocusStrategy(ITermVar v, Strategy<SolverContext, I, O> s) {
+        return WithFocusStrategy.<I, O>getInstance().apply(v, s);
     }
 
 //    /**

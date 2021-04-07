@@ -23,8 +23,16 @@ public final class BuildStrategy<CTX, I, O> extends AbstractStrategy1<CTX, Itera
     @Override
     public String getName() { return "build"; }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "iterable";
+            default: return super.getParamName(index);
+        }
+    }
+
     @Override
-    public Seq<O> eval(
+    protected Seq<O> innerEval(
         CTX ctx,
         Iterable<O> iterable,
         I input

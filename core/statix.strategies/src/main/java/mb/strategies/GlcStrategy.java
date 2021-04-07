@@ -27,7 +27,17 @@ public final class GlcStrategy<CTX, I, M, O> extends AbstractStrategy3<CTX, Stra
     public String getName() { return "glc"; }
 
     @Override
-    public Seq<O> eval(
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "condition";
+            case 1: return "onSuccess";
+            case 2: return "onFailure";
+            default: return super.getParamName(index);
+        }
+    }
+
+    @Override
+    protected Seq<O> innerEval(
         CTX ctx,
         Strategy<CTX, I, M> condition,
         Strategy<CTX, M, O> onSuccess,

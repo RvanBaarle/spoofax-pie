@@ -26,12 +26,20 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
      * @param <O> the type of output (covariant)
      * @return the built strategy
      */
-    static <CTX, A1, I, O> Strategy1<CTX, A1, I, O> define(String name, Function<A1, Strategy<CTX, I, O>> builder) {
+    static <CTX, A1, I, O> Strategy1<CTX, A1, I, O> define(String name, String param1, Function<A1, Strategy<CTX, I, O>> builder) {
         // Wraps a strategy builder, and gives it a name.
         return new AbstractStrategy1<CTX, A1, I, O>() {
             @Override
             public String getName() {
                 return name;
+            }
+
+            @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+            public String getParamName(int index) {
+                switch (index) {
+                    case 0: return param1;
+                    default: return super.getParamName(index);
+                }
             }
 
             @Override
@@ -40,14 +48,14 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
             }
 
             @Override
-            public Seq<O> eval(CTX ctx, A1 arg1, I input) {
+            protected Seq<O> innerEval(CTX ctx, A1 arg1, I input) {
                 return apply(arg1).eval(ctx, input);
             }
 
             @Override
-            public Strategy1<CTX, A1, I, O> withName(String name) {
+            public Strategy1<CTX, A1, I, O> withName(String name, String param1) {
                 // Delegate to the inner strategy, to avoid wrapping twice
-                return define(name, builder);
+                return define(name, param1, builder);
             }
         };
     }
@@ -58,7 +66,7 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
      * @param name the strategy name
      * @return the named strategy
      */
-    default Strategy1<CTX, A1, I, O> withName(String name) {
+    default Strategy1<CTX, A1, I, O> withName(String name, String param1) {
         // Wraps a strategy and gives it a name.
         return new AbstractStrategy1<CTX, A1, I, O>() {
             @Override
@@ -66,15 +74,23 @@ public interface Strategy1<CTX, A1, I, O> extends StrategyDecl {
                 return name;
             }
 
+            @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+            public String getParamName(int index) {
+                switch (index) {
+                    case 0: return param1;
+                    default: return super.getParamName(index);
+                }
+            }
+
             @Override
-            public Seq<O> eval(CTX ctx, A1 arg1, I input) {
+            protected Seq<O> innerEval(CTX ctx, A1 arg1, I input) {
                 return Strategy1.this.eval(ctx, arg1, input);
             }
 
             @Override
-            public Strategy1<CTX, A1, I, O> withName(String name) {
+            public Strategy1<CTX, A1, I, O> withName(String name, String param1) {
                 // Delegate to the inner strategy, to avoid wrapping twice
-                return Strategy1.this.withName(name);
+                return Strategy1.this.withName(name, param1);
             }
         };
     }

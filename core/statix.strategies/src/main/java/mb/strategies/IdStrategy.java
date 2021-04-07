@@ -21,7 +21,7 @@ public final class IdStrategy<CTX, T> extends AbstractStrategy<CTX, T, T>{
     public String getName() { return "id"; }
 
     @Override
-    public Seq<T> eval(
+    protected Seq<T> innerEval(
         CTX ctx,
         T input
     ) {

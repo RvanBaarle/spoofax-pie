@@ -24,8 +24,16 @@ public final class AssertStrategy<CTX, T> extends AbstractStrategy1<CTX, Predica
     @Override
     public String getName() { return "assert"; }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override
+    public String getParamName(int index) {
+        switch (index) {
+            case 0: return "predicate";
+            default: return super.getParamName(index);
+        }
+    }
+
     @Override
-    public Seq<T> eval(
+    protected Seq<T> innerEval(
         CTX ctx,
         Predicate<T> predicate,
         T input

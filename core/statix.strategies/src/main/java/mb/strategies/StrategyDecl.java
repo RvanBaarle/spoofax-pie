@@ -20,6 +20,18 @@ public interface StrategyDecl extends Writable {
     default String getName() { return this.getClass().getSimpleName(); }
 
     /**
+     * Gets the name of the parameter.
+     *
+     * @param index the zero-based index
+     * @return the parameter name
+     */
+    default String getParamName(int index) {
+        if (index < 0 || index >= getArity())
+            throw new IndexOutOfBoundsException("The param index " + index + " is out of range for this strategy with " + getArity() + " parameters.");
+        return "a" + index;
+    }
+
+    /**
      * Gets the arity of the strategy.
      *
      * The arity of a basic strategy {@code I -> O} is 0.

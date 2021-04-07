@@ -18,11 +18,19 @@ import mb.sequences.Seq;
             this.arg1 = arg1;
         }
 
-        @Override public Seq<O> eval(CTX ctx, I input) {
+        @Override protected Seq<O> innerEval(CTX ctx, I input) {
             return strategy.eval(ctx, arg1, input);
         }
 
         @Override public String getName() { return strategy.getName(); }
+
+        @Override
+        public String getParamName(int index) {
+            switch (index) {
+                case 0: return this.strategy.getParamName(0);
+                default: return super.getParamName(index);
+            }
+        }
 
         @Override public boolean isAnonymous() { return true; }
 
@@ -46,11 +54,20 @@ import mb.sequences.Seq;
             this.arg2 = arg2;
         }
 
-        @Override public Seq<O> eval(CTX ctx, I input) {
+        @Override protected Seq<O> innerEval(CTX ctx, I input) {
             return strategy.eval(ctx, arg1, arg2, input);
         }
 
         @Override public String getName() { return strategy.getName(); }
+
+        @Override
+        public String getParamName(int index) {
+            switch (index) {
+                case 0: return this.strategy.getParamName(0);
+                case 1: return this.strategy.getParamName(1);
+                default: return super.getParamName(index);
+            }
+        }
 
         @Override public boolean isAnonymous() { return true; }
 
@@ -78,11 +95,21 @@ import mb.sequences.Seq;
             this.arg3 = arg3;
         }
 
-        @Override public Seq<O> eval(CTX ctx, I input) {
+        @Override protected Seq<O> innerEval(CTX ctx, I input) {
             return strategy.eval(ctx, arg1, arg2, arg3, input);
         }
 
         @Override public String getName() { return strategy.getName(); }
+
+        @Override
+        public String getParamName(int index) {
+            switch (index) {
+                case 0: return this.strategy.getParamName(0);
+                case 1: return this.strategy.getParamName(1);
+                case 2: return this.strategy.getParamName(2);
+                default: return super.getParamName(index);
+            }
+        }
 
         @Override public boolean isAnonymous() { return true; }
 
@@ -115,11 +142,19 @@ import mb.sequences.Seq;
             return strategy.apply(arg1, arg2);
         }
 
-        @Override public Seq<O> eval(CTX ctx, A2 arg2, I input) {
+        @Override protected Seq<O> innerEval(CTX ctx, A2 arg2, I input) {
             return strategy.eval(ctx, arg1, arg2, input);
         }
 
         @Override public String getName() { return strategy.getName(); }
+
+        @Override
+        public String getParamName(int index) {
+            switch (index) {
+                case 0: return this.strategy.getParamName(0);
+                default: return super.getParamName(index);
+            }
+        }
 
         @Override public boolean isAnonymous() { return true; }
 
@@ -148,11 +183,20 @@ import mb.sequences.Seq;
             return strategy.apply(arg1, arg2, arg3);
         }
 
-        @Override public Seq<O> eval(CTX ctx, A3 arg3, I input) {
+        @Override protected Seq<O> innerEval(CTX ctx, A3 arg3, I input) {
             return strategy.eval(ctx, arg1, arg2, arg3, input);
         }
 
         @Override public String getName() { return strategy.getName(); }
+
+        @Override
+        public String getParamName(int index) {
+            switch (index) {
+                case 0: return this.strategy.getParamName(0);
+                case 1: return this.strategy.getParamName(1);
+                default: return super.getParamName(index);
+            }
+        }
 
         @Override public boolean isAnonymous() { return true; }
 
@@ -190,11 +234,19 @@ import mb.sequences.Seq;
             return strategy.apply(arg1, arg2);
         }
 
-        @Override public Seq<O> eval(CTX ctx, A2 arg2, A3 arg3, I input) {
+        @Override protected Seq<O> innerEval(CTX ctx, A2 arg2, A3 arg3, I input) {
             return strategy.eval(ctx, arg1, arg2, arg3, input);
         }
 
         @Override public String getName() { return strategy.getName(); }
+
+        @Override
+        public String getParamName(int index) {
+            switch (index) {
+                case 0: return this.strategy.getParamName(0);
+                default: return super.getParamName(index);
+            }
+        }
 
         @Override public boolean isAnonymous() { return true; }
 

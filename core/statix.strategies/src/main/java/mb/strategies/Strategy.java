@@ -43,7 +43,7 @@ public interface Strategy<CTX, I, O> extends StrategyDecl {
             }
 
             @Override
-            public Seq<O> eval(CTX ctx, I input) {
+            protected Seq<O> innerEval(CTX ctx, I input) {
                 return Strategy.this.eval(ctx, input);
             }
 
