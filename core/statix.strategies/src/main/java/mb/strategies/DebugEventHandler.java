@@ -144,7 +144,12 @@ public class DebugEventHandler implements StrategyEventHandler, Closeable {
             && !(obj instanceof AppliedStrategies.ApplStrategy2To0)
             && !(obj instanceof AppliedStrategies.ApplStrategy3To0)
             && !(obj instanceof SeqStrategy)
-            && !obj.getName().equals("seq");
+            && !(obj instanceof DebugStrategy)
+            && !obj.getName().equals("seq")
+            && !obj.getName().equals("debugState")
+            && !obj.getName().equals("debugCUser")
+            && !obj.getName().equals("debugCResolveQuery")
+            && !obj.getName().equals("printSolverState");
     }
 
     protected Object represent(Object ctx, Object obj) {

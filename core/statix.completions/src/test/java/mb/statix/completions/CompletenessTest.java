@@ -17,6 +17,8 @@ import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.common.StatixAnalyzer;
 import mb.statix.common.StatixSpec;
+import mb.statix.constraints.messages.IMessage;
+import mb.statix.constraints.messages.MessageKind;
 import mb.statix.solver.Delay;
 import mb.statix.solver.IConstraint;
 import mb.strategies.DebugEventHandler;
@@ -146,14 +148,21 @@ public class CompletenessTest {
                 .withExistentials(placeholderVarMap.getVars())
                 .precomputeCriticalEdges(ctx.getSpec());
             SolverState initialState = analyzer.analyze(ctx, startState);
-            if(initialState.hasErrors()) {
-                fail("Completion failed: input program validation failed.\n" + initialState.toString());
+
+            // We track the current collection of errors.
+            final List<java.util.Map.Entry<IConstraint, IMessage>> currentErrors = initialState.getMessages().entrySet().stream().filter(kv -> kv.getValue().kind() == MessageKind.ERROR).collect(Collectors.toList());
+            if(!currentErrors.isEmpty()) {
+                log.warn("input program validation failed.\n"+ initialState);
+                //fail("Completion failed: input program validation failed.\n" + initialState.toString());
                 return;
             }
+
             if(initialState.getConstraints().isEmpty()) {
-                fail("Completion failed: no constraints left, nothing to complete.\n" + initialState.toString());
+                fail("Completion failed: no constraints left, nothing to complete.\n" + initialState);
                 return;
             }
+
+            final SolverContext newCtx = ctx.withAllowedErrors(currentErrors);
 
             // We use a heuristic here.
             final Predicate<ITerm> isInjPredicate = t -> t instanceof IApplTerm && ((IApplTerm)t).getArity() == 1 && ((IApplTerm)t).getOp().contains("2");
@@ -179,7 +188,7 @@ public class CompletenessTest {
                         allDelayed = false;
                     }
 
-                    List<TermCompleter.CompletionSolverProposal> proposals = completer.complete(ctx, isInjPredicate, state, var);
+                    List<TermCompleter.CompletionSolverProposal> proposals = completer.complete(newCtx, isInjPredicate, state, var);
                     // For each proposal, find the candidates that fit
                     final CompletionExpectation<? extends ITerm> currentCompletionExpectation = completionExpectation;
 //                log.info("------------------------------\n" +

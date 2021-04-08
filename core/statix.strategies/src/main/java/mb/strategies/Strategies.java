@@ -4,6 +4,7 @@ import mb.sequences.Computation;
 import mb.sequences.InterruptibleFunction;
 import mb.sequences.Seq;
 
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -74,7 +75,7 @@ public final class Strategies {
      * @return the resulting strategy
      */
     public static <CTX, T> Strategy<CTX, T, T> assertThat(
-        Predicate<T> predicate
+        BiPredicate<CTX, T> predicate
     ) {
         return AssertStrategy.<CTX, T>getInstance().apply(predicate);
     }

@@ -13,6 +13,7 @@ import mb.nabl2.terms.unification.Unifiers;
 import mb.nabl2.terms.unification.ud.IUniDisunifier;
 import mb.nabl2.util.CapsuleUtil;
 import mb.nabl2.util.Tuple2;
+import mb.statix.constraints.CAstId;
 import mb.statix.constraints.CConj;
 import mb.statix.constraints.CEqual;
 import mb.statix.constraints.CExists;
@@ -38,9 +39,11 @@ import org.metaborg.util.optionals.Optionals;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static mb.nabl2.terms.build.TermBuild.B;
 
@@ -128,6 +131,19 @@ public final class SolverState {
     /** Determines whether any of the messages in this state are error messages. */
     public boolean hasErrors() {
         return this.messages.values().stream().anyMatch(m -> m.kind().equals(MessageKind.ERROR));
+    }
+
+    /** Determines whether any of the messages in this state are serious error messages. */
+    public boolean hasSeriousErrors(Collection<java.util.Map.Entry<IConstraint, IMessage>> allowedMessages) {
+        return this.messages.entrySet().stream()
+            .filter(kv -> kv.getValue().kind().equals(MessageKind.ERROR))       // Only errors
+            .filter(kv -> !allowedMessages.contains(kv))                        // That are not previously present
+            .filter(kv -> !(kv.getKey() instanceof CAstId))
+            .anyMatch(kv ->
+                kv.getValue().kind().equals(MessageKind.ERROR) &&       // Only errors
+                !(kv.getKey() instanceof CAstId) &&                     // That are not termId() errors
+                !allowedMessages.contains(kv)                           // That where not previously present
+            );
     }
 
     /** The constraints left to solve. */
@@ -352,19 +368,42 @@ public final class SolverState {
             writer.println("| vars: <null>");
         }
         writer.println("| unifier: " + state.unifier().toString());
-        writer.println("| completeness: " + completeness.toString());
+        if (!completeness.isEmpty()) {
+            writer.println("| completeness: " + completeness.toString());
+        }
         writer.println("| constraints:");
         for (IConstraint c : constraints) {
             writer.println("|   " + c.toString(t -> prettyprinter.apply(t, unifier)));
         }
-        writer.println("| delays:");
-        for (java.util.Map.Entry<IConstraint, Delay> e : delays.entrySet()) {
-            writer.println("|   " + e.getValue() + " : " + e.getKey().toString(t -> prettyprinter.apply(t, unifier)));
+        if (!delays.entrySet().isEmpty()) {
+            writer.println("| delays:");
+            for(java.util.Map.Entry<IConstraint, Delay> e : delays.entrySet()) {
+                writer.println("|   " + e.getValue() + " : " + e.getKey().toString(t -> prettyprinter.apply(t, unifier)));
+            }
         }
-        writer.println("| messages:");
-        for (java.util.Map.Entry<IConstraint, IMessage> e : messages.entrySet()) {
-            writer.println("|   - " + e.getValue().toString(ITerm::toString));
-            writer.println("|     " + e.getKey().toString(t -> prettyprinter.apply(t, unifier)));
+        List<java.util.Map.Entry<IConstraint, IMessage>> errors = messages.entrySet().stream().filter(it -> it.getValue().kind() == MessageKind.ERROR).collect(Collectors.toList());
+        if (!errors.isEmpty()) {
+            writer.println("| errors:");
+            for(java.util.Map.Entry<IConstraint, IMessage> e : errors) {
+                writer.println("|   - " + e.getValue().toString(ITerm::toString));
+                writer.println("|     " + e.getKey().toString(t -> prettyprinter.apply(t, unifier)));
+            }
+        }
+        List<java.util.Map.Entry<IConstraint, IMessage>> warnings = messages.entrySet().stream().filter(it -> it.getValue().kind() == MessageKind.WARNING).collect(Collectors.toList());
+        if (!warnings.isEmpty()) {
+            writer.println("| warnings:");
+            for(java.util.Map.Entry<IConstraint, IMessage> e : warnings) {
+                writer.println("|   - " + e.getValue().toString(ITerm::toString));
+                writer.println("|     " + e.getKey().toString(t -> prettyprinter.apply(t, unifier)));
+            }
+        }
+        List<java.util.Map.Entry<IConstraint, IMessage>> notes = messages.entrySet().stream().filter(it -> it.getValue().kind() == MessageKind.NOTE).collect(Collectors.toList());
+        if (!notes.isEmpty()) {
+            writer.println("| notes:");
+            for(java.util.Map.Entry<IConstraint, IMessage> e : notes) {
+                writer.println("|   - " + e.getValue().toString(ITerm::toString));
+                writer.println("|     " + e.getKey().toString(t -> prettyprinter.apply(t, unifier)));
+            }
         }
     }
 }

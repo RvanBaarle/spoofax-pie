@@ -4,6 +4,7 @@ import mb.sequences.Computation;
 import mb.sequences.Seq;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
 /**
@@ -12,7 +13,7 @@ import java.util.function.Predicate;
  * @param <CTX> the type of context
  * @param <T> the type of values
  */
-public final class AssertStrategy<CTX, T> extends AbstractStrategy1<CTX, Predicate<T>, T, T>{
+public final class AssertStrategy<CTX, T> extends AbstractStrategy1<CTX, BiPredicate<CTX, T>, T, T>{
 
     @SuppressWarnings("rawtypes")
     private static final AssertStrategy instance = new AssertStrategy();
@@ -35,11 +36,11 @@ public final class AssertStrategy<CTX, T> extends AbstractStrategy1<CTX, Predica
     @Override
     protected Seq<T> innerEval(
         CTX ctx,
-        Predicate<T> predicate,
+        BiPredicate<CTX, T> predicate,
         T input
     ) {
         return (Computation<T>)() -> {
-            if (!predicate.test(input)) return null;
+            if (!predicate.test(ctx, input)) return null;
             return input;
         };
     }

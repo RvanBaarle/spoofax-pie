@@ -218,7 +218,7 @@ import static mb.strategies.Strategy2.define;
      * Remove naked placeholders.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterPlaceholders
-        = define("filterPlaceholders", "v", v -> Strategies.assertThat(s -> {
+        = define("filterPlaceholders", "v", v -> Strategies.assertThat((ctx, s) -> {
             final ITerm t = s.project(v);
             return !StrategoPlaceholders.isPlaceholder(t) && !(t instanceof ITermVar);
         }));
@@ -231,7 +231,7 @@ import static mb.strategies.Strategy2.define;
      * Remove placeholders for literals.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiteralPlaceholders
-        = define("filterLiteralPlaceholders", "v", v -> Strategies.assertThat(s -> {
+        = define("filterLiteralPlaceholders", "v", v -> Strategies.assertThat((ctx, s) -> {
         final ITerm t = s.project(v);
         return !StrategoPlaceholders.containsLiteralVar(t);
     }));
@@ -248,8 +248,8 @@ import static mb.strategies.Strategy2.define;
         seq(infer())
         .$(printSolverState("AFTER INFER", id()))
         // Remove states that have errors
-        .$(assertThat(s -> {
-            boolean valid = !s.hasErrors();
+        .$(assertThat((ctx, s) -> {
+            boolean valid = !s.hasSeriousErrors(ctx.getAllowedErrors());
             if(!valid && DebugStrategy.debug) {
                 System.out.println("REJECTED: " + s.project(v));
             }

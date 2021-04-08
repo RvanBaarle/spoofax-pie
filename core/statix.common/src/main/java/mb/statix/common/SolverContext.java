@@ -2,10 +2,15 @@ package mb.statix.common;
 
 import mb.nabl2.terms.ITermVar;
 import mb.nabl2.terms.stratego.StrategoTerms;
+import mb.statix.constraints.messages.IMessage;
+import mb.statix.solver.IConstraint;
 import mb.statix.spec.Spec;
 import mb.strategies.Context;
 import mb.strategies.StrategyEventHandler;
 import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.util.Collection;
+import java.util.Map;
 
 
 /**
@@ -17,6 +22,7 @@ public final class SolverContext implements Context {
     private final Spec spec;
     @Nullable private final ITermVar focusVar;
     private final StrategyEventHandler eventHandler;
+    private final Collection<Map.Entry<IConstraint, IMessage>> allowedErrors;
 
     /**
      * Initializes a new instance of the {@link SolverContext} class.
@@ -26,11 +32,12 @@ public final class SolverContext implements Context {
      * @param focusVar the focus variable; or {@code null}
      * @param strategoTerms the stratego terms
      */
-    public SolverContext(StrategyEventHandler eventHandler, Spec spec, @Nullable ITermVar focusVar, StrategoTerms strategoTerms) {
+    public SolverContext(StrategyEventHandler eventHandler, Spec spec, @Nullable ITermVar focusVar, StrategoTerms strategoTerms, Collection<Map.Entry<IConstraint, IMessage>> allowedErrors) {
         this.eventHandler = eventHandler;
         this.spec = spec;
         this.focusVar = focusVar;
         this.strategoTerms = strategoTerms;
+        this.allowedErrors = allowedErrors;
     }
 
     /**
@@ -52,7 +59,11 @@ public final class SolverContext implements Context {
     }
 
     public SolverContext withFocusVar(@Nullable ITermVar focus) {
-        return new SolverContext(eventHandler, spec, focus, strategoTerms);
+        return new SolverContext(eventHandler, spec, focus, strategoTerms, allowedErrors);
+    }
+
+    public SolverContext withAllowedErrors(Collection<Map.Entry<IConstraint, IMessage>> allowedErrors) {
+        return new SolverContext(eventHandler, spec, focusVar, strategoTerms, allowedErrors);
     }
 
     /**
@@ -64,5 +75,9 @@ public final class SolverContext implements Context {
 
     @Override public StrategyEventHandler getEventHandler() {
         return this.eventHandler;
+    }
+
+    public Collection<Map.Entry<IConstraint, IMessage>> getAllowedErrors() {
+        return allowedErrors;
     }
 }
