@@ -23,9 +23,11 @@ import mb.strategies.Strategy2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -124,23 +126,44 @@ import static mb.strategies.Strategy2.define;
 
         @Override protected Seq<SolverState> innerEval(SolverContext ctx, Set<String> visitedInjections, ITermVar v, SolverState state) {
             // Project the term
-            final ITerm term = state.project(v);
+            final ITerm root = state.project(v);
 
-            // Ensure it is an injection application with one argument which is a variable
-            if (!(term instanceof IApplTerm)) return Seq.empty();
-            final IApplTerm injTerm = (IApplTerm)term;
-            if (injTerm.getArgs().size() != 1) return Seq.empty();
-            final ITerm injArg = injTerm.getArgs().get(0);
-            if (!(injArg instanceof ITermVar) || !isInjPredicate.test(term)) return Seq.empty();
+            // Breath-first search for injections (and other things we want to expand)
+            final Deque<ITerm> queue = new ArrayDeque<ITerm>();
+            queue.push(root);
 
-            // Ensure the injection was not already visited
-            final String injName = injTerm.getOp();
-            final ITermVar injArgVar = (ITermVar)injArg;
-            if(visitedInjections.contains(injName)) return Seq.empty();
-            final Set<String> newVisitedInjections = setWithElement(visitedInjections, injName);
+            while (!queue.isEmpty()) {
+                final ITerm term = queue.remove();
 
-            // Complete the injection
-            return complete(injArgVar, newVisitedInjections).eval(ctx, state);
+                // Ensure it is an injection application with one argument which is a variable
+                if (!(term instanceof IApplTerm)) continue;
+                final IApplTerm injTerm = (IApplTerm)term;
+
+                if (injTerm.getArgs().size() == 1) {
+                    final ITerm injArg = injTerm.getArgs().get(0);
+                    if (injArg instanceof ITermVar && isInjPredicate.test(term)) {
+                        // The term is an injection
+                        // Ensure the injection was not already visited
+                        final String injName = injTerm.getOp();
+                        final ITermVar injArgVar = (ITermVar)injArg;
+                        if(!visitedInjections.contains(injName)) {
+                            final Set<String> newVisitedInjections = setWithElement(visitedInjections, injName);
+
+                            // Complete the injection
+                            return complete(injArgVar, newVisitedInjections).eval(ctx, state);
+
+                            // TODO: Get the set of visited injections back and use it
+                        }
+                    }
+                }
+                // The term was rejected. Add its children to the queue.
+                if (injTerm.getArgs().size() != 1) {
+                    queue.addAll(injTerm.getArgs());
+                }
+            }
+
+            // No injection completed.
+            return Seq.empty();
         }
 
         @Override public String getName() { return "expandInjection"; }
