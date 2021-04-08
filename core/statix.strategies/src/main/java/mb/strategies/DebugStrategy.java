@@ -35,7 +35,7 @@ public final class DebugStrategy<CTX, I, O> extends AbstractStrategy3<CTX, Funct
         }
     }
 
-    public static boolean debug = false;
+    public static boolean debug = true;
     private static int level = 1;
 
     @Override

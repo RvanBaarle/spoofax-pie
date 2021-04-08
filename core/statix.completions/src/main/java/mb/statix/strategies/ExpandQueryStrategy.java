@@ -165,7 +165,7 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, S
     ) {
         final Env<Scope, ITerm, ITerm, CEqual> env = resolveByIndex(nameResolution, scope, index);
 
-        if (DebugStrategy.debug) System.out.println("  ▶ ▶ declaration " + index + " = " + env.matches.size() + " matches");
+        if (DebugStrategy.debug) System.out.println("  ▶ ▶ declaration #" + index + ": " + env.matches.size() + " matches");
 
         // No matches, so no results
         if(env.matches.isEmpty()) {
