@@ -22,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
@@ -51,7 +52,7 @@ public class DebugEventHandler implements StrategyEventHandler, Closeable {
         this.writer = writer;
         this.yaml = createYaml(debugRepresenter);
         // Push the root map
-        this.stack.push(new StrategyData(null, new LinkedHashMap<>()));
+        this.stack.push(new StrategyData(null, new ArrayList<>()));
     }
 
     private static Yaml createYaml(DebugRepresenter debugRepresenter) {
@@ -92,19 +93,22 @@ public class DebugEventHandler implements StrategyEventHandler, Closeable {
 
     private void innerEnter(StrategyDecl strategy, Object ctx, List<Object> args, Object input) {
         if (!isDebugged(ctx, strategy)) return;
-        final Map<String, Object> argsMap = new LinkedHashMap<>();
+        final List<Object> strategyList = new ArrayList<>();
+//        final Map<String, Object> argsMap = new LinkedHashMap<>();
         for(int i = 0; i < strategy.getArity(); i++) {
             final String paramName = strategy.getParamName(i);
             final Object arg = args.get(i);
-            argsMap.put(paramName, represent(ctx, arg));
+            strategyList.add(newMap("@" + paramName, represent(ctx, arg)));
+//            argsMap.put(paramName, represent(ctx, arg));
         }
-        final Map<String, Object> strategyMap = new LinkedHashMap<>();
-        if(!argsMap.isEmpty()) strategyMap.put("@args", argsMap);
-        strategyMap.put("@input", represent(ctx, input));
+//        final List<Object> strategyList = new ArrayList<>();
+//        if(!argsMap.isEmpty()) strategyList.add("@args", argsMap);
+//        strategyList.put("@input", represent(ctx, input));
+        strategyList.add(newMap("@input", represent(ctx, input)));
         final StrategyData sData = stack.peek();
-        final Map<String, Object> parentMap = sData.map;
-        parentMap.put(strategy.getName(), strategyMap);
-        stack.push(new StrategyData(strategy, strategyMap));
+        final List<Object> parentList = sData.list;
+        parentList.add(newMap(strategy.getName(), strategyList));
+        stack.push(new StrategyData(strategy, strategyList));
     }
 
     private void innerLeave(StrategyDecl strategy, Object ctx, Seq<Object> output) {
@@ -113,7 +117,7 @@ public class DebugEventHandler implements StrategyEventHandler, Closeable {
         if (strategy != sData.strategy) {
             throw new UnsupportedOperationException("Trying to leave strategy '" + strategy + "', expected leaving '" + sData.strategy + "'.");
         }
-        final Map<String, Object> strategyMap = sData.map;
+        final List<Object> strategyList = sData.list;
         Object result;
         try {
             List<Object> results = output.map(o -> represent(ctx, o)).toList().eval();
@@ -126,13 +130,21 @@ public class DebugEventHandler implements StrategyEventHandler, Closeable {
             // Cannot happen
             result = "ERROR";
         }
-        strategyMap.put("@output", result);
+        strategyList.add(newMap("@output", result));
+    }
+
+    private Map<String, Object> newMap(String key, Object value) {
+        final Map<String, Object> map = new LinkedHashMap<>();
+        map.put(key, value);
+        return map;
     }
 
     protected boolean isDebugged(Object ctx, StrategyDecl obj) {
         return !(obj instanceof AppliedStrategies.ApplStrategy1To0)
             && !(obj instanceof AppliedStrategies.ApplStrategy2To0)
-            && !(obj instanceof AppliedStrategies.ApplStrategy3To0);
+            && !(obj instanceof AppliedStrategies.ApplStrategy3To0)
+            && !(obj instanceof SeqStrategy)
+            && !obj.getName().equals("seq");
     }
 
     protected Object represent(Object ctx, Object obj) {
@@ -197,15 +209,16 @@ public class DebugEventHandler implements StrategyEventHandler, Closeable {
 
     @Override
     public void close() throws IOException {
-        yaml.dump(stack.pop().map, writer);
+        List<Object> list = stack.pop().list;
+        yaml.dumpAll(list.iterator(), writer);
     }
 
     private static class StrategyData {
         public final StrategyDecl strategy;
-        public final Map<String, Object> map;
-        public StrategyData(StrategyDecl strategy, Map<String, Object> map) {
+        public final List<Object> list;
+        public StrategyData(StrategyDecl strategy, List<Object> list) {
             this.strategy = strategy;
-            this.map = map;
+            this.list = list;
         }
     }
 }
