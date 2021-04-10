@@ -63,12 +63,12 @@ public final class SolverState {
      * @param constraints the constraints
      * @return the resulting search state
      */
-    public static SolverState of(Spec spec, IState.Immutable state, Iterable<? extends IConstraint> constraints) {
+    public static SolverState of(Spec spec, IState.Immutable state, Iterable<? extends IConstraint> constraints, SolutionMeta meta) {
         final ICompleteness.Transient completeness = Completeness.Transient.of();
         completeness.addAll(constraints, spec, state.unifier());
 
         return new SolverState(state, Map.Immutable.of(), CapsuleUtil.toSet(constraints), Map.Immutable.of(),
-            null, completeness.freeze());
+            null, completeness.freeze(), meta);
     }
 
     /**
@@ -78,7 +78,7 @@ public final class SolverState {
      * @param existentials
      * @return the resulting search state
      */
-    public static SolverState fromSolverResult(SolverResult result, @Nullable ImmutableMap<ITermVar, ITermVar> existentials) {
+    public static SolverState fromSolverResult(SolverResult result, @Nullable ImmutableMap<ITermVar, ITermVar> existentials, SolutionMeta meta) {
         final Set.Transient<IConstraint> constraints = Set.Transient.of();
         final Map.Transient<IConstraint, Delay> delays = Map.Transient.of();
         result.delays().forEach((c, d) -> {
@@ -92,7 +92,7 @@ public final class SolverState {
         final ImmutableMap<ITermVar, ITermVar> newExistentials =
             existentials == null ? result.existentials() : existentials;
         return new SolverState(result.state(), CapsuleUtil.toMap(result.messages()), constraints.freeze(), delays.freeze(), newExistentials,
-            result.completeness());
+            result.completeness(), meta);
     }
 
     private final IState.Immutable state;
@@ -101,6 +101,7 @@ public final class SolverState {
     @Nullable private final ImmutableMap<ITermVar, ITermVar> existentials;
     private final ICompleteness.Immutable completeness;
     private final Map.Immutable<IConstraint, IMessage> messages;
+    private final SolutionMeta meta;
 
     protected SolverState(
         IState.Immutable state,
@@ -108,7 +109,8 @@ public final class SolverState {
         Set.Immutable<IConstraint> constraints,
         Map.Immutable<IConstraint, Delay> delays,
         @Nullable ImmutableMap<ITermVar, ITermVar> existentials,
-        ICompleteness.Immutable completeness
+        ICompleteness.Immutable completeness,
+        SolutionMeta meta
     ) {
         this.state = state;
         this.messages = messages;
@@ -116,6 +118,7 @@ public final class SolverState {
         this.delays = delays;
         this.existentials = existentials;
         this.completeness = completeness;
+        this.meta = meta;
     }
 
     /** Gets the solver state. */
@@ -170,6 +173,8 @@ public final class SolverState {
         return completeness;
     }
 
+    public SolutionMeta getMeta() { return this.meta; }
+
     /**
      * Updates the existentials to be tracked in the state.
      *
@@ -187,7 +192,7 @@ public final class SolverState {
         }
         final IConstraint constraint = this.constraints.iterator().next();
         final IConstraint newConstraint = new CExists(existentials, constraint);
-        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness);
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness, meta);
     }
 
     /**
@@ -203,7 +208,7 @@ public final class SolverState {
         while(iterator.hasNext()) {
             newConstraint = new CConj(newConstraint, iterator.next());
         }
-        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness);
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness, meta);
     }
 
     /**
@@ -225,7 +230,7 @@ public final class SolverState {
         final IConstraint newConstraint = result._1();
         ICompleteness.Transient completeness = this.completeness.melt();
         completeness.addAll(result._2(), state.unifier());
-        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, completeness.freeze());
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, completeness.freeze(), meta);
     }
 
     /**
@@ -260,7 +265,7 @@ public final class SolverState {
             }
         });
 
-        return new SolverState(applyState, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze());
+        return new SolverState(applyState, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze(), meta);
     }
 
     /**
@@ -294,7 +299,7 @@ public final class SolverState {
                 delays.__put(c, d);
             }
         });
-        return new SolverState(state, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze());
+        return new SolverState(state, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze(), meta);
     }
 
     public SolverState delay(Iterable<? extends java.util.Map.Entry<IConstraint, Delay>> delay) {
@@ -307,7 +312,11 @@ public final class SolverState {
                 log.warn("delayed constraint not in constraint set: {}", entry.getKey());
             }
         });
-        return new SolverState(state, messages, constraints.freeze(), delays.freeze(), existentials, completeness);
+        return new SolverState(state, messages, constraints.freeze(), delays.freeze(), existentials, completeness, meta);
+    }
+
+    public SolverState withMeta(SolutionMeta meta) {
+        return new SolverState(state, messages, constraints, delays, existentials, completeness, meta);
     }
 
     /**
@@ -381,6 +390,11 @@ public final class SolverState {
                 writer.println("|   " + e.getValue() + " : " + e.getKey().toString(t -> prettyprinter.apply(t, unifier)));
             }
         }
+
+        writer.println("| meta:");
+        writer.println("|   expandedQueries: " + meta.getExpandedQueries());
+        writer.println("|   expandedRules: " + meta.getExpandedRules());
+
         List<java.util.Map.Entry<IConstraint, IMessage>> errors = messages.entrySet().stream().filter(it -> it.getValue().kind() == MessageKind.ERROR).collect(Collectors.toList());
         if (!errors.isEmpty()) {
             writer.println("| errors:");

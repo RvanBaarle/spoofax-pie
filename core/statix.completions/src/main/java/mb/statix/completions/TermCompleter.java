@@ -105,6 +105,7 @@ public final class TermCompleter {
     public final static class CompletionSolverProposal {
         private final SolverState newState;
         private final ITerm term;
+//        @Nullable private String repr;
 
         public CompletionSolverProposal(SolverState newState, ITerm term) {
             this.newState = newState;
@@ -118,5 +119,8 @@ public final class TermCompleter {
         public ITerm getTerm() {
             return term;
         }
+
+//        @Nullable public String getRepr() { return repr; }
+//        public void setRepr(@Nullable String value) { this.repr = value; }
     }
 }

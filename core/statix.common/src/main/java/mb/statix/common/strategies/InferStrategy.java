@@ -44,7 +44,7 @@ public final class InferStrategy extends AbstractStrategy<SolverContext, SolverS
 
             // NOTE: Call the isSuccessful() strategy on this result to ensure it has no errors.
 
-            return SolverState.fromSolverResult(result, state.getExistentials());
+            return SolverState.fromSolverResult(result, state.getExistentials(), state.getMeta());
         };
     }
 

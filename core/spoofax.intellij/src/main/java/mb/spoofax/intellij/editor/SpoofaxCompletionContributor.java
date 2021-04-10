@@ -3,7 +3,9 @@ package mb.spoofax.intellij.editor;
 import com.intellij.codeInsight.completion.CompletionContributor;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.completion.CompletionSorter;
 import com.intellij.codeInsight.completion.InsertionContext;
+import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.icons.AllIcons;
@@ -39,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static mb.common.style.StyleNameConstants.*;
 
@@ -75,16 +78,18 @@ public abstract class SpoofaxCompletionContributor extends CompletionContributor
         }
 
         if(completionResult == null) return;
-        result.addAllElements(completionResult.getProposals().stream().map(this::proposalToElement).collect(Collectors.toList()));
+        List<LookupElement> elements = IntStream.range(0, completionResult.getProposals().size()).mapToObj(i -> proposalToElement(completionResult.getProposals().get(i), i)).collect(Collectors.toList());
+        result.addAllElements(elements);
     }
 
-    private LookupElement proposalToElement(CompletionItem proposal) {
-        return LookupElementBuilder
+    private LookupElement proposalToElement(CompletionItem proposal, int priority) {
+        LookupElementBuilder element = LookupElementBuilder
             .create(proposal.getLabel())
             .withTailText(proposal.getParameters() + (proposal.getLocation().isEmpty() ? "" : " " + proposal.getLocation()))
             .withTypeText(proposal.getType().isEmpty() ? proposal.getDescription() : proposal.getType(), true)
             .withInsertHandler((ctx, item) -> insertHandler(ctx, item, proposal))
             .withIcon(getIcon(StyleNames.of(proposal.getKind())));
+        return PrioritizedLookupElement.withPriority(element, priority);
     }
 
     private @Nullable Icon getIcon(StyleNames styles) {

@@ -61,7 +61,7 @@ public class StatixAnalyzer {
     public SolverState createStartState(ITerm statixAst, String specName, String rootRuleName) {
         IConstraint rootConstraint = getRootConstraint(statixAst, specName, rootRuleName);
         final Spec specSpec = this.spec.getSpec();
-        return SolverState.of(specSpec, State.of(), ImmutableList.of(rootConstraint));
+        return SolverState.of(specSpec, State.of(), ImmutableList.of(rootConstraint), new SolutionMeta());
     }
 
     /**

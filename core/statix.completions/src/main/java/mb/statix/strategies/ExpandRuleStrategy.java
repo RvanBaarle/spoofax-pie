@@ -54,7 +54,9 @@ public final class ExpandRuleStrategy extends AbstractStrategy1<SolverContext, I
         final ImmutableSet<Rule> rules = ctx.getSpec().rules().getOrderIndependentRules(selected.name());
         SolverState searchState = state.getInnerState();
         List<SolverState> output = RuleUtil.applyAll(searchState.getState().unifier(), rules, selected.args(), selected, ApplyMode.RELAXED).stream()
-            .map(t -> searchState.withApplyResult(ctx, selected, t._2())).collect(Collectors.toList());
+            .map(t -> searchState.withApplyResult(ctx, selected, t._2())
+                .withMeta(searchState.getMeta().withExpandedQueries(searchState.getMeta().getExpandedRules() + 1))
+            ).collect(Collectors.toList());
 
         if (DebugStrategy.debug) {
             if(focus != null) {

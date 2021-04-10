@@ -387,7 +387,8 @@ public final class ExpandQueryStrategy extends AbstractStrategy<SolverContext, S
         final Iterable<IConstraint> remConstraints = Iterables2.singleton(query);
 
         // Update the given state with the added and removed constraints
-        return state.updateConstraints(spec, addConstraints.build(), remConstraints);
+        return state.updateConstraints(spec, addConstraints.build(), remConstraints)
+            .withMeta(state.getMeta().withExpandedQueries(state.getMeta().getExpandedQueries() + 1));
     }
 
     /**
