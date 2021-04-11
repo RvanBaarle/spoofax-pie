@@ -58,19 +58,34 @@ public class CompletenessTest {
     private static final String TIGER_SPEC_PATH = TESTPATH + "/spec.aterm";
     private static final String TIGER_SPEC_SIMPLE1_PATH = TESTPATH + "/simple1/spec.aterm";
 
+
     // TODO: Enable
     @TestFactory
     //@Disabled
     public List<DynamicTest> completenessTests() {
         //noinspection ArraysAsListWithZeroOrOneArgument
         return Arrays.asList(
-            completenessTest(TESTPATH + "/simple1/test1.aterm", TESTPATH + "/simple1/test1.input.aterm", TIGER_SPEC_SIMPLE1_PATH, "statics", "programOK"),
-            completenessTest(TESTPATH + "/test1.aterm", TESTPATH + "/test1.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
-            completenessTest(TESTPATH + "/test2.aterm", TESTPATH + "/test2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
-            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
-            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3_2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
-            completenessTest(TESTPATH + "/test4.aterm", TESTPATH + "/test4.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk")
+//            completenessTest(TESTPATH + "/simple1/test1.aterm", TESTPATH + "/simple1/test1.input.aterm", TIGER_SPEC_SIMPLE1_PATH, "statics", "programOK"),
+//            completenessTest(TESTPATH + "/test1.aterm", TESTPATH + "/test1.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+//            completenessTest(TESTPATH + "/test2.aterm", TESTPATH + "/test2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+//            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+//            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3_2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+//            completenessTest(TESTPATH + "/test4.aterm", TESTPATH + "/test4.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
+            // Tiger
+            tigerTest("/test01.tig.aterm"),
+            tigerTest("/test02.tig.aterm"),
+            tigerTest("/test03.tig.aterm"),
+            tigerTest("/test04.tig.aterm")
         );
+    }
+
+    private DynamicTest tigerTest(String expectedTermPath) {
+        final String testPath = TESTPATH + "/tiger";
+        final String inputPath = testPath + "/input.tig.aterm";
+        final String specPath = testPath + "/tiger.stx.aterm";
+        final String specName = "static-semantics";
+        final String rootRuleName = "programOk";
+        return completenessTest(testPath + expectedTermPath, inputPath, specPath, specName, rootRuleName);
     }
 
     /**
@@ -89,7 +104,7 @@ public class CompletenessTest {
                 StatixSpec spec = StatixSpec.fromClassLoaderResources(CompletenessTest.class, specPath);
                 IStrategoTerm expectedTerm = MoreTermUtils.fromClassLoaderResources(CompletenessTest.class, expectedTermPath);
                 IStrategoTerm inputTerm = MoreTermUtils.fromClassLoaderResources(CompletenessTest.class, inputTermPath);
-                doCompletenessTest(expectedTerm, inputTerm, spec, specName, rootRuleName);
+                doCompletenessTest(expectedTerm, inputTerm, spec, specName, rootRuleName, expectedTermPath, inputTermPath);
             });
     }
 
@@ -102,7 +117,7 @@ public class CompletenessTest {
      * @param specName the name of the specification
      * @param rootRuleName the name of the root rule
      */
-    private void doCompletenessTest(IStrategoTerm expectedTerm, IStrategoTerm inputTerm, StatixSpec spec, String specName, String rootRuleName) throws InterruptedException, IOException {
+    private void doCompletenessTest(IStrategoTerm expectedTerm, IStrategoTerm inputTerm, StatixSpec spec, String specName, String rootRuleName, String expectedTermPath, String inputTermPath) throws InterruptedException, IOException {
         ITermFactory termFactory = new TermFactory();
         StrategoTerms strategoTerms = new StrategoTerms(termFactory);
         ResourceKey resourceKey = new DefaultResourceKey("test", "ast");
@@ -113,7 +128,7 @@ public class CompletenessTest {
         IStrategoTerm annotatedInputTerm = StrategoTermIndices.index(inputTerm, resourceKey.toString(), termFactory);
         ITerm inputStatixTerm = strategoTerms.fromStratego(annotatedInputTerm);
 
-        doCompletenessTest(expectedStatixTerm, inputStatixTerm, spec, termFactory, resourceKey, specName, rootRuleName);
+        doCompletenessTest(expectedStatixTerm, inputStatixTerm, spec, termFactory, resourceKey, specName, rootRuleName, expectedTermPath, inputTermPath);
     }
 
     /**
@@ -127,7 +142,7 @@ public class CompletenessTest {
      * @param specName the name of the specification
      * @param rootRuleName the name of the root rule
      */
-    private void doCompletenessTest(ITerm expectedTerm, ITerm inputTerm, StatixSpec spec, ITermFactory termFactory, ResourceKey resourceKey, String specName, String rootRuleName) throws InterruptedException, IOException {
+    private void doCompletenessTest(ITerm expectedTerm, ITerm inputTerm, StatixSpec spec, ITermFactory termFactory, ResourceKey resourceKey, String specName, String rootRuleName, String expectedTermPath, String inputTermPath) throws InterruptedException, IOException {
         TermCompleter completer = new TermCompleter();
         StatixAnalyzer analyzer = new StatixAnalyzer(spec, termFactory, loggerFactory);
 
@@ -139,6 +154,7 @@ public class CompletenessTest {
         long analyzeStartTime;
         long completeStartTime;
         int stepCount = 0;
+        int literalsInserted = 0;
         try(final StrategyEventHandler eventHandler = StrategyEventHandler.none()) {// new DebugEventHandler(Paths.get("debug.yml"))) {      // StrategyEventHandler.none()
             // Get the solver state of the program (whole project),
             // which should have some remaining constraints on the placeholders.
@@ -229,6 +245,7 @@ public class CompletenessTest {
                                 "Got NO candidates, but expected a literal. Could not insert literal " + name + ".\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
                             return;
                         }
+                        literalsInserted += 1;
                         completionExpectation = candidate;
                         log.info("------------------------------\n" +
                             "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
@@ -262,11 +279,18 @@ public class CompletenessTest {
         long totalAnalyzeTime = completeStartTime - analyzeStartTime;
         long totalCompleteTime = System.nanoTime() - completeStartTime;
         long avgDuration = totalCompleteTime / stepCount;
-        log.info("Done! Completed {} steps in {} ms, avg. {} ms/step. (Preparation: {} ms, initial analysis: {} ms)", stepCount,
+        log.info("TEST DONE! Completing {} from {}.\n" +
+                "Completed {} steps in {} ms, avg. {} ms/step.\n" +
+                "Preparation: {} ms, initial analysis: {} ms.\n" +
+                "Inserted {} literals.",
+            expectedTermPath,
+            inputTermPath,
+            stepCount,
             String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalCompleteTime)),
             String.format("%2d", TimeUnit.NANOSECONDS.toMillis(avgDuration)),
             String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalPrepareTime)),
-            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalAnalyzeTime))
+            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalAnalyzeTime)),
+            literalsInserted
         );
     }
 
