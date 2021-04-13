@@ -188,7 +188,7 @@ import static mb.strategies.Strategy2.define;
      * Expand all query constraints that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
-        = define("expandAllQueries", "v", v -> debugState(v, fixSet(
+        = define("expandAllQueries", "v", v -> debugState(v, or(id(), fixSet(
             if_(
                 limit(1, selectConstraints(CResolveQuery.class)),
                 seq(debugCResolveQuery(v, expandQueryConstraint()))
@@ -196,7 +196,7 @@ import static mb.strategies.Strategy2.define;
                 .$(),
                 id()
             )
-        )));
+        ))));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllQueries(ITermVar v) {
         return expandAllQueries.apply(v);
@@ -256,7 +256,7 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiteralPlaceholders
         = define("filterLiteralPlaceholders", "v", v -> Strategies.assertThat((ctx, s) -> {
         final ITerm t = s.project(v);
-        return !StrategoPlaceholders.containsLiteralVar(t);
+        return !StrategoPlaceholders.isLiteralVar(t);
     }));
 
     public static Strategy<SolverContext, SolverState, SolverState> filterLiteralPlaceholders(ITermVar v) {

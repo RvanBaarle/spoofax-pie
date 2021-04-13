@@ -32,6 +32,32 @@ public final class StrategoPlaceholders {
     private StrategoPlaceholders() {}
 
     /**
+     * Determines whether the term is just a variable (or injection of a variable) whose sort is a literal.
+     *
+     * @param term the term to check
+     * @return {@code true} when the term is (the injection of) a variable whose sort is a literal;
+     * otherwise, {@code false}
+     */
+    public static boolean isLiteralVar(ITerm term) {
+        return term.match(Terms.<Boolean>casesFix(
+            (m, appl) ->  {
+                if (!isInjectionConstructor(appl)) return false;
+                // Injection
+                return isLiteralVar(appl.getArgs().get(0));
+            },
+            (m, list) -> list.match(ListTerms.<Boolean>casesFix(
+                (lm, cons) -> false,
+                (lm, nil) -> false,
+                (lm, var) -> false
+            )),
+            (m, string) -> false,
+            (m, integer) -> false,
+            (m, blob) -> false,
+            (m, var) -> isLiteralSort(getSortFromAttachments(var.getAttachments()))
+        ));
+    }
+
+    /**
      * Determines whether the term contains a variable whose sort is a literal.
      *
      * @param term the term to check
