@@ -232,7 +232,8 @@ public abstract class CompletenessTest {
     }
 
     private static boolean isVarInDelays(Map.Immutable<IConstraint, Delay> delays, ITermVar var) {
-        return delays.keySet().stream().anyMatch(c -> c.getVars().contains(var));
+        return delays.values().stream().anyMatch(d -> d.vars().contains(var));
+//        return delays.keySet().stream().anyMatch(c -> c.getVars().contains(var));
     }
 
     private static boolean isLiteral(ITerm term) {
