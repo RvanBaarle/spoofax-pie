@@ -1,0 +1,6 @@
+Mod(
+  Let(
+    [VarDecNoType("a", Int("0")), VarDecNoType("a", String("\" \""))]
+  , [Int("0")]
+  )
+)

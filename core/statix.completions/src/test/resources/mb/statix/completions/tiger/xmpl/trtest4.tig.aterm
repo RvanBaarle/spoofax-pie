@@ -1,0 +1,6 @@
+Mod(
+  Let(
+    [VarDec("x", Tid("string"), String("\"abc\""))]
+  , [LValue2Exp(Var2LValue(Var("x")))]
+  )
+)
