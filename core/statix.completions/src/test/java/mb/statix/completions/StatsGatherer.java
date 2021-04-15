@@ -1,7 +1,10 @@
 package mb.statix.completions;
 
 import com.opencsv.CSVWriter;
+import com.opencsv.bean.ColumnPositionMappingStrategy;
 import com.opencsv.bean.CsvBindByName;
+import com.opencsv.bean.CsvBindByPosition;
+import com.opencsv.bean.MappingStrategy;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvDataTypeMismatchException;
@@ -29,21 +32,58 @@ public class StatsGatherer {
     private static final SLF4JLoggerFactory loggerFactory = new SLF4JLoggerFactory();
     private static final Logger log = loggerFactory.create(CompletenessTest.class);
 
+    private final String csvPath;
     private String testName;
     private long prepStartTime;
     private long analyzeStartTime;
-    private long completionStartTime;
-    private long testEndTime;
+    private long analyzeEndTime;
     private final List<RoundStats> rounds = new ArrayList<>();
     @Nullable private RoundStats currentRound = null;
 
-    private static class RoundStats {
-        //@CsvBindByName
-        public long roundStartTime;
-        //@CsvBindByName
-        public long roundEndTime;
-        //@CsvBindByName
-        public int literalsInserted = 0;
+    public StatsGatherer(String csvPath) {
+        this.csvPath = csvPath;
+    }
+
+    public static class RoundStats {
+        @CsvBindByName
+        //@CsvBindByPosition(position = 0)
+        private long roundStartTime;
+
+        @CsvBindByName
+        //@CsvBindByPosition(position = 1)
+        private long roundEndTime;
+
+        @CsvBindByName
+        //@CsvBindByPosition(position = 2)
+        private int literalsInserted = 0;
+
+        public long getRoundStartTime() {
+            return roundStartTime;
+        }
+
+        public void setRoundStartTime(long roundStartTime) {
+            this.roundStartTime = roundStartTime;
+        }
+
+        public long getRoundEndTime() {
+            return roundEndTime;
+        }
+
+        public void setRoundEndTime(long roundEndTime) {
+            this.roundEndTime = roundEndTime;
+        }
+
+        public int getLiteralsInserted() {
+            return literalsInserted;
+        }
+
+        public void setLiteralsInserted(int literalsInserted) {
+            this.literalsInserted = literalsInserted;
+        }
+
+        public long getRoundTime() {
+            return this.roundEndTime - this.roundStartTime;
+        }
     }
 
     /**
@@ -57,7 +97,7 @@ public class StatsGatherer {
     public void startInitialAnalysis() {
         this.analyzeStartTime = System.nanoTime();
     }
-
+    public void endInitialAnalysis() { this.analyzeEndTime = System.nanoTime(); }
     /**
      * Starts a round of completion.
      */
@@ -66,11 +106,7 @@ public class StatsGatherer {
         long roundStartTime = System.nanoTime();
 
         this.currentRound = new RoundStats();
-        this.currentRound.roundStartTime = roundStartTime;
-
-        if (this.rounds.isEmpty()) {
-            this.completionStartTime = roundStartTime;
-        }
+        this.currentRound.setRoundStartTime(roundStartTime);
     }
 
     /**
@@ -86,6 +122,7 @@ public class StatsGatherer {
      */
     public void endRound() {
         assert this.currentRound != null;
+        this.currentRound.setRoundEndTime(System.nanoTime());
         this.rounds.add(this.currentRound);
         this.currentRound = null;
     }
@@ -94,7 +131,6 @@ public class StatsGatherer {
      * Ends the test.
      */
     public void endTest() {
-        this.testEndTime = System.nanoTime();
         logSummary();
     }
 
@@ -103,7 +139,7 @@ public class StatsGatherer {
      */
     public void insertedLiteral() {
         assert this.currentRound != null;
-        this.currentRound.literalsInserted += 1;
+        this.currentRound.setLiteralsInserted(this.currentRound.getLiteralsInserted() + 1);
     }
 
     /**
@@ -111,12 +147,12 @@ public class StatsGatherer {
      */
     private void logSummary() {
         long totalPrepareTime = analyzeStartTime - prepStartTime;
-        long totalAnalyzeTime = completionStartTime - analyzeStartTime;
-        long totalCompleteTime = testEndTime - completionStartTime;
+        long totalAnalyzeTime = analyzeEndTime - analyzeStartTime;
+        long totalCompleteTime = sumLong(rounds, r -> r.roundEndTime - r.roundStartTime);
         int literalsInserted = sumInt(rounds, r -> r.literalsInserted);
         long avgDuration = totalCompleteTime / rounds.size();
-        final String testFileName = getTestFileName();
-        writeCsv(Paths.get("/Users/daniel/repos/spoofax3/devenv/spoofax.pie/testresults/").resolve(testFileName));
+        //final String testFileName = getTestFileName();
+        writeCsv(Paths.get(csvPath));
         log.info("TEST DONE!\n" +
                 "Completed {} steps in {} ms, avg. {} ms/step.\n" +
                 "Preparation: {} ms, initial analysis: {} ms.\n" +
@@ -136,6 +172,7 @@ public class StatsGatherer {
      */
     private void writeCsv(Path path) {
         try(BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+            writer.append("sep=,\n");
             final StatefulBeanToCsv<RoundStats> csv = new StatefulBeanToCsvBuilder<RoundStats>(writer)
                 .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
                 .build();
@@ -148,13 +185,26 @@ public class StatsGatherer {
     private String getTestFileName() {
         return this.testName
             .replaceAll("[^a-zA-Z0-9_]", "_")
-            .replaceAll("__", "_");
+            .replaceAll("__", "_")
+            .replaceFirst("^[_]+", "")
+            + ".csv";
     }
 
     private int sumInt(List<RoundStats> roundStats, Function<RoundStats, Integer> projection) {
         int sum = 0;
         for (RoundStats roundStat : roundStats) {
             Integer value = projection.apply(roundStat);
+            if (value != null) {
+                sum += value;
+            }
+        }
+        return sum;
+    }
+
+    private long sumLong(List<RoundStats> roundStats, Function<RoundStats, Long> projection) {
+        long sum = 0;
+        for (RoundStats roundStat : roundStats) {
+            Long value = projection.apply(roundStat);
             if (value != null) {
                 sum += value;
             }

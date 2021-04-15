@@ -72,13 +72,13 @@ public abstract class CompletenessTest {
      * @param rootRuleName the name of the root rule
      * @return the created test
      */
-    protected DynamicTest completenessTest(String expectedTermPath, String inputTermPath, String specPath, String specName, String rootRuleName) {
+    protected DynamicTest completenessTest(String expectedTermPath, String inputTermPath, String specPath, String specName, String csvPath, String rootRuleName) {
         return DynamicTest.dynamicTest("complete file " + Paths.get(inputTermPath).getFileName() + " to " + Paths.get(expectedTermPath).getFileName() + " using spec " + Paths.get(specPath).getFileName() + "",
             () -> {
                 StatixSpec spec = StatixSpec.fromClassLoaderResources(CompletenessTest.class, specPath);
                 IStrategoTerm expectedTerm = MoreTermUtils.fromClassLoaderResources(CompletenessTest.class, expectedTermPath);
                 IStrategoTerm inputTerm = MoreTermUtils.fromClassLoaderResources(CompletenessTest.class, inputTermPath);
-                doCompletenessTest(expectedTerm, inputTerm, spec, specName, rootRuleName, expectedTermPath, inputTermPath);
+                doCompletenessTest(expectedTerm, inputTerm, spec, specName, rootRuleName, expectedTermPath, inputTermPath, csvPath);
             });
     }
 
@@ -91,7 +91,7 @@ public abstract class CompletenessTest {
      * @param specName the name of the specification
      * @param rootRuleName the name of the root rule
      */
-    private void doCompletenessTest(IStrategoTerm expectedTerm, IStrategoTerm inputTerm, StatixSpec spec, String specName, String rootRuleName, String expectedTermPath, String inputTermPath) throws InterruptedException, IOException {
+    private void doCompletenessTest(IStrategoTerm expectedTerm, IStrategoTerm inputTerm, StatixSpec spec, String specName, String rootRuleName, String expectedTermPath, String inputTermPath, String csvPath) throws InterruptedException, IOException {
         ITermFactory termFactory = new TermFactory();
         StrategoTerms strategoTerms = new StrategoTerms(termFactory);
         ResourceKey resourceKey = new DefaultResourceKey("test", "ast");
@@ -102,7 +102,7 @@ public abstract class CompletenessTest {
         IStrategoTerm annotatedInputTerm = StrategoTermIndices.index(inputTerm, resourceKey.toString(), termFactory);
         ITerm inputStatixTerm = strategoTerms.fromStratego(annotatedInputTerm);
 
-        doCompletenessTest(expectedStatixTerm, inputStatixTerm, spec, termFactory, resourceKey, specName, rootRuleName, expectedTermPath);
+        doCompletenessTest(expectedStatixTerm, inputStatixTerm, spec, termFactory, resourceKey, specName, rootRuleName, expectedTermPath, csvPath);
     }
 
     /**
@@ -116,8 +116,8 @@ public abstract class CompletenessTest {
      * @param specName the name of the specification
      * @param rootRuleName the name of the root rule
      */
-    private void doCompletenessTest(ITerm expectedTerm, ITerm inputTerm, StatixSpec spec, ITermFactory termFactory, ResourceKey resourceKey, String specName, String rootRuleName, String testName) throws InterruptedException, IOException {
-        StatsGatherer stats = new StatsGatherer();
+    private void doCompletenessTest(ITerm expectedTerm, ITerm inputTerm, StatixSpec spec, ITermFactory termFactory, ResourceKey resourceKey, String specName, String rootRuleName, String testName, String csvPath) throws InterruptedException, IOException {
+        StatsGatherer stats = new StatsGatherer(csvPath);
         TermCompleter completer = new TermCompleter();
         StatixAnalyzer analyzer = new StatixAnalyzer(spec, termFactory, loggerFactory);
         ExecutorService executorService = Executors.newCachedThreadPool();
@@ -198,7 +198,8 @@ public abstract class CompletenessTest {
                     try {
 //                        t.start();
 //                        CompletionResult result = futureTask.get(15, TimeUnit.SECONDS);
-                        CompletionResult result = future.get(15, TimeUnit.SECONDS);
+//                        CompletionResult result = future.get(15, TimeUnit.SECONDS);
+                        CompletionResult result = future.get(60, TimeUnit.SECONDS);
                         switch(result.state) {
                             case Success:
                                 allDelayed = false;
