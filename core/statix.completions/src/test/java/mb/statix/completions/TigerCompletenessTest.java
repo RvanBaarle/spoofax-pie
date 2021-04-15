@@ -23,6 +23,7 @@ import mb.statix.solver.Delay;
 import mb.statix.solver.IConstraint;
 import mb.strategies.StrategyEventHandler;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -58,7 +59,7 @@ public class TigerCompletenessTest extends CompletenessTest {
 
     // TODO: Enable
     @TestFactory
-    //@Disabled
+    @Disabled
     public List<DynamicTest> completenessTests() {
         return Arrays.asList(
             // Tiger
