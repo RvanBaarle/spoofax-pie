@@ -69,4 +69,7 @@ dependencies {
   testImplementation("com.opencsv:opencsv:4.1")
 }
 
-//tasks { withType<Test> { debug = true } }
+tasks { withType<Test> {
+  //debug = true
+  maxHeapSize = "3g"
+} }
