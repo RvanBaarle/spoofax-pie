@@ -30,6 +30,8 @@ import org.spoofax.terms.TermFactory;
 
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.text.NumberFormat;
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -170,6 +172,24 @@ public abstract class CompletenessTest {
 
                 // For each term variable, invoke completion
                 for(ITermVar var : completionExpectation.getVars()) {
+                    log.info("Cleaning...");
+                    long cleanStart = System.nanoTime();
+                    // Prepare and do some cleanup
+                    System.gc();
+                    System.runFinalization();
+                    System.gc();
+                    log.info("Cleaned in " + ((System.nanoTime() - cleanStart) / 1000000) + " ms");
+                    Runtime runtime = Runtime.getRuntime();
+                    NumberFormat format = NumberFormat.getInstance();
+                    long maxMemory = runtime.maxMemory();
+                    long allocatedMemory = runtime.totalMemory();
+                    long freeMemory = runtime.freeMemory();
+                    log.info("Free memory: {} MB", freeMemory / (1024 * 1024));
+                    log.info("Allocated memory: {} MB", allocatedMemory / (1024 * 1024));
+                    log.info("Max memory: {} MB", maxMemory / (1024 * 1024));
+                    log.info("Total free memory: {} MB", (freeMemory + (maxMemory - allocatedMemory)) / (1024 * 1024));
+
+
                     CompletionRunnable runnable = new CompletionRunnable(completer, completionExpectation, var, stats, newCtx, isInjPredicate, testName);
 
                     Future<CompletionResult> future = executorService.submit(runnable);
