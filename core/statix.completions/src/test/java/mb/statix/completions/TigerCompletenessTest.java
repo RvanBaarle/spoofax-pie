@@ -66,14 +66,14 @@ public class TigerCompletenessTest extends CompletenessTest {
 //            tigerTest("/test2.tig"),
 //            tigerTest("/test3.tig"),
 //            tigerTest("/test4.tig"),
-//
-            tigerTest("/appel/test01.tig"),
-            tigerTest("/appel/test02.tig")
-//            tigerTest("/appel/test03.tig"),
-//            tigerTest("/appel/test04.tig"),
-//            tigerTest("/appel/test05.tig"),
-//            tigerTest("/appel/test06.tig"),
-//            tigerTest("/appel/test07.tig"),
+
+//            tigerTest("/appel/test01.tig"),
+//            tigerTest("/appel/test02.tig"),
+////            tigerTest("/appel/test03.tig"),
+////            tigerTest("/appel/test04.tig"),
+////            tigerTest("/appel/test05.tig"),
+////            tigerTest("/appel/test06.tig"),
+////            tigerTest("/appel/test07.tig"),
 //            tigerTest("/appel/test08.tig"),
 //            tigerTest("/appel/test12.tig"),
 //            tigerTest("/appel/test16.tig"),
@@ -81,27 +81,27 @@ public class TigerCompletenessTest extends CompletenessTest {
 //            tigerTest("/appel/test30.tig"),
 //            tigerTest("/appel/test37.tig"),
 //            tigerTest("/appel/test41.tig"),
-//            tigerTest("/appel/test42.tig"),
+////            tigerTest("/appel/test42.tig"),
 //            tigerTest("/appel/test44.tig"),
 //            tigerTest("/appel/test47.tig"),
-//            tigerTest("/appel/test48.tig"),
+////            tigerTest("/appel/test48.tig")
 //
-//            tigerTest("/examples/arith.tig"),
-//            tigerTest("/examples/fact-anf.tig"),
-//            tigerTest("/examples/fact-anf2.tig"),
-//            tigerTest("/examples/fact-resolvetest.tig"),
-//            tigerTest("/examples/for.tig"),
-//            tigerTest("/examples/nested.tig"),
-//            tigerTest("/examples/point.tig"),
-//            tigerTest("/examples/queens.tig"),
-//            tigerTest("/examples/rec-types.tig"),
-//            tigerTest("/examples/recursion.tig"),
-//            tigerTest("/examples/tiny.tig"),
-//            tigerTest("/examples/tinyrec.tig"),
-//            tigerTest("/examples/tinytiny.tig"),
-//            tigerTest("/examples/varytiny.tig"),
-//            tigerTest("/examples/while.tig"),
-//            tigerTest("/examples/while-break.tig"),
+            tigerTest("/examples/arith.tig"),
+//            tigerTest("/examples/fact-anf.tig"),      // interrupted
+            tigerTest("/examples/fact-anf2.tig"),
+            tigerTest("/examples/fact-resolvetest.tig"),
+            tigerTest("/examples/for.tig"),
+            tigerTest("/examples/nested.tig"),
+//            tigerTest("/examples/point.tig"),         // interrupted
+//            tigerTest("/examples/queens.tig"),        // failed
+//            tigerTest("/examples/rec-types.tig"),     // interrupted
+//            tigerTest("/examples/recursion.tig"),     // failed
+//            tigerTest("/examples/tiny.tig"),          // interrupted
+//            tigerTest("/examples/tinyrec.tig"),       // interrupted
+            tigerTest("/examples/tinytiny.tig"),
+            tigerTest("/examples/verytiny.tig"),
+            tigerTest("/examples/while.tig"),
+            tigerTest("/examples/while-break.tig")
 //
 //            tigerTest("/microbenchmarks/while-call.tig"),
 //
