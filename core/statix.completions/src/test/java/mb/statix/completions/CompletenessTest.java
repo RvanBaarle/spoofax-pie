@@ -21,25 +21,20 @@ import mb.statix.constraints.messages.IMessage;
 import mb.statix.constraints.messages.MessageKind;
 import mb.statix.solver.Delay;
 import mb.statix.solver.IConstraint;
-import mb.strategies.DebugEventHandler;
 import mb.strategies.StrategyEventHandler;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DynamicTest;
-import org.junit.jupiter.api.TestFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
-import org.spoofax.terms.util.TermUtils;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.fail;
@@ -166,79 +161,24 @@ public abstract class CompletenessTest {
 
                 // For each term variable, invoke completion
                 for(ITermVar var : completionExpectation.getVars()) {
-                    stats.startRound();
-                    SolverState state = Objects.requireNonNull(completionExpectation.getState());
-
-                    if(isVarInDelays(state.getDelays(), var)) {
-                        // We skip variables in delays, let's see where we get until we loop forever.
-                        stats.skipRound();
-                        continue;
-                    } else {
-                        allDelayed = false;
-                    }
-
-                    List<TermCompleter.CompletionSolverProposal> proposals = completer.complete(newCtx, isInjPredicate, state, var);
-                    // For each proposal, find the candidates that fit
-                    final CompletionExpectation<? extends ITerm> currentCompletionExpectation = completionExpectation;
-//                log.info("------------------------------\n" +
-//                    "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-//                    "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-//                    "State:\n  " + state);
-
-                    final List<CompletionExpectation<? extends ITerm>> candidates = proposals.stream()
-                        .map(p -> currentCompletionExpectation.tryReplace(var, p))
-                        .filter(Objects::nonNull).collect(Collectors.toList());
-                    if(candidates.size() == 1) {
-                        // Only one candidate, let's apply it
-                        completionExpectation = candidates.get(0);
-                        log.info("------------------------------\n" +
-                            "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                            "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                            "State:\n  " + state +
-                            "Got 1 candidate:\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")));
-                    } else if(candidates.size() > 1) {
-                        // Multiple candidates, let's use the one with the least number of open variables
-                        // and otherwise the first one (could also use the biggest one instead)
-                        candidates.sort(Comparator.comparingInt(o -> o.getVars().size()));
-                        completionExpectation = candidates.get(0);
-                        log.info("------------------------------\n" +
-                            "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                            "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                            "State:\n  " + state +
-                            "Got " + candidates.size() + " candidates:\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")));
-                    } else if(isLiteral(completionExpectation.getExpectations().get(var))) {
-                        // No candidates, but the expected term is a string (probably the name of a declaration).
-                        ITerm name = completionExpectation.getExpectations().get(var);
-                        @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(var, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), name));
-                        if(candidate == null) {
-                            fail(() -> "------------------------------\n" +
-                                "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                                "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                                "State:\n  " + state +
-                                "Got NO candidates, but expected a literal. Could not insert literal " + name + ".\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
-                            stats.endRound();
+                    CompletionRunnable runnable = new CompletionRunnable(completer, completionExpectation, var, stats, newCtx, isInjPredicate);
+                    CompletionResult result = runnable.get();
+                    switch (result.state) {
+                        case Success:
+                            allDelayed = false;
+                            completionExpectation = result.getCompletionExpectation();
+                            break;
+                        case Fail:
+                            allDelayed = false;
                             return;
-                        }
-                        stats.insertedLiteral();
-//                        literalsInserted += 1;
-                        completionExpectation = candidate;
-                        log.info("------------------------------\n" +
-                            "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                            "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                            "State:\n  " + state +
-                            "Got 1 (literal) candidate:\n  " + candidate.getState());
-                    } else {
-                        // No candidates, completion algorithm is not complete
-                        fail(() -> "------------------------------\n" +
-                            "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                            "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                            "State:\n  " + state +
-                            "Got NO candidates.\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
-                        stats.endRound();
-                        return;
+                        case Skip:
+                            allDelayed = true;
+                            break;
+                        case Interrupted:
+                            allDelayed = false;
+                            log.warn("Interrupted.");
+                            return;
                     }
-//                    stepCount += 1;
-                    stats.endRound();
                 }
 
                 if(allDelayed) {
@@ -280,6 +220,149 @@ public abstract class CompletenessTest {
         return term instanceof IStringTerm
             // TODO: Not use heuristics here.
             || (term instanceof IApplTerm && ((IApplTerm)term).getOp().contains("-LEX2"));
+    }
+
+
+    private static class CompletionRunnable implements Supplier<CompletionResult> {
+
+        private final TermCompleter completer;
+        private final CompletionExpectation<? extends ITerm> completionExpectation;
+        private final ITermVar var;
+        private final StatsGatherer stats;
+        private final SolverContext newCtx;
+        private final Predicate<ITerm> isInjPredicate;
+
+
+        private CompletionRunnable(
+            TermCompleter completer,
+            CompletionExpectation<? extends ITerm> completionExpectation,
+            ITermVar var,
+            StatsGatherer stats,
+            SolverContext newCtx, Predicate<ITerm> isInjPredicate
+        ) {
+            this.completer = completer;
+            this.completionExpectation = completionExpectation;
+            this.var = var;
+            this.stats = stats;
+            this.newCtx = newCtx;
+            this.isInjPredicate = isInjPredicate;
+        }
+
+
+        @Override
+        public CompletionResult get() {
+            try {
+                stats.startRound();
+                final CompletionExpectation<? extends ITerm> newCompletionExpectation;
+                final SolverState state = Objects.requireNonNull(completionExpectation.getState());
+
+                if(isVarInDelays(state.getDelays(), var)) {
+                    // We skip variables in delays, let's see where we get until we loop forever.
+                    stats.skipRound();
+                    return CompletionResult.skip();
+//            } else {
+//                allDelayed = false;
+                }
+
+                List<TermCompleter.CompletionSolverProposal> proposals = completer.complete(newCtx, isInjPredicate, state, var);
+                // For each proposal, find the candidates that fit
+                final CompletionExpectation<? extends ITerm> currentCompletionExpectation = completionExpectation;
+//                log.info("------------------------------\n" +
+//                    "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
+//                    "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
+//                    "State:\n  " + state);
+
+                final List<CompletionExpectation<? extends ITerm>> candidates = proposals.stream()
+                    .map(p -> currentCompletionExpectation.tryReplace(var, p))
+                    .filter(Objects::nonNull).collect(Collectors.toList());
+                if(candidates.size() == 1) {
+                    // Only one candidate, let's apply it
+                    newCompletionExpectation = candidates.get(0);
+                    log.info("------------------------------\n" +
+                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
+                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
+                        "State:\n  " + state +
+                        "Got 1 candidate:\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")));
+                } else if(candidates.size() > 1) {
+                    // Multiple candidates, let's use the one with the least number of open variables
+                    // and otherwise the first one (could also use the biggest one instead)
+                    candidates.sort(Comparator.comparingInt(o -> o.getVars().size()));
+                    newCompletionExpectation = candidates.get(0);
+                    log.info("------------------------------\n" +
+                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
+                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
+                        "State:\n  " + state +
+                        "Got " + candidates.size() + " candidates:\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")));
+                } else if(isLiteral(completionExpectation.getExpectations().get(var))) {
+                    // No candidates, but the expected term is a string (probably the name of a declaration).
+                    ITerm name = completionExpectation.getExpectations().get(var);
+                    @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(var, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), name));
+                    if(candidate == null) {
+                        fail(() -> "------------------------------\n" +
+                            "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
+                            "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
+                            "State:\n  " + state +
+                            "Got NO candidates, but expected a literal. Could not insert literal " + name + ".\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
+                        stats.endRound();
+                        return CompletionResult.fail();
+                    }
+                    stats.insertedLiteral();
+//                        literalsInserted += 1;
+                    newCompletionExpectation = candidate;
+                    log.info("------------------------------\n" +
+                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
+                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
+                        "State:\n  " + state +
+                        "Got 1 (literal) candidate:\n  " + candidate.getState());
+                } else {
+                    // No candidates, completion algorithm is not complete
+                    fail(() -> "------------------------------\n" +
+                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
+                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
+                        "State:\n  " + state +
+                        "Got NO candidates.\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
+                    stats.endRound();
+                    return CompletionResult.fail();
+                }
+//                    stepCount += 1;
+                stats.endRound();
+                return CompletionResult.of(newCompletionExpectation);
+            } catch(InterruptedException e) {
+                return CompletionResult.interrupted();
+            }
+        }
+    }
+
+
+    private enum CompletionState {
+        Success,
+        Fail,
+        Skip,
+        Interrupted,
+    }
+
+    private static class CompletionResult {
+        private final CompletionState state;
+        private final CompletionExpectation<? extends ITerm> completionExpectation;
+
+        public CompletionResult(CompletionState state, CompletionExpectation<? extends ITerm> completionExpectation) {
+            this.state = state;
+            this.completionExpectation = completionExpectation;
+        }
+
+        public CompletionExpectation<? extends ITerm> getCompletionExpectation() {
+            return completionExpectation;
+        }
+
+        public CompletionState getState() {
+            return state;
+        }
+
+        public static CompletionResult interrupted() { return new CompletionResult(CompletionState.Interrupted, null); }
+        public static CompletionResult fail() { return new CompletionResult(CompletionState.Fail, null); }
+        public static CompletionResult skip() { return new CompletionResult(CompletionState.Skip, null); }
+        public static CompletionResult of(CompletionExpectation<? extends ITerm> completionExpectation) { return new CompletionResult(CompletionState.Success, completionExpectation); }
+
     }
 
 }

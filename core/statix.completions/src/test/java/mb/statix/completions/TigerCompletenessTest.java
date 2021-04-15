@@ -66,10 +66,10 @@ public class TigerCompletenessTest extends CompletenessTest {
 //            completenessTest(TESTPATH + "/test3.aterm", TESTPATH + "/test3_2.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
 //            completenessTest(TESTPATH + "/test4.aterm", TESTPATH + "/test4.input.aterm", TIGER_SPEC_PATH, "static-semantics", "programOk"),
             // Tiger
-            tigerTest("/test01.tig.aterm"),
-            tigerTest("/test02.tig.aterm"),
-            tigerTest("/test03.tig.aterm"),
-            tigerTest("/test04.tig.aterm")
+            tigerTest("/test01.tig.aterm")
+//            tigerTest("/test02.tig.aterm"),
+//            tigerTest("/test03.tig.aterm"),
+//            tigerTest("/test04.tig.aterm")
         );
     }
 
