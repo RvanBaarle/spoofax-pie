@@ -135,15 +135,14 @@ public class StatsGatherer {
      * @param path the path
      */
     private void writeCsv(Path path) {
-        return;
-//        try(BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-//            final StatefulBeanToCsv<RoundStats> csv = new StatefulBeanToCsvBuilder<RoundStats>(writer)
-//                .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
-//                .build();
-//            csv.write(this.rounds);
-//        } catch(CsvRequiredFieldEmptyException | CsvDataTypeMismatchException | IOException ex) {
-//            throw new RuntimeException("Unable to write CSV.", ex);
-//        }
+        try(BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+            final StatefulBeanToCsv<RoundStats> csv = new StatefulBeanToCsvBuilder<RoundStats>(writer)
+                .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
+                .build();
+            csv.write(this.rounds);
+        } catch(CsvRequiredFieldEmptyException | CsvDataTypeMismatchException | IOException ex) {
+            throw new RuntimeException("Unable to write CSV.", ex);
+        }
     }
 
     private String getTestFileName() {
