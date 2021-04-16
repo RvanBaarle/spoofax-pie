@@ -1,5 +1,6 @@
 package mb.statix.completions;
 
+import com.google.common.collect.ImmutableSet;
 import io.usethesource.capsule.Map;
 import mb.jsglr.common.MoreTermUtils;
 import mb.log.api.Level;
@@ -22,6 +23,8 @@ import mb.statix.constraints.messages.IMessage;
 import mb.statix.constraints.messages.MessageKind;
 import mb.statix.solver.Delay;
 import mb.statix.solver.IConstraint;
+import mb.statix.spec.Rule;
+import mb.statix.spec.Spec;
 import mb.strategies.StrategyEventHandler;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.DynamicTest;
@@ -121,6 +124,7 @@ public abstract class CompletenessTest {
         StatsGatherer stats = new StatsGatherer(csvPath);
         TermCompleter completer = new TermCompleter();
         StatixAnalyzer analyzer = new StatixAnalyzer(spec, termFactory, loggerFactory);
+        precomputeOrderIndependentRules(spec.getSpec());
         ExecutorService executorService = Executors.newCachedThreadPool();
 
         // Preparation
@@ -292,6 +296,16 @@ public abstract class CompletenessTest {
 
         // Done! Success!
         stats.endTest();
+    }
+
+    private void precomputeOrderIndependentRules(Spec spec) {
+        log.info("Precomputing...");
+        long start = System.nanoTime();
+        for(String ruleName : spec.rules().getRuleNames()) {
+            spec.rules().getOrderIndependentRules(ruleName);
+        }
+        log.info("Precomputed order independent rules in " + ((System.nanoTime() - start) / 1000000) + " ms");
+
     }
 
     private static void logCompletionStepResult(Level level, String message, String testName, ITermVar var, CompletionExpectation<?> expectation) {
