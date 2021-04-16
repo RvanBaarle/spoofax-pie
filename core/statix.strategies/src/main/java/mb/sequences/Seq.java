@@ -2,6 +2,8 @@ package mb.sequences;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,6 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * A sequence represents a lazy computation of multiple values.
@@ -103,7 +106,57 @@ public interface Seq<T> {
     static <T> Seq<T> from(Iterable<T> iterable) {
         Objects.requireNonNull(iterable);
 
-        return () -> InterruptibleIterator.wrap(iterable.iterator());
+        String st = getStackTrace();
+        return () -> InterruptibleIterator.wrap(new InteratorPlus<T>(iterable.iterator(), st));
+    }
+
+    static <T> Seq<T> from(Stream<T> stream) {
+        Objects.requireNonNull(stream);
+
+        String st = getStackTrace();
+        return () -> InterruptibleIterator.wrap(new InteratorPlus<T>(stream.iterator(), st));
+    }
+
+    static String getStackTrace() {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        new Exception().printStackTrace(pw);
+        return sw.toString();
+    }
+
+    static class InteratorPlus<E> implements Iterator<E> {
+
+        private final Iterator<E> iterator;
+        private final String stackTrace;
+
+        public InteratorPlus(Iterator<E> iterator, String stackTrace) {
+            this.iterator = iterator;
+            this.stackTrace = stackTrace;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public E next() {
+            return iterator.next();
+        }
+
+        @Override
+        public void remove() {
+            iterator.remove();
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super E> action) {
+            iterator.forEachRemaining(action);
+        }
+
+        public String getStackTrace() {
+            return stackTrace;
+        }
     }
 
     /**
