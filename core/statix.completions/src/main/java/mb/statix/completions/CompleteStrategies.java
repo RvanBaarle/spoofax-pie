@@ -194,7 +194,7 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
         = define("expandAllQueries", "v", v -> debugState(v, distinct(or(id(), fixSet(
             if_(
-                limit(1, selectConstraints(CResolveQuery.class)),
+                limit(1, selectConstraints(CResolveQuery.class, (constraint, state) -> containsVar(v, constraint, state))),
                 seq(debugCResolveQuery(v, expandQueryConstraint()))
                 .$(assertValid(v))
                 .$(),
@@ -362,6 +362,32 @@ import static mb.strategies.Strategy2.define;
             if(match) return true;
         }
         return false;
+    }
+
+    private static boolean containsVar(ITermVar var, CResolveQuery constraint, SolverState state) {
+        return containsAnyVar(Collections.singletonList(var), constraint, state);
+    }
+
+    private static boolean containsAnyVar(Collection<ITermVar> vars, CResolveQuery constraint, SolverState state) {
+        @Nullable final ImmutableMap<ITermVar, ITermVar> existentials = state.getExistentials();
+        final ArrayList<ITermVar> projectedVars = new ArrayList<>(vars.size());
+        if(existentials != null) {
+            for(ITermVar var : vars) {
+                @Nullable ITermVar projected = existentials.get(var);
+                if(projected != null) {
+                    projectedVars.add(projected);
+                } else {
+                    projectedVars.add(var);
+                }
+            }
+        } else {
+            projectedVars.addAll(vars);
+        }
+        // We use the unifier to get all the variables in each of the argument to the constraint
+        // (or the constraint argument itself when there where no variables and the argument is a term var)
+        // and see if any match the var we're looking for.
+        io.usethesource.capsule.Set.Immutable<ITermVar> constraintVars = constraint.getVars();
+        return !constraintVars.isEmpty() && containsAny(constraintVars, projectedVars);
     }
 
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SolverState>, SolverState, SolverState> debugState

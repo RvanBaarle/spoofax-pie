@@ -62,10 +62,11 @@ public final class ExpandRuleStrategy extends AbstractStrategy1<SolverContext, I
 
         final ImmutableSet<Rule> rules = ctx.getSpec().rules().getOrderIndependentRules(selected.name());
         SolverState searchState = state.getInnerState();
-        Stream<SolverState> output = applyAllLazy(searchState.getState().unifier(), rules, selected.args(), selected, ApplyMode.RELAXED)//.stream()
+//        Stream<SolverState> output = applyAllLazy(searchState.getState().unifier(), rules, selected.args(), selected, ApplyMode.RELAXED)//.stream()
+        List<SolverState> output = RuleUtil.applyAll(searchState.getState().unifier(), rules, selected.args(), selected, ApplyMode.RELAXED).stream()
             .map(t -> searchState.withApplyResult(ctx, selected, t._2())
                 .withMeta(searchState.getMeta().withExpandedQueries(searchState.getMeta().getExpandedRules() + 1))
-            );//.collect(Collectors.toList());
+            ).collect(Collectors.toList());
 
 //        if (DebugStrategy.debug) {
 //            if(focus != null) {
@@ -75,7 +76,7 @@ public final class ExpandRuleStrategy extends AbstractStrategy1<SolverContext, I
 //            }
 //        }
 
-        return Seq.from(output.collect(Collectors.toList()));
+        return Seq.from(output);//.collect(Collectors.toList()));
     }
 
     /**

@@ -147,7 +147,7 @@ public class StatsGatherer {
      */
     private void logSummary() {
         long totalPrepareTime = analyzeStartTime - prepStartTime;
-        long totalAnalyzeTime = analyzeEndTime - analyzeStartTime;
+        long totalAnalyzeTime = analyzeStartTime - analyzeEndTime;
         long totalCompleteTime = sumLong(rounds, r -> r.roundEndTime - r.roundStartTime);
         int literalsInserted = sumInt(rounds, r -> r.literalsInserted);
         long avgDuration = totalCompleteTime / rounds.size();
