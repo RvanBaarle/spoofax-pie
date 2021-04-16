@@ -62,10 +62,14 @@ import static mb.strategies.Strategy2.define;
      */
     private static final Strategy2<SolverContext, ITermVar, Set<String>, SolverState, SolverState> complete
         = define("complete", "v", "visitedInjections", (v, visitedInjections) -> withFocusStrategy(v, debugState(v,
-            seq(expandAllPredicates(v))
-            .$(expandAllInjections(v, visitedInjections))
-            .$(expandAllQueries(v))
-            .$(expandDeterministic(v))
+            seq(time(expandAllPredicates(v)))
+            .$(time(expandAllInjections(v, visitedInjections)))
+            .$(time(expandAllQueries(v)))
+            .$(time(expandDeterministic(v)))
+//            seq(debugState2(v, expandAllPredicates(v)))
+//            .$(debugState2(v, expandAllInjections(v, visitedInjections)))
+//            .$(debugState2(v, expandAllQueries(v)))
+//            .$(debugState2(v, expandDeterministic(v)))
             .$())
         ));
 
@@ -267,9 +271,9 @@ import static mb.strategies.Strategy2.define;
      * Perform inference, and reject the resulting state if it has errors.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> assertValid
-        = define("assertValid", "v", v -> debugState(v, printSolverState("BEFORE INFER",
+        = define("assertValid", "v", v -> debugState(v, //printSolverState("BEFORE INFER",
         seq(infer())
-        .$(printSolverState("AFTER INFER", id()))
+        //.$(printSolverState("AFTER INFER", id()))
         // Remove states that have errors
         .$(assertThat((ctx, s) -> {
             boolean valid = !s.hasSeriousErrors(ctx.getAllowedErrors());
@@ -280,8 +284,8 @@ import static mb.strategies.Strategy2.define;
         }))
         // Delay stuck queries
         .$(delayStuckQueries())
-        .$(printSolverState("AFTER DELAY", id()))
-        .$())));
+        //.$(printSolverState("AFTER DELAY", id()))
+        .$())/*)*/);
 
     public static Strategy<SolverContext, SolverState, SolverState> assertValid(ITermVar v) {
         return assertValid.apply(v);
@@ -363,26 +367,34 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SolverState>, SolverState, SolverState> debugState
         = Strategy2.define("debugState", "v", "s", (v, s) -> Strategies.debug(it -> it.project(v).toString(), it -> it.project(v).toString(), s));
     public static Strategy<SolverContext, SolverState, SolverState> debugState(ITermVar v, Strategy<SolverContext, SolverState, SolverState> s) {
+        return s;
+//        return debugState.apply(v, s);
+    }
+
+    public static Strategy<SolverContext, SolverState, SolverState> debugState2(ITermVar v, Strategy<SolverContext, SolverState, SolverState> s) {
         return debugState.apply(v, s);
     }
 
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState>, SelectedConstraintSolverState<CUser>, SolverState> debugCUser
         = Strategy2.define("debugCUser", "v", "s", (v, s) -> Strategies.debug(it -> it.getSelected().toString(), it -> it.project(v).toString(), s));
     public static Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState> debugCUser(ITermVar v, Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState> s) {
-        return debugCUser.apply(v, s);
+        return s;
+//        return debugCUser.apply(v, s);
     }
 
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState>, SelectedConstraintSolverState<CResolveQuery>, SolverState> debugCResolveQuery
         = Strategy2.define("debugCResolveQuery", "v", "s", (v, s) -> Strategies.debug(it -> it.getSelected().toString(), it -> it.project(v).toString(), s));
     public static Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> debugCResolveQuery(ITermVar v, Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> s) {
-        return debugCResolveQuery.apply(v, s);
+        return s;
+//        return debugCResolveQuery.apply(v, s);
     }
 
     public static <SolverState, O> Strategy<SolverContext, SolverState, O> printSolverState(String prefix, Strategy<SolverContext, SolverState, O> s) {
+//        return s;
         return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
             @Override
             protected Seq<O> innerEval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
-                if (DebugStrategy.debug) {
+                if (true) {//DebugStrategy.debug) {
                     System.out.println(prefix + ": " + input);
                 }
                 return s.eval(ctx, input);

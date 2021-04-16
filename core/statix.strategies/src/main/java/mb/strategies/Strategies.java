@@ -111,6 +111,20 @@ public final class Strategies {
         return DebugStrategy.<CTX, I, O>getInstance().apply(inTransform, outTransform, strategy);
     }
 
+    /**
+     * Computes the time taken by a strategy.
+     *
+     * @param <CTX> the type of context
+     * @param <I> the type of input
+     * @param <O> the type of outputs
+     * @return the resulting strategy
+     */
+    public static <CTX, I, O> Strategy<CTX, I, O> time(
+        Strategy<CTX, I, O> strategy
+    ) {
+        return TimeStrategy.<CTX, I, O>getInstance().apply(strategy.getName(), strategy);
+    }
+
 //    /**
 //     * Asserts that the input matches the given predicate.
 //     *
