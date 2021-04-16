@@ -12,6 +12,7 @@ import mb.strategies.DebugStrategy;
 import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -48,6 +49,7 @@ public final class SelectStrategy<C extends IConstraint> extends AbstractStrateg
 //            .map(c -> (C)c)
 //            .filter(c -> predicate.test(c, input))
 //            .findFirst();
+//        List<SelectedConstraintSolverState<C>> selected = input.getConstraints().stream()
         //noinspection unchecked
         List<SelectedConstraintSolverState<C>> selected = input.getConstraints().stream()
             .filter(c -> constraintClass.isAssignableFrom(c.getClass()))
@@ -61,12 +63,12 @@ public final class SelectStrategy<C extends IConstraint> extends AbstractStrateg
 //        } else {
 //            System.out.println("Focus: NONE");
 //        }
-        if (DebugStrategy.debug) {
-            System.out.println("SELECTED: ");
-            for(SelectedConstraintSolverState<C> s : selected) {
-                System.out.println("- " + s.getSelected());
-            }
-        }
+//        if (DebugStrategy.debug) {
+//            System.out.println("SELECTED: ");
+//            for(SelectedConstraintSolverState<C> s : selected) {
+//                System.out.println("- " + s.getSelected());
+//            }
+//        }
 
         return Seq.from(selected);
 //        return focus.map(c -> Seq.of(new FocusedSolverState<>(input, c))).orElseGet(Seq::empty);
