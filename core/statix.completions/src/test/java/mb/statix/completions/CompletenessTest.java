@@ -2,6 +2,7 @@ package mb.statix.completions;
 
 import io.usethesource.capsule.Map;
 import mb.jsglr.common.MoreTermUtils;
+import mb.log.api.Level;
 import mb.log.api.Logger;
 import mb.log.slf4j.SLF4JLoggerFactory;
 import mb.nabl2.terms.IApplTerm;
@@ -31,20 +32,20 @@ import org.spoofax.terms.TermFactory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
-import java.time.Instant;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.fail;
@@ -124,20 +125,14 @@ public abstract class CompletenessTest {
 
         // Preparation
         stats.startTest(testName);
-//        long prepStartTime = System.nanoTime();
         PlaceholderVarMap placeholderVarMap = new PlaceholderVarMap(resourceKey.toString());
         CompletionExpectation<? extends ITerm> completionExpectation = CompletionExpectation.fromTerm(inputTerm, expectedTerm, placeholderVarMap);
 
-//        long analyzeStartTime;
-//        long completeStartTime;
-//        int stepCount = 0;
-//        int literalsInserted = 0;
-        try(final StrategyEventHandler eventHandler = StrategyEventHandler.none()) {// new DebugEventHandler(Paths.get("debug.yml"))) {      // StrategyEventHandler.none()
+        try(final StrategyEventHandler eventHandler = StrategyEventHandler.none()) {// new DebugEventHandler(Paths.get("debug.yml"))) {
             // Get the solver state of the program (whole project),
             // which should have some remaining constraints on the placeholders.
             SolverContext ctx = analyzer.createContext(eventHandler);
             stats.startInitialAnalysis();
-//            analyzeStartTime = System.nanoTime();
             SolverState startState = analyzer.createStartState(completionExpectation.getIncompleteAst(), specName, rootRuleName)
                 .withExistentials(placeholderVarMap.getVars())
                 .precomputeCriticalEdges(ctx.getSpec());
@@ -146,8 +141,8 @@ public abstract class CompletenessTest {
             // We track the current collection of errors.
             final List<java.util.Map.Entry<IConstraint, IMessage>> currentErrors = initialState.getMessages().entrySet().stream().filter(kv -> kv.getValue().kind() == MessageKind.ERROR).collect(Collectors.toList());
             if(!currentErrors.isEmpty()) {
-                log.warn("input program validation failed.\n"+ initialState);
-                //fail("Completion failed: input program validation failed.\n" + initialState.toString());
+                //log.warn("input program validation failed.\n"+ initialState);
+                fail("Completion failed: input program validation failed.\n" + initialState.toString());
                 return;
             }
 
@@ -161,58 +156,46 @@ public abstract class CompletenessTest {
             // We use a heuristic here.
             final Predicate<ITerm> isInjPredicate = t -> t instanceof IApplTerm && ((IApplTerm)t).getArity() == 1 && ((IApplTerm)t).getOp().contains("2");
 
-//            completeStartTime = System.nanoTime();
             completionExpectation = completionExpectation.withState(initialState);
-            // Perform a breadth-first search of completions:
-            //  For each incomplete variable, we perform completion.
-            //  If any of the variables result in one candidate, this candidate is applied.
-            //  If none of the variables result in one candidate (i.e., there's no progress), then completion fails.
+
+            // Perform a left-to-right depth-first search of completions:
+            // - For each incomplete variable, we perform completion.
+            // - If any of the variables result in one candidate, this candidate is applied.
+            // - If none of the variables results in one candidate (i.e., there's no progress),
+            //     then we try inserting a literal at the first available spot.
+            // - If we cannot make progress and cannot insert literals,
+            //     then completion fails.
+
+            // List of failed variables
+            final Set<ITermVar> failedVars = new HashSet<>();
+            // List of delayed variables
+            final Set<ITermVar> delayedVars = new HashSet<>();
+            // Whether we did anything useful since the last time we tried all delays
+            boolean progressedSinceDelays = false;
             while(!completionExpectation.isComplete()) {
-                boolean allDelayed = true;
+                cleanup();
 
-                // For each term variable, invoke completion
-                for(ITermVar var : completionExpectation.getVars()) {
-                    log.info("Cleaning...");
-                    long cleanStart = System.nanoTime();
-                    // Prepare and do some cleanup
-                    System.gc();
-                    System.runFinalization();
-                    System.gc();
-                    log.info("Cleaned in " + ((System.nanoTime() - cleanStart) / 1000000) + " ms");
-                    Runtime runtime = Runtime.getRuntime();
-                    NumberFormat format = NumberFormat.getInstance();
-                    long maxMemory = runtime.maxMemory();
-                    long allocatedMemory = runtime.totalMemory();
-                    long freeMemory = runtime.freeMemory();
-                    log.info("Free memory: {} MB", freeMemory / (1024 * 1024));
-                    log.info("Allocated memory: {} MB", allocatedMemory / (1024 * 1024));
-                    log.info("Max memory: {} MB", maxMemory / (1024 * 1024));
-                    log.info("Total free memory: {} MB", (freeMemory + (maxMemory - allocatedMemory)) / (1024 * 1024));
-
-
+                // Pick the next variable that is not delayed or failed
+                ITermVar var = completionExpectation.getVars().stream().filter(v -> !failedVars.contains(v) && !delayedVars.contains(v)).findFirst().orElse(null);
+                if (var != null) {
                     CompletionRunnable runnable = new CompletionRunnable(completer, completionExpectation, var, stats, newCtx, isInjPredicate, testName);
 
                     Future<CompletionResult> future = executorService.submit(runnable);
-//                    final FutureTask<CompletionResult> futureTask = new FutureTask<>(runnable);
-//                    final Thread t = new Thread(futureTask);
                     try {
-//                        t.start();
-//                        CompletionResult result = futureTask.get(15, TimeUnit.SECONDS);
-//                        CompletionResult result = future.get(15, TimeUnit.SECONDS);
                         CompletionResult result = future.get(60, TimeUnit.SECONDS);
                         switch(result.state) {
                             case Success:
-                                allDelayed = false;
+                                progressedSinceDelays = true;
                                 completionExpectation = result.getCompletionExpectation();
                                 break;
                             case Skip:
-                                allDelayed = true;
+                                delayedVars.add(var);
                                 break;
                             case Fail:
-                                fail("Failed.");
-                                return;
+                                failedVars.add(var);
+                                break;
                         }
-                    } catch (TimeoutException ex) {
+                    } catch(TimeoutException ex) {
                         fail(() -> "Interrupted.");
                         return;
                     } catch(ExecutionException ex) {
@@ -220,36 +203,130 @@ public abstract class CompletenessTest {
                         fail(() -> "Error was thrown.");
                         return;
                     }
-                }
+                } else if (progressedSinceDelays && !delayedVars.isEmpty()) {
+                    // Try all delayed variables again
+                    log.warn("All variables delayed, trying again.");
+                    delayedVars.clear();
+                    progressedSinceDelays = false;
+                    continue;
+                } else {
+                    log.warn("All variables delayed or rejected, trying to insert literals.");
+                    // All of the completions failed previously
+                    // Let's try to insert a literal
+                    CompletionExpectation<? extends ITerm> finalCompletionExpectation = completionExpectation;
+                    ITermVar literalVar = completionExpectation.getVars().stream().filter(v -> isLiteral(finalCompletionExpectation.getExpectations().get(v))).findFirst().orElse(null);
+                    if (literalVar != null) {
+                        // Insert the literal
+                        ITerm value = completionExpectation.getExpectations().get(var);
+                        @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(literalVar, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), value));
+                        if(candidate == null) {
+                            logCompletionStepResult(Level.Error, "Could not insert literal '" + value + "'.", testName, literalVar, completionExpectation);
+                            stats.endRound();
+                            fail("Could not insert literal '" + value + "'.");
+                            break;
+                        }
+                        progressedSinceDelays = true;
+                        stats.insertedLiteral();
+                        completionExpectation = candidate;
+                        logCompletionStepResultWithCandidates(Level.Info, "Inserted literal '" + value + "'.", testName, literalVar, completionExpectation, Collections.singletonList(candidate));
+                    } else {
+                        // No literals to insert
+                        fail("All completions failed and could not insert any literals.");
+                        break;
+                    }
 
-                if(allDelayed) {
-                    // We've been skipping delayed variables but have made no progress. We're stuck.
-                    @Nullable SolverState state = completionExpectation.getState();
-                    fail(() -> "Stuck on delaying variables.\nState:\n  " + state);
-                    return;
+                    // Try again on all completion variables
+                    failedVars.clear();
+                    continue;
                 }
             }
+            log.info("Done completing!");
+
+
+//            // Perform a breadth-first search of completions:
+//            //  For each incomplete variable, we perform completion.
+//            //  If any of the variables result in one candidate, this candidate is applied.
+//            //  If none of the variables result in one candidate (i.e., there's no progress), then completion fails.
+//            while(!completionExpectation.isComplete()) {
+//                boolean allDelayed = true;
+//
+//                // For each term variable, invoke completion
+//                for(ITermVar var : completionExpectation.getVars()) {
+//                    cleanup();
+//
+//                    CompletionRunnable runnable = new CompletionRunnable(completer, completionExpectation, var, stats, newCtx, isInjPredicate, testName);
+//
+//                    Future<CompletionResult> future = executorService.submit(runnable);
+//                    try {
+//                        CompletionResult result = future.get(60, TimeUnit.SECONDS);
+//                        switch(result.state) {
+//                            case Success:
+//                                allDelayed = false;
+//                                completionExpectation = result.getCompletionExpectation();
+//                                break;
+//                            case Skip:
+//                                allDelayed = true;
+//                                break;
+//                            case Fail:
+//                                fail("Failed.");
+//                                return;
+//                        }
+//                    } catch (TimeoutException ex) {
+//                        fail(() -> "Interrupted.");
+//                        return;
+//                    } catch(ExecutionException ex) {
+//                        log.error("Error was thrown: " + ex.getMessage(), ex);
+//                        fail(() -> "Error was thrown.");
+//                        return;
+//                    }
+//                }
+//
+//                if(allDelayed) {
+//                    // We've been skipping delayed variables but have made no progress. We're stuck.
+//                    @Nullable SolverState state = completionExpectation.getState();
+//                    fail(() -> "Stuck on delaying variables.\nState:\n  " + state);
+//                    return;
+//                }
+//            }
         }
 
         // Done! Success!
         stats.endTest();
-//        long totalPrepareTime = analyzeStartTime - prepStartTime;
-//        long totalAnalyzeTime = completeStartTime - analyzeStartTime;
-//        long totalCompleteTime = System.nanoTime() - completeStartTime;
-//        long avgDuration = totalCompleteTime / stepCount;
-//        log.info("TEST DONE! Completing {} from {}.\n" +
-//                "Completed {} steps in {} ms, avg. {} ms/step.\n" +
-//                "Preparation: {} ms, initial analysis: {} ms.\n" +
-//                "Inserted {} literals.",
-//            expectedTermPath,
-//            inputTermPath,
-//            stepCount,
-//            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalCompleteTime)),
-//            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(avgDuration)),
-//            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalPrepareTime)),
-//            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalAnalyzeTime)),
-//            literalsInserted
-//        );
+    }
+
+    private static void logCompletionStepResult(Level level, String message, String testName, ITermVar var, CompletionExpectation<?> expectation) {
+        log.log(level, "-------------- " + testName +" ----------------\n" +
+            "Complete var " + var + " in AST:\n  " + expectation.getIncompleteAst() + "\n" +
+            "Expected:\n  " + expectation.getExpectations().get(var) + "\n" +
+            "State:\n  " + expectation.getState() +
+            message);
+    }
+
+    private static void logCompletionStepResultWithProposals(Level level, String message, String testName, ITermVar var, CompletionExpectation<?> expectation, List<TermCompleter.CompletionSolverProposal> proposals) {
+        logCompletionStepResult(level, message + "\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")), testName, var, expectation);
+    }
+
+    private static void logCompletionStepResultWithCandidates(Level level, String message, String testName, ITermVar var, CompletionExpectation<?> expectation, List<CompletionExpectation<? extends ITerm>> candidates) {
+        logCompletionStepResult(level, message + "\nGot " + candidates.size() + " candidate" + (candidates.size() == 1 ? "" : "s") + ":\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")), testName, var, expectation);
+    }
+    // List<TermCompleter.CompletionSolverProposal> proposals
+
+    private static void cleanup() {
+        log.info("Cleaning...");
+        long cleanStart = System.nanoTime();
+        System.gc();
+        System.runFinalization();
+        System.gc();
+        log.info("Cleaned in " + ((System.nanoTime() - cleanStart) / 1000000) + " ms");
+        Runtime runtime = Runtime.getRuntime();
+        NumberFormat format = NumberFormat.getInstance();
+        long maxMemory = runtime.maxMemory();
+        long allocatedMemory = runtime.totalMemory();
+        long freeMemory = runtime.freeMemory();
+        log.info("Free memory: {} MB", freeMemory / (1024 * 1024));
+        log.info("Allocated memory: {} MB", allocatedMemory / (1024 * 1024));
+        log.info("Max memory: {} MB", maxMemory / (1024 * 1024));
+        log.info("Total free memory: {} MB", (freeMemory + (maxMemory - allocatedMemory)) / (1024 * 1024));
     }
 
     private static boolean isVarInDelays(Map.Immutable<IConstraint, Delay> delays, ITermVar var) {
@@ -325,21 +402,13 @@ public abstract class CompletenessTest {
                 if(candidates.size() == 1) {
                     // Only one candidate, let's apply it
                     newCompletionExpectation = candidates.get(0);
-                    log.info("-------------- " + testName +" ----------------\n" +
-                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                        "State:\n  " + state +
-                        "Got 1 candidate:\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")));
+                    logCompletionStepResultWithCandidates(Level.Info, "", testName, var, currentCompletionExpectation, candidates);
                 } else if(candidates.size() > 1) {
                     // Multiple candidates, let's use the one with the least number of open variables
                     // and otherwise the first one (could also use the biggest one instead)
                     candidates.sort(Comparator.comparingInt(o -> o.getVars().size()));
                     newCompletionExpectation = candidates.get(0);
-                    log.info("-------------- " + testName +" ----------------\n" +
-                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                        "State:\n  " + state +
-                        "Got " + candidates.size() + " candidates:\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")));
+                    logCompletionStepResultWithCandidates(Level.Info, "", testName, var, currentCompletionExpectation, candidates);
                 } else if(isLiteral(completionExpectation.getExpectations().get(var))) {
                     // No candidates, but the expected term is a string (probably the name of a declaration).
                     ITerm name = completionExpectation.getExpectations().get(var);
@@ -362,11 +431,7 @@ public abstract class CompletenessTest {
                         "Got 1 (literal) candidate:\n  " + candidate.getState());
                 } else {
                     // No candidates, completion algorithm is not complete
-                    log.info("-------------- " + testName +" ----------------\n" +
-                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                        "State:\n  " + state +
-                        "Got NO candidates.\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
+                    logCompletionStepResultWithProposals(Level.Warn, "Got NO candidates.", testName, var, currentCompletionExpectation, proposals);
                     stats.endRound();
                     return CompletionResult.fail();
                 }
