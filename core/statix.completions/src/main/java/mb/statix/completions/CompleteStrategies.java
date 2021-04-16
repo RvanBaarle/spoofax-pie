@@ -12,6 +12,7 @@ import mb.statix.common.SolverState;
 import mb.statix.common.StrategoPlaceholders;
 import mb.statix.constraints.CResolveQuery;
 import mb.statix.constraints.CUser;
+import mb.statix.solver.IConstraint;
 import mb.strategies.AbstractStrategy;
 import mb.strategies.AbstractStrategy1;
 import mb.strategies.AbstractStrategy2;
@@ -194,7 +195,10 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
         = define("expandAllQueries", "v", v -> debugState(v, distinct(or(id(), fixSet(
             if_(
-                limit(1, selectConstraints(CResolveQuery.class, (constraint, state) -> containsVar(v, constraint, state))),
+                limit(1, selectConstraints(CResolveQuery.class, (constraint, state) -> {
+                    final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
+                    return containsAnyVar(innerVars, constraint, state);
+                })),
                 seq(debugCResolveQuery(v, expandQueryConstraint()))
                 .$(assertValid(v))
                 .$(),
@@ -334,11 +338,42 @@ import static mb.strategies.Strategy2.define;
 
 
 
-    private static boolean containsVar(ITermVar var, CUser constraint, SolverState state) {
+//    private static boolean containsVar(ITermVar var, CUser constraint, SolverState state) {
+//        return containsAnyVar(Collections.singletonList(var), constraint, state);
+//    }
+//
+//    private static boolean containsAnyVar(Collection<ITermVar> vars, CUser constraint, SolverState state) {
+//        @Nullable final ImmutableMap<ITermVar, ITermVar> existentials = state.getExistentials();
+//        final ArrayList<ITermVar> projectedVars = new ArrayList<>(vars.size());
+//        if(existentials != null) {
+//            for(ITermVar var : vars) {
+//                @Nullable ITermVar projected = existentials.get(var);
+//                if(projected != null) {
+//                    projectedVars.add(projected);
+//                } else {
+//                    projectedVars.add(var);
+//                }
+//            }
+//        } else {
+//            projectedVars.addAll(vars);
+//        }
+//        // We use the unifier to get all the variables in each of the argument to the constraint
+//        // (or the constraint argument itself when there where no variables and the argument is a term var)
+//        // and see if any match the var we're looking for.
+////        for(ITerm arg : constraint.args()) {
+//        for(ITermVar arg : constraint.getVars()) {
+//            final io.usethesource.capsule.Set.Immutable<ITermVar> constraintVars = state.getState().unifier().getVars(arg);
+//            final boolean match = !constraintVars.isEmpty() ? containsAny(constraintVars, projectedVars) : projectedVars.contains(arg);
+//            if(match) return true;
+//        }
+//        return false;
+//    }
+
+    private static boolean containsVar(ITermVar var, IConstraint constraint, SolverState state) {
         return containsAnyVar(Collections.singletonList(var), constraint, state);
     }
 
-    private static boolean containsAnyVar(Collection<ITermVar> vars, CUser constraint, SolverState state) {
+    private static boolean containsAnyVar(Collection<ITermVar> vars, IConstraint constraint, SolverState state) {
         @Nullable final ImmutableMap<ITermVar, ITermVar> existentials = state.getExistentials();
         final ArrayList<ITermVar> projectedVars = new ArrayList<>(vars.size());
         if(existentials != null) {
@@ -356,38 +391,15 @@ import static mb.strategies.Strategy2.define;
         // We use the unifier to get all the variables in each of the argument to the constraint
         // (or the constraint argument itself when there where no variables and the argument is a term var)
         // and see if any match the var we're looking for.
-        for(ITerm arg : constraint.args()) {
+        for(ITermVar arg : constraint.getVars()) {
             final io.usethesource.capsule.Set.Immutable<ITermVar> constraintVars = state.getState().unifier().getVars(arg);
             final boolean match = !constraintVars.isEmpty() ? containsAny(constraintVars, projectedVars) : projectedVars.contains(arg);
             if(match) return true;
         }
         return false;
-    }
-
-    private static boolean containsVar(ITermVar var, CResolveQuery constraint, SolverState state) {
-        return containsAnyVar(Collections.singletonList(var), constraint, state);
-    }
-
-    private static boolean containsAnyVar(Collection<ITermVar> vars, CResolveQuery constraint, SolverState state) {
-        @Nullable final ImmutableMap<ITermVar, ITermVar> existentials = state.getExistentials();
-        final ArrayList<ITermVar> projectedVars = new ArrayList<>(vars.size());
-        if(existentials != null) {
-            for(ITermVar var : vars) {
-                @Nullable ITermVar projected = existentials.get(var);
-                if(projected != null) {
-                    projectedVars.add(projected);
-                } else {
-                    projectedVars.add(var);
-                }
-            }
-        } else {
-            projectedVars.addAll(vars);
-        }
-        // We use the unifier to get all the variables in each of the argument to the constraint
-        // (or the constraint argument itself when there where no variables and the argument is a term var)
-        // and see if any match the var we're looking for.
-        io.usethesource.capsule.Set.Immutable<ITermVar> constraintVars = constraint.getVars();
-        return !constraintVars.isEmpty() && containsAny(constraintVars, projectedVars);
+//
+//        io.usethesource.capsule.Set.Immutable<ITermVar> constraintVars = constraint.getVars();
+//        return !constraintVars.isEmpty() && containsAny(constraintVars, projectedVars);
     }
 
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SolverState>, SolverState, SolverState> debugState
