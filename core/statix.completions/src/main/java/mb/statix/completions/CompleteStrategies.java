@@ -213,7 +213,7 @@ import static mb.strategies.Strategy2.define;
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
         = define("expandDeterministic", "v", v -> debugState(v,
-        fixSet(try_(seq(printSolverState("EXPAND STATE", selectConstraints(CUser.class, (constraint, state) -> {
+        fixSet(distinct(try_(seq(printSolverState("EXPAND STATE", selectConstraints(CUser.class, (constraint, state) -> {
                 final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
                 return containsAnyVar(innerVars, constraint, state);
             })))
@@ -225,7 +225,7 @@ import static mb.strategies.Strategy2.define;
                 .$(filterPlaceholders(v))
                 .$()
             )))
-        .$()))));
+        .$())))));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandDeterministic(ITermVar v) {
         return expandDeterministic.apply(v);
