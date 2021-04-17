@@ -1,6 +1,11 @@
 package mb.strategies;
 
+import mb.sequences.ComputingInterruptibleIterator;
 import mb.sequences.Seq;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import static mb.strategies.Strategies.*;
 
@@ -19,11 +24,41 @@ public final class RepeatStrategy<CTX, T> extends AbstractStrategy1<CTX, Strateg
 
     private RepeatStrategy() {}
 
+//    @Override
+//    protected Seq<T> innerEval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+//        // = try(s ; repeat(s))
+//        // = rec x : try(s ; x)
+//        return Strategies.<CTX, T, T>rec(x -> try_(seq(s).$(x).$())).eval(ctx, input);
+//    }
+
     @Override
     protected Seq<T> innerEval(CTX ctx, Strategy<CTX, T, T> s, T input) {
-        // = try(s ; repeat(s))
-        // = rec x : try(s ; x)
-        return Strategies.<CTX, T, T>rec(x -> try_(seq(s).$(x).$())).eval(ctx, input);
+        return () -> new ComputingInterruptibleIterator<T>() {
+            // TODO: Can we optimize this to not compute all values in advance?
+            @Override
+            protected Iterable<T> computeAll() throws InterruptedException {
+                // Use LinkedHashSet to preserve insertion order
+                ArrayList<T> newValues = new ArrayList<T>();
+                ArrayList<T> values = new ArrayList<T>();
+                values.add(input);
+                while (true) {
+                    for(T value : values) {
+                        final Seq<T> seq = s.eval(ctx, value);
+                        seq.iterator().forEachRemaining(newValues::add);
+                    }
+
+                    if (newValues.isEmpty()) {
+                        // Everything failed, we return
+                        return values;
+                    }
+
+                    ArrayList<T> tmp = values;
+                    values = newValues;
+                    newValues = tmp;
+                    newValues.clear();
+                }
+            }
+        };
     }
 
     @Override
