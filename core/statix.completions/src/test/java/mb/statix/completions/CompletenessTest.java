@@ -135,7 +135,11 @@ public abstract class CompletenessTest {
         try(final StrategyEventHandler eventHandler = StrategyEventHandler.none()) {// new DebugEventHandler(Paths.get("debug.yml"))) {
             // Get the solver state of the program (whole project),
             // which should have some remaining constraints on the placeholders.
-            SolverContext ctx = analyzer.createContext(eventHandler);
+            SolverContext ctx = analyzer.createContext(eventHandler).withReporters(
+                t -> stats.reportSubTime(0, t),
+                t -> stats.reportSubTime(1, t),
+                t -> stats.reportSubTime(2, t),
+                t -> stats.reportSubTime(3, t));
             stats.startInitialAnalysis();
             SolverState startState = analyzer.createStartState(completionExpectation.getIncompleteAst(), specName, rootRuleName)
                 .withExistentials(placeholderVarMap.getVars())
@@ -311,8 +315,8 @@ public abstract class CompletenessTest {
     private static void logCompletionStepResult(Level level, String message, String testName, ITermVar var, CompletionExpectation<?> expectation) {
         log.log(level, "-------------- " + testName +" ----------------\n" +
             "Complete var " + var + " in AST:\n  " + expectation.getIncompleteAst() + "\n" +
-            "Expected:\n  " + expectation.getExpectations().get(var) + "\n" +
-            "State:\n  " + expectation.getState() +
+            "Expected:\n  " + expectation.getExpectations().get(var), //+ "\n" +
+           // "State:\n  " + expectation.getState() +
             message);
     }
 
@@ -396,8 +400,8 @@ public abstract class CompletenessTest {
 
                 log.info("====================== " + testName +" ================================\n" +
                     "COMPLETING var " + var + " in AST:\n  " + completionExpectation.getIncompleteAst() + "\n" +
-                    "Expected:\n  " + completionExpectation.getExpectations().get(var) + "\n" +
-                    "State:\n  " + state);
+                    "Expected:\n  " + completionExpectation.getExpectations().get(var));// + "\n" +
+                    //"State:\n  " + state);
 
                 if(isVarInDelays(state.getDelays(), var)) {
                     // We skip variables in delays, let's see where we get until we loop forever.
@@ -431,7 +435,7 @@ public abstract class CompletenessTest {
                         log.info("-------------- " + testName +" ----------------\n" +
                             "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
                             "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                            "State:\n  " + state +
+                            //"State:\n  " + state +
                             "Got NO candidates, but expected a literal. Could not insert literal " + name + ".\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
                         stats.endRound();
                         return CompletionResult.fail();
@@ -441,7 +445,7 @@ public abstract class CompletenessTest {
                     log.info("-------------- " + testName +" ----------------\n" +
                         "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
                         "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                        "State:\n  " + state +
+                        //"State:\n  " + state +
                         "Got 1 (literal) candidate:\n  " + candidate.getState());
                 } else {
                     // No candidates, completion algorithm is not complete

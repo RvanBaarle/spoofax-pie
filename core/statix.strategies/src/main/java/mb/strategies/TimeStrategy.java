@@ -4,6 +4,8 @@ import mb.sequences.InterruptibleIterator;
 import mb.sequences.Seq;
 
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 /**
  * Evaluates a strategy and prints both its entrance and its results.
@@ -12,7 +14,7 @@ import java.util.function.Function;
  * @param <I> the type of input
  * @param <O> the type of outputs
  */
-public final class TimeStrategy<CTX, I, O> extends AbstractStrategy2<CTX, String, Strategy<CTX, I, O>, I, O>{
+public final class TimeStrategy<CTX, I, O> extends AbstractStrategy3<CTX, Integer, String, Strategy<CTX, I, O>, I, O>{
 
     @SuppressWarnings("rawtypes")
     private static final TimeStrategy instance = new TimeStrategy();
@@ -27,17 +29,18 @@ public final class TimeStrategy<CTX, I, O> extends AbstractStrategy2<CTX, String
     @Override
     public String getParamName(int index) {
         switch (index) {
-            case 0: return "name";
-            case 1: return "strategy";
+            case 0: return "reporterIndex";
+            case 1: return "name";
+            case 2: return "strategy";
             default: return super.getParamName(index);
         }
     }
 
-    public static boolean debug = true;
+    public static boolean debug = false;
     private static int level = 1;
 
     @Override
-    protected Seq<O> innerEval(CTX ctx, String name, Strategy<CTX, I, O> strategy, I input) {
+    protected Seq<O> innerEval(CTX ctx, Integer reporterIndex, String name, Strategy<CTX, I, O> strategy, I input) {
         if (debug) {
             printLevelPrefix("▶");
             System.out.println(" " + name);
@@ -53,7 +56,12 @@ public final class TimeStrategy<CTX, I, O> extends AbstractStrategy2<CTX, String
             return Seq.empty();
         }
         long endTime = System.nanoTime();
-        long diffInMs = (endTime - startTime) / 1000000;
+        long diffs = (endTime - startTime);
+        long diffInMs = diffs / 1000000;
+        if (ctx instanceof Context) {
+            Consumer<Long> reporter = ((Context)ctx).getReporter(reporterIndex);
+            if(reporter != null) reporter.accept(diffs);
+        }
 
         //System.out.println("TIMED: " + name + ": " + diffInMs + "ms");
         level -= 1;

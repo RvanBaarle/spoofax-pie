@@ -63,14 +63,10 @@ import static mb.strategies.Strategy2.define;
      */
     private static final Strategy2<SolverContext, ITermVar, Set<String>, SolverState, SolverState> complete
         = define("complete", "v", "visitedInjections", (v, visitedInjections) -> withFocusStrategy(v, debugState(v,
-            seq(time(expandAllPredicates(v)))
-            .$(time(expandAllInjections(v, visitedInjections)))
-            .$(time(expandAllQueries(v)))
-            .$(time(expandDeterministic(v)))
-//            seq(debugState2(v, expandAllPredicates(v)))
-//            .$(debugState2(v, expandAllInjections(v, visitedInjections)))
-//            .$(debugState2(v, expandAllQueries(v)))
-//            .$(debugState2(v, expandDeterministic(v)))
+            seq(time(0, expandAllPredicates(v)))
+            .$(time(1, expandAllInjections(v, visitedInjections)))
+            .$(time(2, expandAllQueries(v)))
+            .$(time(3, expandDeterministic(v)))
             .$())
         ));
 
@@ -428,21 +424,21 @@ import static mb.strategies.Strategy2.define;
     }
 
     public static <SolverState, O> Strategy<SolverContext, SolverState, O> printSolverState(String prefix, Strategy<SolverContext, SolverState, O> s) {
-//        return s;
-        return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
-            @Override
-            protected Seq<O> innerEval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
-                if (true) {//DebugStrategy.debug) {
-                    System.out.println(prefix + ": " + input);
-                }
-                return s.eval(ctx, input);
-            }
-
-            @Override
-            public String getName() {
-                return "printSolverState";
-            }
-        }.apply(s);
+        return s;
+//        return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
+//            @Override
+//            protected Seq<O> innerEval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
+//                if (true) {//DebugStrategy.debug) {
+//                    System.out.println(prefix + ": " + input);
+//                }
+//                return s.eval(ctx, input);
+//            }
+//
+//            @Override
+//            public String getName() {
+//                return "printSolverState";
+//            }
+//        }.apply(s);
     }
 
     /**

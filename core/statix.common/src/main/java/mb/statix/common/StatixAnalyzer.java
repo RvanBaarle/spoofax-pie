@@ -55,7 +55,7 @@ public class StatixAnalyzer {
      * @return the solver context
      */
     public SolverContext createContext(StrategyEventHandler eventHandler, @Nullable ITermVar focusVar) {
-        return new SolverContext(eventHandler, spec.getSpec(), focusVar, strategoTerms, Collections.emptyList());
+        return new SolverContext(eventHandler, spec.getSpec(), focusVar, strategoTerms, Collections.emptyList(), null, null, null, null);
     }
 
     public SolverState createStartState(ITerm statixAst, String specName, String rootRuleName) {

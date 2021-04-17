@@ -57,6 +57,19 @@ public class StatsGatherer {
         //@CsvBindByPosition(position = 2)
         private int literalsInserted = 0;
 
+        @CsvBindByName
+        public long expandAllPredicateTime = 0;
+        @CsvBindByName
+        public long expandAllInjections = 0;
+        @CsvBindByName
+        public long expandAllQueries = 0;
+        @CsvBindByName
+        public long expandDeterministic = 0;
+        // 0: expandAllPredicates
+        // 1: expandAllInjections
+        // 2: expandAllQueries
+        // 3: expandDeterministic
+
         public long getRoundStartTime() {
             return roundStartTime;
         }
@@ -81,8 +94,41 @@ public class StatsGatherer {
             this.literalsInserted = literalsInserted;
         }
 
+
         public long getRoundTime() {
             return this.roundEndTime - this.roundStartTime;
+        }
+
+        public long getExpandAllPredicateTime() {
+            return expandAllPredicateTime;
+        }
+
+        public void setExpandAllPredicateTime(long expandAllPredicateTime) {
+            this.expandAllPredicateTime = expandAllPredicateTime;
+        }
+
+        public long getExpandAllInjections() {
+            return expandAllInjections;
+        }
+
+        public void setExpandAllInjections(long expandAllInjections) {
+            this.expandAllInjections = expandAllInjections;
+        }
+
+        public long getExpandAllQueries() {
+            return expandAllQueries;
+        }
+
+        public void setExpandAllQueries(long expandAllQueries) {
+            this.expandAllQueries = expandAllQueries;
+        }
+
+        public long getExpandDeterministic() {
+            return expandDeterministic;
+        }
+
+        public void setExpandDeterministic(long expandDeterministic) {
+            this.expandDeterministic = expandDeterministic;
         }
     }
 
@@ -142,6 +188,16 @@ public class StatsGatherer {
         this.currentRound.setLiteralsInserted(this.currentRound.getLiteralsInserted() + 1);
     }
 
+    public void reportSubTime(int index, long time) {
+        assert this.currentRound != null;
+        switch(index){
+            case 0: this.currentRound.expandAllPredicateTime += time; break;
+            case 1: this.currentRound.expandAllInjections += time; break;
+            case 2: this.currentRound.expandAllQueries += time; break;
+            case 3: this.currentRound.expandDeterministic += time; break;
+        }
+    }
+
     /**
      * Logs the summary.
      */
@@ -151,17 +207,29 @@ public class StatsGatherer {
         long totalCompleteTime = sumLong(rounds, r -> r.roundEndTime - r.roundStartTime);
         int literalsInserted = sumInt(rounds, r -> r.literalsInserted);
         long avgDuration = totalCompleteTime / rounds.size();
+        long totalPredicateTime = sumLong(rounds, r -> r.expandAllPredicateTime);
+        long totalInjectionTime = sumLong(rounds, r -> r.expandAllInjections);
+        long totalQueryTime = sumLong(rounds, r -> r.expandAllQueries);
+        long totalDeterministicTime = sumLong(rounds, r -> r.expandDeterministic);
         //final String testFileName = getTestFileName();
         writeCsv(Paths.get(csvPath));
         log.info("TEST DONE!\n" +
                 "Completed {} steps in {} ms, avg. {} ms/step.\n" +
                 "Preparation: {} ms, initial analysis: {} ms.\n" +
+                "Expand Predicates: {} ms.\n" +
+                "Expand Injections: {} ms.\n" +
+                "Expand Queries: {} ms.\n" +
+                "Expand Deterministic: {} ms.\n" +
                 "Inserted {} literals.",
             rounds.size(),
             String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalCompleteTime)),
             String.format("%2d", TimeUnit.NANOSECONDS.toMillis(avgDuration)),
             String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalPrepareTime)),
             String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalAnalyzeTime)),
+            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalPredicateTime)),
+            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalInjectionTime)),
+            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalQueryTime)),
+            String.format("%2d", TimeUnit.NANOSECONDS.toMillis(totalDeterministicTime)),
             literalsInserted
         );
     }

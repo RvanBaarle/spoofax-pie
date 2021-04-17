@@ -120,9 +120,10 @@ public final class Strategies {
      * @return the resulting strategy
      */
     public static <CTX, I, O> Strategy<CTX, I, O> time(
+        int reporterIndex,
         Strategy<CTX, I, O> strategy
     ) {
-        return TimeStrategy.<CTX, I, O>getInstance().apply(strategy.getName(), strategy);
+        return TimeStrategy.<CTX, I, O>getInstance().apply(reporterIndex, strategy.getName(), strategy);
     }
 
 //    /**
