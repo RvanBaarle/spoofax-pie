@@ -59,118 +59,118 @@ public class TigerCompletenessTest extends CompletenessTest {
 
     // TODO: Enable
     @TestFactory
-    @Disabled
+    //@Disabled
     public List<DynamicTest> completenessTests() {
         return Arrays.asList(
             // Tiger
-            tigerTest("/test1.tig"),                    // interrupted
-            tigerTest("/test2.tig"),                    // interrupted
-            tigerTest("/test3.tig"),
-            tigerTest("/test4.tig"),
-
-            tigerTest("/appel/test01.tig"),
-            tigerTest("/appel/test02.tig"),
-            tigerTest("/appel/test03.tig"),
-            tigerTest("/appel/test04.tig"),             // interrupted
-            tigerTest("/appel/test05.tig"),             // interrupted
-            tigerTest("/appel/test06.tig"),
-            tigerTest("/appel/test07.tig"),             // interrupted
-            tigerTest("/appel/test08.tig"),
-            tigerTest("/appel/test12.tig"),
-            tigerTest("/appel/test16.tig"),
-            tigerTest("/appel/test27.tig"),             // interrupted
-            tigerTest("/appel/test30.tig"),
-            tigerTest("/appel/test37.tig"),
-            tigerTest("/appel/test41.tig"),
-            tigerTest("/appel/test42.tig"),             // interrupted
-            tigerTest("/appel/test44.tig"),
-            tigerTest("/appel/test47.tig"),
-            tigerTest("/appel/test48.tig"),             // interrupted
-
-            tigerTest("/examples/arith.tig"),
-            tigerTest("/examples/fact-anf.tig"),        // interrupted
-            tigerTest("/examples/fact-anf2.tig"),       // interrupted
-            tigerTest("/examples/fact-resolvetest.tig"),
-            tigerTest("/examples/for.tig"),
-            tigerTest("/examples/nested.tig"),
-            tigerTest("/examples/point.tig"),
-            tigerTest("/examples/queens.tig"),
-            tigerTest("/examples/rec-types.tig"),       // interrupted
-            tigerTest("/examples/recursion.tig"),       // interrupted
-            tigerTest("/examples/tiny.tig"),
-            tigerTest("/examples/tinyrec.tig"),
-            tigerTest("/examples/tinytiny.tig"),
-            tigerTest("/examples/verytiny.tig"),
-            tigerTest("/examples/while.tig"),
-            tigerTest("/examples/while-break.tig"),
-
-            tigerTest("/microbenchmarks/while-call.tig"),// interrupted
-
-            tigerTest("/natives/chr.tig"),
-            tigerTest("/natives/concat.tig"),
-            tigerTest("/natives/exit.tig"),
-            tigerTest("/natives/flush.tig"),
-            tigerTest("/natives/getchar.tig"),
-            tigerTest("/natives/not.tig"),
-            tigerTest("/natives/ord.tig"),
-            tigerTest("/natives/print.tig"),
-            tigerTest("/natives/size.tig"),
-            tigerTest("/natives/substring.tig"),
-
-            tigerTest("/tests/binding/binding01.tig"),
-            tigerTest("/tests/binding/binding08.tig"),  // interrupted
-            tigerTest("/tests/binding/bindings09.tig"),
-            tigerTest("/tests/binding/bindings11.tig"),
-
-
-            tigerTest("/tests/operators/operator-test01.tig"),
-            tigerTest("/tests/operators/operators-test02.tig"),
-            tigerTest("/tests/operators/operators-test03.tig"),
-
-            tigerTest("/tests/statements/stat-test01.tig"),
-            tigerTest("/tests/statements/stat-test02.tig"),
-            tigerTest("/tests/statements/stat-test03.tig"),
-
-            tigerTest("/xmpl/a.tig"),
-            tigerTest("/xmpl/arrays.tig"),
-            tigerTest("/xmpl/arrays-tiny.tig"),
-            tigerTest("/xmpl/aterm.tig"),             // interrupted
-            tigerTest("/xmpl/break.tig"),             // interrupted
-            tigerTest("/xmpl/eval-test1.tig"),
-            tigerTest("/xmpl/eval-test2.tig"),
-            tigerTest("/xmpl/even-odd.tig"),          // interrupted
-            tigerTest("/xmpl/extract.tig"),
-            tigerTest("/xmpl/fac.tig"),
-            tigerTest("/xmpl/for.tig"),
-            tigerTest("/xmpl/function.tig"),
-            tigerTest("/xmpl/let.tig"),
-            tigerTest("/xmpl/merge.tig"),             // interrupted
-            tigerTest("/xmpl/multi-arg.tig"),
-            tigerTest("/xmpl/mytest4.tig"),
-            tigerTest("/xmpl/mytest5.tig"),
-            tigerTest("/xmpl/nestedfunctions.tig"),   // interrupted
-            tigerTest("/xmpl/prettyprint.tig"),       // interrupted
-            tigerTest("/xmpl/queens.tig"),
-            tigerTest("/xmpl/rec1.tig"),              // interrupted
-            tigerTest("/xmpl/record.tig"),            // interrupted
-            tigerTest("/xmpl/renaming1.tig"),
-            tigerTest("/xmpl/seq.tig"),
-            tigerTest("/xmpl/trtest1.tig"),
-            tigerTest("/xmpl/trtest2.tig"),
-            tigerTest("/xmpl/trtest3.tig"),
-            tigerTest("/xmpl/trtest4.tig"),
-            tigerTest("/xmpl/typecheck-error1.tig"),
-
-            tigerTest("/xmpl2/mytest5.tig"),
-            tigerTest("/xmpl2/mytest6.tig"),
-            tigerTest("/xmpl2/mytest7.tig"),
-            tigerTest("/xmpl2/mytest10.tig"),
-            tigerTest("/xmpl2/mytest11.tig"),
-            tigerTest("/xmpl2/mytest12.tig"),
-            tigerTest("/xmpl2/mytest13.tig"),
-            tigerTest("/xmpl2/mytest14.tig"),
-            tigerTest("/xmpl2/mytest15.tig"),
-            tigerTest("/xmpl2/mytest16.tig")
+//            tigerTest("/test1.tig"),                    // interrupted
+//            tigerTest("/test2.tig"),                    // interrupted
+//            tigerTest("/test3.tig"),
+//            tigerTest("/test4.tig"),
+//
+//            tigerTest("/appel/test01.tig"),
+//            tigerTest("/appel/test02.tig"),
+//            tigerTest("/appel/test03.tig"),
+            tigerTest("/appel/test04.tig")             // interrupted
+//            tigerTest("/appel/test05.tig"),             // interrupted
+//            tigerTest("/appel/test06.tig"),
+//            tigerTest("/appel/test07.tig"),             // interrupted
+//            tigerTest("/appel/test08.tig"),
+//            tigerTest("/appel/test12.tig"),
+//            tigerTest("/appel/test16.tig"),
+//            tigerTest("/appel/test27.tig"),             // interrupted
+//            tigerTest("/appel/test30.tig"),
+//            tigerTest("/appel/test37.tig"),
+//            tigerTest("/appel/test41.tig"),
+//            tigerTest("/appel/test42.tig"),             // interrupted
+//            tigerTest("/appel/test44.tig"),
+//            tigerTest("/appel/test47.tig"),
+//            tigerTest("/appel/test48.tig"),             // interrupted
+//
+//            tigerTest("/examples/arith.tig"),
+//            tigerTest("/examples/fact-anf.tig"),        // interrupted
+//            tigerTest("/examples/fact-anf2.tig"),       // interrupted
+//            tigerTest("/examples/fact-resolvetest.tig"),
+//            tigerTest("/examples/for.tig"),
+//            tigerTest("/examples/nested.tig"),
+//            tigerTest("/examples/point.tig"),
+//            tigerTest("/examples/queens.tig"),
+//            tigerTest("/examples/rec-types.tig"),       // interrupted
+//            tigerTest("/examples/recursion.tig"),       // interrupted
+//            tigerTest("/examples/tiny.tig"),
+//            tigerTest("/examples/tinyrec.tig"),
+//            tigerTest("/examples/tinytiny.tig"),
+//            tigerTest("/examples/verytiny.tig"),
+//            tigerTest("/examples/while.tig"),
+//            tigerTest("/examples/while-break.tig"),
+//
+//            tigerTest("/microbenchmarks/while-call.tig"),// interrupted
+//
+//            tigerTest("/natives/chr.tig"),
+//            tigerTest("/natives/concat.tig"),
+//            tigerTest("/natives/exit.tig"),
+//            tigerTest("/natives/flush.tig"),
+//            tigerTest("/natives/getchar.tig"),
+//            tigerTest("/natives/not.tig"),
+//            tigerTest("/natives/ord.tig"),
+//            tigerTest("/natives/print.tig"),
+//            tigerTest("/natives/size.tig"),
+//            tigerTest("/natives/substring.tig"),
+//
+//            tigerTest("/tests/binding/binding01.tig"),
+//            tigerTest("/tests/binding/binding08.tig"),  // interrupted
+//            tigerTest("/tests/binding/bindings09.tig"),
+//            tigerTest("/tests/binding/bindings11.tig"),
+//
+//
+//            tigerTest("/tests/operators/operator-test01.tig"),
+//            tigerTest("/tests/operators/operators-test02.tig"),
+//            tigerTest("/tests/operators/operators-test03.tig"),
+//
+//            tigerTest("/tests/statements/stat-test01.tig"),
+//            tigerTest("/tests/statements/stat-test02.tig"),
+//            tigerTest("/tests/statements/stat-test03.tig"),
+//
+//            tigerTest("/xmpl/a.tig"),
+//            tigerTest("/xmpl/arrays.tig"),
+//            tigerTest("/xmpl/arrays-tiny.tig"),
+//            tigerTest("/xmpl/aterm.tig"),             // interrupted
+//            tigerTest("/xmpl/break.tig"),             // interrupted
+//            tigerTest("/xmpl/eval-test1.tig"),
+//            tigerTest("/xmpl/eval-test2.tig"),
+//            tigerTest("/xmpl/even-odd.tig"),          // interrupted
+//            tigerTest("/xmpl/extract.tig"),
+//            tigerTest("/xmpl/fac.tig"),
+//            tigerTest("/xmpl/for.tig"),
+//            tigerTest("/xmpl/function.tig"),
+//            tigerTest("/xmpl/let.tig"),
+//            tigerTest("/xmpl/merge.tig"),             // interrupted
+//            tigerTest("/xmpl/multi-arg.tig"),
+//            tigerTest("/xmpl/mytest4.tig"),
+//            tigerTest("/xmpl/mytest5.tig"),
+//            tigerTest("/xmpl/nestedfunctions.tig"),   // interrupted
+//            tigerTest("/xmpl/prettyprint.tig"),       // interrupted
+//            tigerTest("/xmpl/queens.tig"),
+//            tigerTest("/xmpl/rec1.tig"),              // interrupted
+//            tigerTest("/xmpl/record.tig"),            // interrupted
+//            tigerTest("/xmpl/renaming1.tig"),
+//            tigerTest("/xmpl/seq.tig"),
+//            tigerTest("/xmpl/trtest1.tig"),
+//            tigerTest("/xmpl/trtest2.tig"),
+//            tigerTest("/xmpl/trtest3.tig"),
+//            tigerTest("/xmpl/trtest4.tig"),
+//            tigerTest("/xmpl/typecheck-error1.tig"),
+//
+//            tigerTest("/xmpl2/mytest5.tig"),
+//            tigerTest("/xmpl2/mytest6.tig"),
+//            tigerTest("/xmpl2/mytest7.tig"),
+//            tigerTest("/xmpl2/mytest10.tig"),
+//            tigerTest("/xmpl2/mytest11.tig"),
+//            tigerTest("/xmpl2/mytest12.tig"),
+//            tigerTest("/xmpl2/mytest13.tig"),
+//            tigerTest("/xmpl2/mytest14.tig"),
+//            tigerTest("/xmpl2/mytest15.tig"),
+//            tigerTest("/xmpl2/mytest16.tig")
         );
     }
 

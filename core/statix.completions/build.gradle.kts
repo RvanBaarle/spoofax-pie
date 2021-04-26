@@ -70,6 +70,6 @@ dependencies {
 }
 
 tasks { withType<Test> {
-  //debug = true
+  debug = true
   maxHeapSize = "3g"
 } }

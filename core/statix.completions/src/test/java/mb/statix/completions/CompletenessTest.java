@@ -197,9 +197,11 @@ public abstract class CompletenessTest {
                                 completionExpectation = result.getCompletionExpectation();
                                 break;
                             case Skip:
+                                log.info("Delayed {}", var);
                                 delayedVars.add(var);
                                 break;
                             case Fail:
+                                log.info("Failed {}", var);
                                 failedVars.add(var);
                                 break;
                         }
@@ -225,7 +227,7 @@ public abstract class CompletenessTest {
                     ITermVar literalVar = completionExpectation.getVars().stream().filter(v -> isLiteral(finalCompletionExpectation.getExpectations().get(v))).findFirst().orElse(null);
                     if (literalVar != null) {
                         // Insert the literal
-                        ITerm value = completionExpectation.getExpectations().get(var);
+                        ITerm value = completionExpectation.getExpectations().get(literalVar);
                         @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(literalVar, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), value));
                         if(candidate == null) {
                             logCompletionStepResult(Level.Error, "Could not insert literal '" + value + "'.", testName, literalVar, completionExpectation);
@@ -316,7 +318,7 @@ public abstract class CompletenessTest {
         log.log(level, "-------------- " + testName +" ----------------\n" +
             "Complete var " + var + " in AST:\n  " + expectation.getIncompleteAst() + "\n" +
             "Expected:\n  " + expectation.getExpectations().get(var), //+ "\n" +
-           // "State:\n  " + expectation.getState() +
+            "State:\n  " + expectation.getState() +
             message);
     }
 
@@ -400,8 +402,8 @@ public abstract class CompletenessTest {
 
                 log.info("====================== " + testName +" ================================\n" +
                     "COMPLETING var " + var + " in AST:\n  " + completionExpectation.getIncompleteAst() + "\n" +
-                    "Expected:\n  " + completionExpectation.getExpectations().get(var));// + "\n" +
-                    //"State:\n  " + state);
+                    "Expected:\n  " + completionExpectation.getExpectations().get(var) + "\n" +
+                    "State:\n  " + state);
 
                 if(isVarInDelays(state.getDelays(), var)) {
                     // We skip variables in delays, let's see where we get until we loop forever.
@@ -427,26 +429,26 @@ public abstract class CompletenessTest {
                     candidates.sort(Comparator.comparingInt(o -> o.getVars().size()));
                     newCompletionExpectation = candidates.get(0);
                     logCompletionStepResultWithCandidates(Level.Info, "", testName, var, currentCompletionExpectation, candidates);
-                } else if(isLiteral(completionExpectation.getExpectations().get(var))) {
-                    // No candidates, but the expected term is a string (probably the name of a declaration).
-                    ITerm name = completionExpectation.getExpectations().get(var);
-                    @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(var, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), name));
-                    if(candidate == null) {
-                        log.info("-------------- " + testName +" ----------------\n" +
-                            "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                            "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                            //"State:\n  " + state +
-                            "Got NO candidates, but expected a literal. Could not insert literal " + name + ".\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
-                        stats.endRound();
-                        return CompletionResult.fail();
-                    }
-                    stats.insertedLiteral();
-                    newCompletionExpectation = candidate;
-                    log.info("-------------- " + testName +" ----------------\n" +
-                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-                        //"State:\n  " + state +
-                        "Got 1 (literal) candidate:\n  " + candidate.getState());
+//                } else if(isLiteral(completionExpectation.getExpectations().get(var))) {
+//                    // No candidates, but the expected term is a string (probably the name of a declaration).
+//                    ITerm name = completionExpectation.getExpectations().get(var);
+//                    @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(var, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), name));
+//                    if(candidate == null) {
+//                        log.info("-------------- " + testName +" ----------------\n" +
+//                            "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
+//                            "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
+//                            //"State:\n  " + state +
+//                            "Got NO candidates, but expected a literal. Could not insert literal " + name + ".\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
+//                        stats.endRound();
+//                        return CompletionResult.fail();
+//                    }
+//                    stats.insertedLiteral();
+//                    newCompletionExpectation = candidate;
+//                    log.info("-------------- " + testName +" ----------------\n" +
+//                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
+//                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
+//                        //"State:\n  " + state +
+//                        "Got 1 (literal) candidate:\n  " + candidate.getState());
                 } else {
                     // No candidates, completion algorithm is not complete
                     logCompletionStepResultWithProposals(Level.Warn, "Got NO candidates.", testName, var, currentCompletionExpectation, proposals);
