@@ -52,7 +52,7 @@ public class TigerCompletenessTest extends CompletenessTest {
 
     private static final String TIGER_SPEC_PATH = TESTPATH + "/spec.aterm";
     private static final String TIGER_SPEC_SIMPLE1_PATH = TESTPATH + "/simple1/spec.aterm";
-    private static final String TIGER_CSV_OUTPUT_PATH = "/Users/daniel/repos/spoofax3/devenv/spoofax.pie/core/statix.completions/src/test/resources/mb/statix/completions/tiger";
+    private static final String TIGER_CSV_OUTPUT_PATH = "/Users/daniel/repos/spoofax3/devenv-cc/spoofax.pie/core/statix.completions/src/test/resources/mb/statix/completions/tiger";
     private static final String ATERM_EXT = ".aterm";
     private static final String CSV_EXT = ".csv";
     private static final String ORIGINAL_EXT = "";

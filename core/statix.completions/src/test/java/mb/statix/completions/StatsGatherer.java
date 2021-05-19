@@ -184,6 +184,10 @@ public class StatsGatherer {
      * Indicates that a literal was inserted.
      */
     public void insertedLiteral() {
+        if (this.currentRound == null) {
+            log.warn("Inserted literal not recorded.");
+            return;
+        }
         assert this.currentRound != null;
         this.currentRound.setLiteralsInserted(this.currentRound.getLiteralsInserted() + 1);
     }
