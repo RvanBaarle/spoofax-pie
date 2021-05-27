@@ -137,6 +137,11 @@ public class StatsGatherer {
      */
     public void startTest(String testName) {
         this.testName = testName;
+        try {
+            Files.deleteIfExists(Paths.get(csvPath));
+        } catch(IOException e) {
+            log.warn("Could not delete CSV file: " + csvPath, e);
+        }
         this.prepStartTime = System.nanoTime();
     }
 
