@@ -63,12 +63,13 @@ import static mb.strategies.Strategy2.define;
      * Completes the given placeholder.
      */
     private static final Strategy2<SolverContext, ITermVar, Set<String>, SolverState, SolverState> complete
-        = define("complete", "v", "visitedInjections", (v, visitedInjections) -> withFocusStrategy(v, debugState(v,
+        = define("complete", "v", "visitedInjections", (v, visitedInjections) -> withFocusStrategy(v,// debugState(v,
             seq(time(0, expandAllPredicates(v)))
             .$(time(1, expandAllInjections(v, visitedInjections)))
             .$(time(2, expandAllQueries(v)))
             //.$(time(3, expandDeterministic(v)))
-            .$())
+            .$()
+        //)
         ));
 
     public static Strategy<SolverContext, SolverState, SolverState> complete(ITermVar v, Set<String> visitedInjections) {
@@ -86,18 +87,29 @@ import static mb.strategies.Strategy2.define;
         // to get actually a useful result.
         // An example where this happens is in this program, on the $Type placeholder:
         //   let function $ID(): $Type = $Exp in 3 end
-        debugState(v,
+        //debugState(v,
             // Empty the set of expanded things
             seq((Strategy<SolverContext, SolverState, SolverState>)(solverContext, input) -> Seq.of(input.withExpanded(io.usethesource.capsule.Set.Immutable.of())))
-            .$(repeat(debugState(v, printSolverStates("ONCE PRED", seq(limit(1, selectConstraints(CUser.class, (constraint, state) -> containsVar(v, constraint, state)
-                && checkNotYetExpanded(state, constraint))))
-                // Expand the focussed rule
-                .$(debugCUser(v, printSolverStates("EXPAND PRED", expandPredicateConstraint(v))))
-                // Perform inference and remove states that have errors
-                .$(debugState(v, printSolverStates("ASSERT PRED", assertValid(v))))
-                .$())))
+            .$(repeat(
+//                debugState(v, printSolverStates("ONCE PRED",
+                    seq(limit(1, selectConstraints(CUser.class, (constraint, state) -> containsVar(v, constraint, state) && checkNotYetExpanded(state, constraint))))
+                    // Expand the focussed rule
+                    .$(//debugCUser(v, printSolverStates("EXPAND PRED",
+                        expandPredicateConstraint(v)
+                     // ))
+                    )
+                    // Perform inference and remove states that have errors
+                    .$(//debugState(v, printSolverStates("ASSERT PRED",
+                        assertValid(v)
+                    //))
+                    )
+                    .$()
+//                ))
+                )
             )
-            .$()));
+            .$()
+        //)
+    );
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllPredicates(ITermVar v) {
         return expandAllPredicates.apply(v);
@@ -116,15 +128,16 @@ import static mb.strategies.Strategy2.define;
      * Expand predicate constraints on injections that contain the specified variable.
      */
     private static final Strategy2<SolverContext, ITermVar, Set<String>, SolverState, SolverState> expandAllInjections
-        = define("expandAllInjections", "v", "visitedInjections", (v, visitedInjections) -> {
-        return
-            debugState(v, seq(fixSet(try_(     // Fixset-try because we need to expand injections one-by-one
+        = define("expandAllInjections", "v", "visitedInjections", (v, visitedInjections) ->
+            //debugState(v,
+                seq(fixSet(try_(     // Fixset-try because we need to expand injections one-by-one
                 expandInjection(visitedInjections, v)
             )))
             // Perform inference and remove states that have errors
             .$(assertValid(v))
-            .$());
-    });
+            .$()
+            //)
+    );
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllInjections(ITermVar v, Set<String> visitedInjections) {
         return expandAllInjections.apply(v, visitedInjections);
@@ -204,18 +217,24 @@ import static mb.strategies.Strategy2.define;
      * Expand all query constraints that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
-        = define("expandAllQueries", "v", v -> debugState(v, distinct(or(id(), fixSet(
+        = define("expandAllQueries", "v", v -> //debugState(v,
+          distinct(or(id(), fixSet(
             if_(
                 limit(1, selectConstraints(CResolveQuery.class, (constraint, state) -> {
                     final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
                     return containsAnyVar(innerVars, constraint, state);
                 })),
-                seq(debugCResolveQuery(v, expandQueryConstraint()))
+                seq(//debugCResolveQuery(v,
+                    expandQueryConstraint()
+                //)
+                )
                 .$(assertValid(v))
                 .$(),
                 id()
             )
-        )))));
+        )))
+    //)
+    );
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllQueries(ITermVar v) {
         return expandAllQueries.apply(v);
@@ -227,20 +246,28 @@ import static mb.strategies.Strategy2.define;
      * Expand anything deterministically.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
-        = define("expandDeterministic", "v", v -> debugState(v,
-        fixSet(distinct(try_(seq(printSolverState("EXPAND STATE", selectConstraints(CUser.class, (constraint, state) -> {
+        = define("expandDeterministic", "v", v -> //debugState(v,
+        fixSet(distinct(try_(seq(//printSolverState("EXPAND STATE",
+            selectConstraints(CUser.class, (constraint, state) -> {
                 final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
                 return containsAnyVar(innerVars, constraint, state);
-            })))
-            .$(debugCUser(v, single(
+            })
+        //)
+        )
+            .$(//debugCUser(v,
+                single(
                 seq(expandPredicateConstraint(v))
                 // Perform inference and remove states that have errors
                 .$(assertValid(v))
                 // Remove naked placeholders
                 .$(filterPlaceholders(v))
                 .$()
-            )))
-        .$())))));
+            )
+                //)
+            )
+        .$())))
+    //)
+    );
 
     public static Strategy<SolverContext, SolverState, SolverState> expandDeterministic(ITermVar v) {
         return expandDeterministic.apply(v);
@@ -286,9 +313,8 @@ import static mb.strategies.Strategy2.define;
      * Perform inference, and reject the resulting state if it has errors.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> assertValid
-        = define("assertValid", "v", v -> debugState(v, //printSolverState("BEFORE INFER",
+        = define("assertValid", "v", v -> //debugState(v,
         seq(infer())
-        //.$(printSolverState("AFTER INFER", id()))
         // Remove states that have errors
         .$(assertThat((ctx, s) -> {
             boolean valid = !s.hasSeriousErrors(ctx.getAllowedErrors());
@@ -299,8 +325,9 @@ import static mb.strategies.Strategy2.define;
         }))
         // Delay stuck queries
         .$(delayStuckQueries())
-        //.$(printSolverState("AFTER DELAY", id()))
-        .$())/*)*/);
+        .$()
+        //)
+    );
 
     public static Strategy<SolverContext, SolverState, SolverState> assertValid(ITermVar v) {
         return assertValid.apply(v);
@@ -348,38 +375,6 @@ import static mb.strategies.Strategy2.define;
     }
 
 
-
-//    private static boolean containsVar(ITermVar var, CUser constraint, SolverState state) {
-//        return containsAnyVar(Collections.singletonList(var), constraint, state);
-//    }
-//
-//    private static boolean containsAnyVar(Collection<ITermVar> vars, CUser constraint, SolverState state) {
-//        @Nullable final ImmutableMap<ITermVar, ITermVar> existentials = state.getExistentials();
-//        final ArrayList<ITermVar> projectedVars = new ArrayList<>(vars.size());
-//        if(existentials != null) {
-//            for(ITermVar var : vars) {
-//                @Nullable ITermVar projected = existentials.get(var);
-//                if(projected != null) {
-//                    projectedVars.add(projected);
-//                } else {
-//                    projectedVars.add(var);
-//                }
-//            }
-//        } else {
-//            projectedVars.addAll(vars);
-//        }
-//        // We use the unifier to get all the variables in each of the argument to the constraint
-//        // (or the constraint argument itself when there where no variables and the argument is a term var)
-//        // and see if any match the var we're looking for.
-////        for(ITerm arg : constraint.args()) {
-//        for(ITermVar arg : constraint.getVars()) {
-//            final io.usethesource.capsule.Set.Immutable<ITermVar> constraintVars = state.getState().unifier().getVars(arg);
-//            final boolean match = !constraintVars.isEmpty() ? containsAny(constraintVars, projectedVars) : projectedVars.contains(arg);
-//            if(match) return true;
-//        }
-//        return false;
-//    }
-
     private static boolean containsVar(ITermVar var, IConstraint constraint, SolverState state) {
         return containsAnyVar(Collections.singletonList(var), constraint, state);
     }
@@ -408,9 +403,6 @@ import static mb.strategies.Strategy2.define;
             if(match) return true;
         }
         return false;
-//
-//        io.usethesource.capsule.Set.Immutable<ITermVar> constraintVars = constraint.getVars();
-//        return !constraintVars.isEmpty() && containsAny(constraintVars, projectedVars);
     }
 
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SolverState>, SolverState, SolverState> debugState
