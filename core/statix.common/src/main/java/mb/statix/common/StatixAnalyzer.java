@@ -1,6 +1,7 @@
 package mb.statix.common;
 
 import com.google.common.collect.ImmutableList;
+import io.usethesource.capsule.Set;
 import mb.log.api.Logger;
 import mb.log.api.LoggerFactory;
 import mb.nabl2.terms.ITerm;
@@ -61,7 +62,7 @@ public class StatixAnalyzer {
     public SolverState createStartState(ITerm statixAst, String specName, String rootRuleName) {
         IConstraint rootConstraint = getRootConstraint(statixAst, specName, rootRuleName);
         final Spec specSpec = this.spec.getSpec();
-        return SolverState.of(specSpec, State.of(), ImmutableList.of(rootConstraint), new SolutionMeta());
+        return SolverState.of(specSpec, State.of(), ImmutableList.of(rootConstraint), Set.Immutable.of(), new SolutionMeta());
     }
 
     /**

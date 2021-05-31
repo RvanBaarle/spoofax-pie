@@ -63,12 +63,12 @@ public final class SolverState {
      * @param constraints the constraints
      * @return the resulting search state
      */
-    public static SolverState of(Spec spec, IState.Immutable state, Iterable<? extends IConstraint> constraints, SolutionMeta meta) {
+    public static SolverState of(Spec spec, IState.Immutable state, Iterable<? extends IConstraint> constraints, Set.Immutable<String> expanded, SolutionMeta meta) {
         final ICompleteness.Transient completeness = Completeness.Transient.of();
         completeness.addAll(constraints, spec, state.unifier());
 
         return new SolverState(state, Map.Immutable.of(), CapsuleUtil.toSet(constraints), Map.Immutable.of(),
-            null, completeness.freeze(), meta);
+            null, completeness.freeze(), expanded, meta);
     }
 
     /**
@@ -78,7 +78,7 @@ public final class SolverState {
      * @param existentials
      * @return the resulting search state
      */
-    public static SolverState fromSolverResult(SolverResult result, @Nullable ImmutableMap<ITermVar, ITermVar> existentials, SolutionMeta meta) {
+    public static SolverState fromSolverResult(SolverResult result, @Nullable ImmutableMap<ITermVar, ITermVar> existentials, Set.Immutable<String> expanded, SolutionMeta meta) {
         final Set.Transient<IConstraint> constraints = Set.Transient.of();
         final Map.Transient<IConstraint, Delay> delays = Map.Transient.of();
         result.delays().forEach((c, d) -> {
@@ -92,7 +92,7 @@ public final class SolverState {
         final ImmutableMap<ITermVar, ITermVar> newExistentials =
             existentials == null ? result.existentials() : existentials;
         return new SolverState(result.state(), CapsuleUtil.toMap(result.messages()), constraints.freeze(), delays.freeze(), newExistentials,
-            result.completeness(), meta);
+            result.completeness(), expanded, meta);
     }
 
     private final IState.Immutable state;
@@ -101,15 +101,18 @@ public final class SolverState {
     @Nullable private final ImmutableMap<ITermVar, ITermVar> existentials;
     private final ICompleteness.Immutable completeness;
     private final Map.Immutable<IConstraint, IMessage> messages;
+    private final Set.Immutable<String> expanded;
     private final SolutionMeta meta;
 
-    protected SolverState(
+
+        protected SolverState(
         IState.Immutable state,
         Map.Immutable<IConstraint, IMessage> messages,
         Set.Immutable<IConstraint> constraints,
         Map.Immutable<IConstraint, Delay> delays,
         @Nullable ImmutableMap<ITermVar, ITermVar> existentials,
         ICompleteness.Immutable completeness,
+        Set.Immutable<String> expanded,
         SolutionMeta meta
     ) {
         this.state = state;
@@ -118,6 +121,7 @@ public final class SolverState {
         this.delays = delays;
         this.existentials = existentials;
         this.completeness = completeness;
+        this.expanded = expanded;
         this.meta = meta;
     }
 
@@ -173,6 +177,19 @@ public final class SolverState {
         return completeness;
     }
 
+    /**
+     * The set of names of expanded predicate constraints, used to detect when we are trying to expand a constraint that we've expanded before
+     * but which was reintroduced.
+     * @return
+     */
+    public Set.Immutable<String> getExpanded() {
+        return this.expanded;
+    }
+
+    public SolverState withExpanded(Set.Immutable<String> newExpanded) {
+        return new SolverState(state, messages, constraints, delays, existentials, completeness, newExpanded, meta);
+    }
+
     public SolutionMeta getMeta() { return this.meta; }
 
     /**
@@ -192,7 +209,7 @@ public final class SolverState {
         }
         final IConstraint constraint = this.constraints.iterator().next();
         final IConstraint newConstraint = new CExists(existentials, constraint);
-        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness, meta);
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness, this.expanded, meta);
     }
 
     /**
@@ -208,7 +225,7 @@ public final class SolverState {
         while(iterator.hasNext()) {
             newConstraint = new CConj(newConstraint, iterator.next());
         }
-        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness, meta);
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, this.completeness, this.expanded, meta);
     }
 
     /**
@@ -230,7 +247,7 @@ public final class SolverState {
         final IConstraint newConstraint = result._1();
         ICompleteness.Transient completeness = this.completeness.melt();
         completeness.addAll(result._2(), state.unifier());
-        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, completeness.freeze(), meta);
+        return new SolverState(this.state, this.messages, Set.Immutable.of(newConstraint), this.delays, null, completeness.freeze(), this.expanded, meta);
     }
 
     /**
@@ -265,7 +282,7 @@ public final class SolverState {
             }
         });
 
-        return new SolverState(applyState, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze(), meta);
+        return new SolverState(applyState, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze(), expanded, meta);
     }
 
     /**
@@ -299,7 +316,7 @@ public final class SolverState {
                 delays.__put(c, d);
             }
         });
-        return new SolverState(state, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze(), meta);
+        return new SolverState(state, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze(), expanded, meta);
     }
 
     public SolverState delay(Iterable<? extends java.util.Map.Entry<IConstraint, Delay>> delay) {
@@ -312,11 +329,11 @@ public final class SolverState {
                 log.warn("delayed constraint not in constraint set: {}", entry.getKey());
             }
         });
-        return new SolverState(state, messages, constraints.freeze(), delays.freeze(), existentials, completeness, meta);
+        return new SolverState(state, messages, constraints.freeze(), delays.freeze(), existentials, completeness, expanded, meta);
     }
 
     public SolverState withMeta(SolutionMeta meta) {
-        return new SolverState(state, messages, constraints, delays, existentials, completeness, meta);
+        return new SolverState(state, messages, constraints, delays, existentials, completeness, expanded, meta);
     }
 
     /**

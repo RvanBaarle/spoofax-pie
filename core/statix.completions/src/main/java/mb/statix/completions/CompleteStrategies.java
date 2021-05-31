@@ -79,22 +79,36 @@ import static mb.strategies.Strategy2.define;
      * Expand predicate constraints that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllPredicates
-        = define("expandAllPredicates", "v", v ->
+        = define("expandAllPredicates", "v", (ITermVar v) ->
         // We need to repeat this, because there might be more than one constraint that limit(1, select..) might select.
         // For example, (and this happened), the first selected constraint may be subtypeOf(), which when completed
         // doesn't result in any additional syntax. We first need to expand the next constraint, typeOfType()
         // to get actually a useful result.
         // An example where this happens is in this program, on the $Type placeholder:
         //   let function $ID(): $Type = $Exp in 3 end
-        debugState(v, repeat(debugState(v, printSolverStates("ONCE PRED", seq(limit(1, selectConstraints(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
-            // Expand the focussed rule
-            .$(debugCUser(v, printSolverStates("EXPAND PRED", expandPredicateConstraint(v))))
-            // Perform inference and remove states that have errors
-            .$(debugState(v, printSolverStates("ASSERT PRED", assertValid(v))))
-            .$())))));
+        debugState(v,
+            // Empty the set of expanded things
+            seq((Strategy<SolverContext, SolverState, SolverState>)(solverContext, input) -> Seq.of(input.withExpanded(io.usethesource.capsule.Set.Immutable.of())))
+            .$(repeat(debugState(v, printSolverStates("ONCE PRED", seq(limit(1, selectConstraints(CUser.class, (constraint, state) -> containsVar(v, constraint, state)
+                && checkNotYetExpanded(state, constraint))))
+                // Expand the focussed rule
+                .$(debugCUser(v, printSolverStates("EXPAND PRED", expandPredicateConstraint(v))))
+                // Perform inference and remove states that have errors
+                .$(debugState(v, printSolverStates("ASSERT PRED", assertValid(v))))
+                .$())))
+            )
+            .$()));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllPredicates(ITermVar v) {
         return expandAllPredicates.apply(v);
+    }
+
+    private static boolean checkNotYetExpanded(SolverState state, CUser constraint) {
+        boolean alreadyExpanded = !state.getExpanded().contains(constraint.name());
+        if (alreadyExpanded) {
+            System.out.println("Constraint was expanded before: " + constraint);
+        }
+        return alreadyExpanded;
     }
 
 
