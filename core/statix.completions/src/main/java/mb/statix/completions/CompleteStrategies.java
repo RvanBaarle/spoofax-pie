@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -85,12 +86,12 @@ import static mb.strategies.Strategy2.define;
         // to get actually a useful result.
         // An example where this happens is in this program, on the $Type placeholder:
         //   let function $ID(): $Type = $Exp in 3 end
-        debugState(v, repeat(seq(limit(1, selectConstraints(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
+        debugState(v, repeat(debugState(v, printSolverStates("ONCE PRED", seq(limit(1, selectConstraints(CUser.class, (constraint, state) -> containsVar(v, constraint, state))))
             // Expand the focussed rule
-            .$(expandPredicateConstraint(v))
+            .$(debugCUser(v, printSolverStates("EXPAND PRED", expandPredicateConstraint(v))))
             // Perform inference and remove states that have errors
-            .$(assertValid(v))
-            .$())));
+            .$(debugState(v, printSolverStates("ASSERT PRED", assertValid(v))))
+            .$())))));
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllPredicates(ITermVar v) {
         return expandAllPredicates.apply(v);
@@ -401,8 +402,8 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SolverState>, SolverState, SolverState> debugState
         = Strategy2.define("debugState", "v", "s", (v, s) -> Strategies.debug(it -> it.project(v).toString(), it -> it.project(v).toString(), s));
     public static Strategy<SolverContext, SolverState, SolverState> debugState(ITermVar v, Strategy<SolverContext, SolverState, SolverState> s) {
-        return s;
-//        return debugState.apply(v, s);
+//        return s;
+        return debugState.apply(v, s);
     }
 
     public static Strategy<SolverContext, SolverState, SolverState> debugState2(ITermVar v, Strategy<SolverContext, SolverState, SolverState> s) {
@@ -412,33 +413,62 @@ import static mb.strategies.Strategy2.define;
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState>, SelectedConstraintSolverState<CUser>, SolverState> debugCUser
         = Strategy2.define("debugCUser", "v", "s", (v, s) -> Strategies.debug(it -> it.getSelected().toString(), it -> it.project(v).toString(), s));
     public static Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState> debugCUser(ITermVar v, Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState> s) {
-        return s;
-//        return debugCUser.apply(v, s);
+//        return s;
+        return debugCUser.apply(v, s);
     }
 
     private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState>, SelectedConstraintSolverState<CResolveQuery>, SolverState> debugCResolveQuery
         = Strategy2.define("debugCResolveQuery", "v", "s", (v, s) -> Strategies.debug(it -> it.getSelected().toString(), it -> it.project(v).toString(), s));
     public static Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> debugCResolveQuery(ITermVar v, Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> s) {
-        return s;
-//        return debugCResolveQuery.apply(v, s);
+//        return s;
+        return debugCResolveQuery.apply(v, s);
     }
 
     public static <SolverState, O> Strategy<SolverContext, SolverState, O> printSolverState(String prefix, Strategy<SolverContext, SolverState, O> s) {
-        return s;
-//        return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
-//            @Override
-//            protected Seq<O> innerEval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
-//                if (true) {//DebugStrategy.debug) {
-//                    System.out.println(prefix + ": " + input);
-//                }
-//                return s.eval(ctx, input);
-//            }
-//
-//            @Override
-//            public String getName() {
-//                return "printSolverState";
-//            }
-//        }.apply(s);
+//        return s;
+        return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
+            @Override
+            protected Seq<O> innerEval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
+                if (true) {//DebugStrategy.debug) {
+                    System.out.println(prefix + ": " + input);
+                }
+                return s.eval(ctx, input);
+            }
+
+            @Override
+            public String getName() {
+                return "printSolverState";
+            }
+        }.apply(s);
+    }
+
+    public static <SolverState, O> Strategy<SolverContext, SolverState, O> printSolverStates(String prefix, Strategy<SolverContext, SolverState, O> s) {
+//        return s;
+        return new AbstractStrategy1<SolverContext, Strategy<SolverContext, SolverState, O>, SolverState, O>() {
+            @Override
+            protected Seq<O> innerEval(SolverContext ctx, Strategy<SolverContext, SolverState, O> s, SolverState input) {
+                Seq<O> results = s.eval(ctx, input).buffer();
+                try {
+                    List<O> resultsList = results.toList().eval();
+
+                    System.out.println(prefix + " IN: " + input);
+                    if (true) {//DebugStrategy.debug) {
+                        for (int i = 0; i < resultsList.size(); i++) {
+                            O result = resultsList.get(i);
+                            System.out.println(prefix + " OUT " + i + ": " + result);
+                        }
+                    }
+                } catch(InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return results;
+            }
+
+            @Override
+            public String getName() {
+                return "printSolverState";
+            }
+        }.apply(s);
     }
 
     /**

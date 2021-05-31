@@ -190,7 +190,8 @@ public abstract class CompletenessTest {
 
                     Future<CompletionResult> future = executorService.submit(runnable);
                     try {
-                        CompletionResult result = future.get(60, TimeUnit.SECONDS);
+//                        CompletionResult result = future.get();
+                        CompletionResult result = future.get(3, TimeUnit.SECONDS);
                         switch(result.state) {
                             case Success:
                                 progressedSinceDelays = true;
