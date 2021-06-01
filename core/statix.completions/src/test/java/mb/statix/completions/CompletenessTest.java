@@ -24,6 +24,7 @@ import mb.statix.constraints.messages.MessageKind;
 import mb.statix.solver.Delay;
 import mb.statix.solver.IConstraint;
 import mb.statix.spec.Spec;
+import mb.strategies.DebugStrategy;
 import mb.strategies.StrategyEventHandler;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.DynamicTest;
@@ -264,7 +265,7 @@ public abstract class CompletenessTest {
     }
 
     private static void logCompletionStepResultWithCandidates(Level level, String message, String testName, ITermVar var, CompletionExpectation<?> expectation, List<CompletionExpectation<? extends ITerm>> candidates) {
-        logCompletionStepResult(level, message + "\nGot " + candidates.size() + " candidate" + (candidates.size() == 1 ? "" : "s") + ":\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")), testName, var, expectation);
+        logCompletionStepResult(level, message + "\nGot " + candidates.size() + " candidate" + (candidates.size() == 1 ? "" : "s") + ":\n  " + (DebugStrategy.debug ? candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")) : ""), testName, var, expectation);
     }
     // List<TermCompleter.CompletionSolverProposal> proposals
 
@@ -345,8 +346,8 @@ public abstract class CompletenessTest {
 
                 log.info("====================== " + testName +" ================================\n" +
                     "COMPLETING var " + var + " in AST:\n  " + completionExpectation.getIncompleteAst() + "\n" +
-                    "Expected:\n  " + completionExpectation.getExpectations().get(var) + "\n" +
-                    "State:\n  " + state);
+                    "Expected:\n  " + completionExpectation.getExpectations().get(var));// + "\n" +
+                    //"State:\n  " + state);
 
                 if (state.getConstraints().stream().filter(c -> c.getVars().contains(var))
                     .anyMatch(CompletenessTest::isLiteralAstProperty) &&
