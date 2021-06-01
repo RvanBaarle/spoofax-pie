@@ -44,6 +44,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -187,8 +189,8 @@ public abstract class CompletenessTest {
 
                     Future<CompletionResult> future = executorService.submit(runnable);
                     try {
-                        CompletionResult result = future.get();
-//                        CompletionResult result = future.get(15, TimeUnit.SECONDS);
+//                        CompletionResult result = future.get();
+                        CompletionResult result = future.get(5, TimeUnit.SECONDS);
                         switch(result.state) {
                             case Inserted:
                                 insertedSinceFailure = true;
@@ -206,9 +208,9 @@ public abstract class CompletenessTest {
                                 failedVars.add(var);
                                 break;
                         }
-//                    } catch(TimeoutException ex) {
-//                        fail(() -> "Interrupted.");
-//                        return;
+                    } catch(TimeoutException ex) {
+                        fail(() -> "Interrupted.");
+                        return;
                     } catch(ExecutionException ex) {
                         log.error("Error was thrown: " + ex.getMessage(), ex);
                         fail(() -> "Error was thrown.");

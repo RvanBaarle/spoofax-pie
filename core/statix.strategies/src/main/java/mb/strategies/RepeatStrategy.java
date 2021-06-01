@@ -37,19 +37,20 @@ public final class RepeatStrategy<CTX, T> extends AbstractStrategy1<CTX, Strateg
             // TODO: Can we optimize this to not compute all values in advance?
             @Override
             protected Iterable<T> computeAll() throws InterruptedException {
-                // Use LinkedHashSet to preserve insertion order
+                ArrayList<T> results = new ArrayList<T>();
                 ArrayList<T> newValues = new ArrayList<T>();
                 ArrayList<T> values = new ArrayList<T>();
                 values.add(input);
-                while (true) {
+                while (!values.isEmpty()) {
                     for(T value : values) {
                         final Seq<T> seq = s.eval(ctx, value);
-                        seq.iterator().forEachRemaining(newValues::add);
-                    }
-
-                    if (newValues.isEmpty()) {
-                        // Everything failed, we return
-                        return values;
+                        if (seq.none().eval()) {
+                            // The strategy failed
+                            results.add(value);
+                        } else {
+                            // The strategy succeeded
+                            seq.iterator().forEachRemaining(newValues::add);
+                        }
                     }
 
                     ArrayList<T> tmp = values;
@@ -57,6 +58,7 @@ public final class RepeatStrategy<CTX, T> extends AbstractStrategy1<CTX, Strateg
                     newValues = tmp;
                     newValues.clear();
                 }
+                return results;
             }
         };
     }

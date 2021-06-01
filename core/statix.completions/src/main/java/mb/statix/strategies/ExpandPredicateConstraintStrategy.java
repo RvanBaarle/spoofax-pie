@@ -1,6 +1,5 @@
 package mb.statix.strategies;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import io.usethesource.capsule.Set;
 import mb.nabl2.terms.ITerm;
@@ -18,9 +17,7 @@ import mb.statix.spec.ApplyMode;
 import mb.statix.spec.ApplyResult;
 import mb.statix.spec.Rule;
 import mb.statix.spec.RuleUtil;
-import mb.strategies.AbstractStrategy;
 import mb.strategies.AbstractStrategy1;
-import mb.strategies.DebugStrategy;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Collection;
@@ -32,18 +29,18 @@ import java.util.stream.Stream;
 /**
  * Expands the selected rule.
  */
-public final class ExpandRuleStrategy extends AbstractStrategy1<SolverContext, ITermVar, SelectedConstraintSolverState<CUser>, SolverState> {
+public final class ExpandPredicateConstraintStrategy extends AbstractStrategy1<SolverContext, ITermVar, SelectedConstraintSolverState<CUser>, SolverState> {
 
     @SuppressWarnings("rawtypes")
-    private static final ExpandRuleStrategy instance = new ExpandRuleStrategy();
+    private static final ExpandPredicateConstraintStrategy instance = new ExpandPredicateConstraintStrategy();
     @SuppressWarnings("unchecked")
-    public static ExpandRuleStrategy getInstance() { return (ExpandRuleStrategy)instance; }
+    public static ExpandPredicateConstraintStrategy getInstance() { return (ExpandPredicateConstraintStrategy)instance; }
 
-    private ExpandRuleStrategy() {}
+    private ExpandPredicateConstraintStrategy() {}
 
     @Override
     public String getName() {
-        return "expandRule";
+        return "expandPredicateConstraint";
     }
 
     @SuppressWarnings("SwitchStatementWithTooFewBranches") @Override

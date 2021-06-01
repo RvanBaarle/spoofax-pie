@@ -43,7 +43,7 @@ public final class SearchStrategies {
      * @return the resulting strategy
      */
     public static Strategy<SolverContext, SelectedConstraintSolverState<CUser>, SolverState> expandPredicateConstraint(ITermVar v) {
-        return ExpandRuleStrategy.getInstance().apply(v);
+        return ExpandPredicateConstraintStrategy.getInstance().apply(v);
     }
 
     /**
