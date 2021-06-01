@@ -346,8 +346,8 @@ public abstract class CompletenessTest {
 
                 log.info("====================== " + testName +" ================================\n" +
                     "COMPLETING var " + var + " in AST:\n  " + completionExpectation.getIncompleteAst() + "\n" +
-                    "Expected:\n  " + completionExpectation.getExpectations().get(var));// + "\n" +
-                    //"State:\n  " + state);
+                    "Expected:\n  " + completionExpectation.getExpectations().get(var) + "\n" +
+                    "State:\n  " + state);
 
                 if (state.getConstraints().stream().filter(c -> c.getVars().contains(var))
                     .anyMatch(CompletenessTest::isLiteralAstProperty) &&
