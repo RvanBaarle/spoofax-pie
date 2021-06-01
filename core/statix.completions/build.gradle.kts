@@ -72,4 +72,8 @@ dependencies {
 tasks { withType<Test> {
   //debug = true
   maxHeapSize = "3g"
+  testLogging {
+    outputs.upToDateWhen {false}
+    showStandardStreams = true
+  }
 } }

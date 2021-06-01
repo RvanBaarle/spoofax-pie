@@ -1,6 +1,5 @@
 package mb.statix.completions;
 
-import com.google.common.collect.ImmutableSet;
 import io.usethesource.capsule.Map;
 import mb.jsglr.common.MoreTermUtils;
 import mb.log.api.Level;
@@ -19,11 +18,11 @@ import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.common.StatixAnalyzer;
 import mb.statix.common.StatixSpec;
+import mb.statix.constraints.CAstProperty;
 import mb.statix.constraints.messages.IMessage;
 import mb.statix.constraints.messages.MessageKind;
 import mb.statix.solver.Delay;
 import mb.statix.solver.IConstraint;
-import mb.statix.spec.Rule;
 import mb.statix.spec.Spec;
 import mb.strategies.StrategyEventHandler;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -35,7 +34,6 @@ import org.spoofax.terms.TermFactory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -46,8 +44,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -180,6 +176,7 @@ public abstract class CompletenessTest {
             final Set<ITermVar> delayedVars = new HashSet<>();
             // Whether we did anything useful since the last time we tried all delays
             boolean progressedSinceDelays = false;
+            boolean insertedSinceFailure = false;
             while(!completionExpectation.isComplete()) {
                 cleanup();
 
@@ -190,9 +187,12 @@ public abstract class CompletenessTest {
 
                     Future<CompletionResult> future = executorService.submit(runnable);
                     try {
-//                        CompletionResult result = future.get();
-                        CompletionResult result = future.get(10, TimeUnit.SECONDS);
+                        CompletionResult result = future.get();
+//                        CompletionResult result = future.get(15, TimeUnit.SECONDS);
                         switch(result.state) {
+                            case Inserted:
+                                insertedSinceFailure = true;
+                                // Fallthrough:
                             case Success:
                                 progressedSinceDelays = true;
                                 completionExpectation = result.getCompletionExpectation();
@@ -206,9 +206,9 @@ public abstract class CompletenessTest {
                                 failedVars.add(var);
                                 break;
                         }
-                    } catch(TimeoutException ex) {
-                        fail(() -> "Interrupted.");
-                        return;
+//                    } catch(TimeoutException ex) {
+//                        fail(() -> "Interrupted.");
+//                        return;
                     } catch(ExecutionException ex) {
                         log.error("Error was thrown: " + ex.getMessage(), ex);
                         fail(() -> "Error was thrown.");
@@ -220,85 +220,19 @@ public abstract class CompletenessTest {
                     delayedVars.clear();
                     progressedSinceDelays = false;
                     continue;
-                } else {
-                    log.warn("All variables delayed or rejected, trying to insert literals.");
-                    // All of the completions failed previously
-                    // Let's try to insert a literal
-                    CompletionExpectation<? extends ITerm> finalCompletionExpectation = completionExpectation;
-                    ITermVar literalVar = completionExpectation.getVars().stream().filter(v -> isLiteral(finalCompletionExpectation.getExpectations().get(v))).findFirst().orElse(null);
-                    if (literalVar != null) {
-                        // Insert the literal
-                        ITerm value = completionExpectation.getExpectations().get(literalVar);
-                        @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(literalVar, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), value));
-                        if(candidate == null) {
-                            logCompletionStepResult(Level.Error, "Could not insert literal '" + value + "'.", testName, literalVar, completionExpectation);
-                            stats.endRound();
-                            fail("Could not insert literal '" + value + "'.");
-                            break;
-                        }
-                        progressedSinceDelays = true;
-                        stats.insertedLiteral();
-                        completionExpectation = candidate;
-                        logCompletionStepResultWithCandidates(Level.Info, "Inserted literal '" + value + "'.", testName, literalVar, completionExpectation, Collections.singletonList(candidate));
-                    } else {
-                        // No literals to insert
-                        fail("All completions failed and could not insert any literals.");
-                        break;
-                    }
-
+                } else if (insertedSinceFailure && !failedVars.isEmpty()) {
+                    log.warn("All variables delayed or rejected, retrying since new literals have been inserted.");
                     // Try again on all completion variables
                     failedVars.clear();
+                    insertedSinceFailure = false;
                     continue;
+                } else {
+                    // No literals to insert
+                    fail("All completions failed and could not insert any literals.");
+                    break;
                 }
             }
             log.info("Done completing!");
-
-
-//            // Perform a breadth-first search of completions:
-//            //  For each incomplete variable, we perform completion.
-//            //  If any of the variables result in one candidate, this candidate is applied.
-//            //  If none of the variables result in one candidate (i.e., there's no progress), then completion fails.
-//            while(!completionExpectation.isComplete()) {
-//                boolean allDelayed = true;
-//
-//                // For each term variable, invoke completion
-//                for(ITermVar var : completionExpectation.getVars()) {
-//                    cleanup();
-//
-//                    CompletionRunnable runnable = new CompletionRunnable(completer, completionExpectation, var, stats, newCtx, isInjPredicate, testName);
-//
-//                    Future<CompletionResult> future = executorService.submit(runnable);
-//                    try {
-//                        CompletionResult result = future.get(60, TimeUnit.SECONDS);
-//                        switch(result.state) {
-//                            case Success:
-//                                allDelayed = false;
-//                                completionExpectation = result.getCompletionExpectation();
-//                                break;
-//                            case Skip:
-//                                allDelayed = true;
-//                                break;
-//                            case Fail:
-//                                fail("Failed.");
-//                                return;
-//                        }
-//                    } catch (TimeoutException ex) {
-//                        fail(() -> "Interrupted.");
-//                        return;
-//                    } catch(ExecutionException ex) {
-//                        log.error("Error was thrown: " + ex.getMessage(), ex);
-//                        fail(() -> "Error was thrown.");
-//                        return;
-//                    }
-//                }
-//
-//                if(allDelayed) {
-//                    // We've been skipping delayed variables but have made no progress. We're stuck.
-//                    @Nullable SolverState state = completionExpectation.getState();
-//                    fail(() -> "Stuck on delaying variables.\nState:\n  " + state);
-//                    return;
-//                }
-//            }
         }
 
         // Done! Success!
@@ -317,10 +251,10 @@ public abstract class CompletenessTest {
 
     private static void logCompletionStepResult(Level level, String message, String testName, ITermVar var, CompletionExpectation<?> expectation) {
         log.log(level, "-------------- " + testName +" ----------------\n" +
-            "Complete var " + var + " in AST:\n  " + expectation.getIncompleteAst() + "\n" +
-            "Expected:\n  " + expectation.getExpectations().get(var), //+ "\n" +
-            "State:\n  " + expectation.getState() +
-            message);
+            endWithNewline(message) +
+            "Completion of var " + var + " in AST:\n  " + expectation.getIncompleteAst() +
+            "\nExpected:\n  " + expectation.getExpectations().get(var));
+//            "\nState:\n  " + expectation.getState());
     }
 
     private static void logCompletionStepResultWithProposals(Level level, String message, String testName, ITermVar var, CompletionExpectation<?> expectation, List<TermCompleter.CompletionSolverProposal> proposals) {
@@ -331,6 +265,12 @@ public abstract class CompletenessTest {
         logCompletionStepResult(level, message + "\nGot " + candidates.size() + " candidate" + (candidates.size() == 1 ? "" : "s") + ":\n  " + candidates.stream().map(c -> c.getState().toString()).collect(Collectors.joining("\n  ")), testName, var, expectation);
     }
     // List<TermCompleter.CompletionSolverProposal> proposals
+
+    private static String endWithNewline(String s) {
+        if (s == null || s.isEmpty() || s.trim().isEmpty()) return "";
+        if (s.endsWith("\n")) return s;
+        return s + "\n";
+    }
 
     private static void cleanup() {
         log.info("Cleaning...");
@@ -406,6 +346,27 @@ public abstract class CompletenessTest {
                     "Expected:\n  " + completionExpectation.getExpectations().get(var) + "\n" +
                     "State:\n  " + state);
 
+                if (state.getConstraints().stream().filter(c -> c.getVars().contains(var))
+                    .anyMatch(CompletenessTest::isLiteralAstProperty) &&
+                    isLiteral(completionExpectation.getExpectations().get(var))) {
+                    // The variable is a literal that has an @decl annotation.
+                    log.info("Found declaration name or literal, inserting...");
+                    ITerm name = completionExpectation.getExpectations().get(var);
+                    @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(var, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), name));
+                    if(candidate == null) {
+                        logCompletionStepResult(Level.Warn, "Expected a declaration name or literal. Could not insert: " + name + "\n",
+                            testName, var, completionExpectation);
+                        stats.endRound();
+                        return CompletionResult.fail();
+                    }
+                    stats.insertedLiteral();
+                    newCompletionExpectation = candidate;
+                    logCompletionStepResult(Level.Info, "Inserted 1 declaration name or literal: " + name + "\n " + candidate.getIncompleteAst(),
+                        testName, var, completionExpectation);
+                    stats.endRound();
+                    return CompletionResult.inserted(newCompletionExpectation);
+                }
+
                 if(isVarInDelays(state.getDelays(), var)) {
                     // We skip variables in delays, let's see where we get until we loop forever.
                     stats.skipRound();
@@ -423,33 +384,13 @@ public abstract class CompletenessTest {
                 if(candidates.size() == 1) {
                     // Only one candidate, let's apply it
                     newCompletionExpectation = candidates.get(0);
-                    logCompletionStepResultWithCandidates(Level.Info, "", testName, var, currentCompletionExpectation, candidates);
+                    logCompletionStepResultWithCandidates(Level.Info, "Only one candidate.", testName, var, currentCompletionExpectation, candidates);
                 } else if(candidates.size() > 1) {
                     // Multiple candidates, let's use the one with the least number of open variables
                     // and otherwise the first one (could also use the biggest one instead)
                     candidates.sort(Comparator.comparingInt(o -> o.getVars().size()));
                     newCompletionExpectation = candidates.get(0);
-                    logCompletionStepResultWithCandidates(Level.Info, "", testName, var, currentCompletionExpectation, candidates);
-//                } else if(isLiteral(completionExpectation.getExpectations().get(var))) {
-//                    // No candidates, but the expected term is a string (probably the name of a declaration).
-//                    ITerm name = completionExpectation.getExpectations().get(var);
-//                    @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(var, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), name));
-//                    if(candidate == null) {
-//                        log.info("-------------- " + testName +" ----------------\n" +
-//                            "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-//                            "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-//                            //"State:\n  " + state +
-//                            "Got NO candidates, but expected a literal. Could not insert literal " + name + ".\nProposals:\n  " + proposals.stream().map(p -> p.getTerm() + " <-  " + p.getNewState()).collect(Collectors.joining("\n  ")));
-//                        stats.endRound();
-//                        return CompletionResult.fail();
-//                    }
-//                    stats.insertedLiteral();
-//                    newCompletionExpectation = candidate;
-//                    log.info("-------------- " + testName +" ----------------\n" +
-//                        "Complete var " + var + " in AST:\n  " + currentCompletionExpectation.getIncompleteAst() + "\n" +
-//                        "Expected:\n  " + currentCompletionExpectation.getExpectations().get(var) + "\n" +
-//                        //"State:\n  " + state +
-//                        "Got 1 (literal) candidate:\n  " + candidate.getState());
+                    logCompletionStepResultWithCandidates(Level.Info, "Multiple candidates, picked the first.", testName, var, currentCompletionExpectation, candidates);
                 } else {
                     // No candidates, completion algorithm is not complete
                     logCompletionStepResultWithProposals(Level.Warn, "Got NO candidates.", testName, var, currentCompletionExpectation, proposals);
@@ -465,10 +406,26 @@ public abstract class CompletenessTest {
         }
     }
 
+    private static boolean isLiteralAstProperty(IConstraint c) {
+        if (!(c instanceof CAstProperty)) return false;
+        CAstProperty astProperty = (CAstProperty)c;
+        ITerm propertyTerm = astProperty.property();
+        if (!(propertyTerm instanceof IApplTerm)) return false;
+        IApplTerm propertyAppl = (IApplTerm)propertyTerm;
+        if (!propertyAppl.getOp().equals("Prop") || propertyAppl.getArity() != 1) return false;
+        ITerm propertyArg = propertyAppl.getArgs().get(0);
+        if (!(propertyArg instanceof IStringTerm)) return false;
+        String propertyName = ((IStringTerm)propertyArg).getValue();
+        // Declarations are marked `@name.decl := name`.
+        // Literals (int, string) are marked `@name.lit := name`.
+        return propertyName.equals("decl") || propertyName.equals("lit");
+    }
+
     private enum CompletionState {
         Success,
         Fail,
         Skip,
+        Inserted,       // When a literal has been inserted
     }
 
     private static class CompletionResult {
@@ -490,6 +447,7 @@ public abstract class CompletenessTest {
 
         public static CompletionResult fail() { return new CompletionResult(CompletionState.Fail, null); }
         public static CompletionResult skip() { return new CompletionResult(CompletionState.Skip, null); }
+        public static CompletionResult inserted(CompletionExpectation<? extends ITerm> completionExpectation) { return new CompletionResult(CompletionState.Inserted, completionExpectation); }
         public static CompletionResult of(CompletionExpectation<? extends ITerm> completionExpectation) { return new CompletionResult(CompletionState.Success, completionExpectation); }
 
     }
