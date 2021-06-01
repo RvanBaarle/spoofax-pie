@@ -116,11 +116,11 @@ import static mb.strategies.Strategy2.define;
     }
 
     private static boolean checkNotYetExpanded(SolverState state, CUser constraint) {
-        boolean alreadyExpanded = !state.getExpanded().contains(constraint.name());
+        boolean alreadyExpanded = state.getExpanded().contains(constraint.name());
         if (alreadyExpanded) {
             System.out.println("Constraint was expanded before: " + constraint);
         }
-        return alreadyExpanded;
+        return !alreadyExpanded;
     }
 
 
@@ -272,16 +272,6 @@ import static mb.strategies.Strategy2.define;
     public static Strategy<SolverContext, SolverState, SolverState> expandDeterministic(ITermVar v) {
         return expandDeterministic.apply(v);
     }
-
-//    /**
-//     * Remove literals and naked placeholders.
-//     */
-//    private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> filterLiteralsAndPlaceholders
-//        = define("filterLiteralsAndPlaceholders", v -> Strategies.assertThat(s -> !StrategoPlaceholders.isPlaceholder(s.project(v))));
-//
-//    public static Strategy<SolverContext, SolverState, SolverState> filterLiteralsAndPlaceholders(ITermVar v) {
-//        return filterLiteralsAndPlaceholders.apply(v);
-//    }
 
     /**
      * Remove naked placeholders.
