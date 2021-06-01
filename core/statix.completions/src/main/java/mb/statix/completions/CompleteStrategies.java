@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import mb.nabl2.terms.IApplTerm;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
+import mb.nabl2.terms.unification.UnifierFormatter;
 import mb.sequences.Seq;
 import mb.statix.common.SelectedConstraintSolverState;
 import mb.statix.common.PlaceholderVarMap;
@@ -24,6 +25,7 @@ import mb.strategies.Strategy2;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -313,6 +315,11 @@ import static mb.strategies.Strategy2.define;
             boolean valid = !s.hasSeriousErrors(ctx.getAllowedErrors());
             if(!valid && DebugStrategy.debug) {
                 System.out.println("REJECTED: " + s.project(v));
+                System.out.println("=============");
+                try (PrintWriter pw = new PrintWriter(System.out)) {
+                    s.writeMessages(pw, (t, u) -> new UnifierFormatter(u, 2).format(t));
+                }
+                System.out.println("=============");
             }
             return valid;
         }))

@@ -39,6 +39,7 @@ import org.metaborg.util.optionals.Optionals;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -412,6 +413,11 @@ public final class SolverState {
         writer.println("|   expandedQueries: " + meta.getExpandedQueries());
         writer.println("|   expandedRules: " + meta.getExpandedRules());
 
+        writeMessages(writer, prettyprinter);
+    }
+
+    public void writeMessages(PrintWriter writer, Function2<ITerm, IUniDisunifier, String> prettyprinter) {
+        final IUniDisunifier unifier = state.unifier();
         List<java.util.Map.Entry<IConstraint, IMessage>> errors = messages.entrySet().stream().filter(it -> it.getValue().kind() == MessageKind.ERROR).collect(Collectors.toList());
         if (!errors.isEmpty()) {
             writer.println("| errors:");
