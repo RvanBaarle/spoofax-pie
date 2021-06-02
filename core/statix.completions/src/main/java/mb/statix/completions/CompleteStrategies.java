@@ -225,10 +225,13 @@ import static mb.strategies.Strategy2.define;
         = define("expandAllQueries", "v", v ->// debugState(v,
           distinct(or(id(), fixSet(
             if_(
-                limit(1, debugSelectCResolveQuery(v, selectConstraints(CResolveQuery.class, (constraint, state) -> {
+                limit(1, //debugSelectCResolveQuery(v,
+                    selectConstraints(CResolveQuery.class, (constraint, state) -> {
                     final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
                     return containsAnyVar(innerVars, constraint, state);
-                }))),
+                }
+                //)
+                )),
                 seq(debugCResolveQuery(v,
                     expandQueryConstraint()
                 )
