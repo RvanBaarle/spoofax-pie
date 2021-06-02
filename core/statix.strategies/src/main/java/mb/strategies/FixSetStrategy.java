@@ -47,12 +47,13 @@ public final class FixSetStrategy<CTX, T> extends AbstractStrategy1<CTX, Strateg
                 while (true) {
                     for(T value : values) {
                         final Seq<T> seq = s.eval(ctx, value);
-                        seq.iterator().forEachRemaining(newValues::add);
-                    }
-
-                    if (newValues.isEmpty()) {
-                        // Everything failed, we return
-                        return values;
+                        if (seq.none().eval()) {
+                            // The strategy failed
+                            newValues.add(value);
+                        } else {
+                            // The strategy succeeded
+                            seq.iterator().forEachRemaining(newValues::add);
+                        }
                     }
 
                     if (values.equals(newValues)) {
