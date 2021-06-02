@@ -225,10 +225,10 @@ import static mb.strategies.Strategy2.define;
         = define("expandAllQueries", "v", v -> debugState(v,
           distinct(or(id(), fixSet(
             if_(
-                limit(1, selectConstraints(CResolveQuery.class, (constraint, state) -> {
+                limit(1, debugSelectCResolveQuery(v, selectConstraints(CResolveQuery.class, (constraint, state) -> {
                     final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
                     return containsAnyVar(innerVars, constraint, state);
-                })),
+                }))),
                 seq(debugCResolveQuery(v,
                     expandQueryConstraint()
                 )
@@ -428,6 +428,13 @@ import static mb.strategies.Strategy2.define;
     public static Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> debugCResolveQuery(ITermVar v, Strategy<SolverContext, SelectedConstraintSolverState<CResolveQuery>, SolverState> s) {
 //        return s;
         return debugCResolveQuery.apply(v, s);
+    }
+
+    private static final Strategy2<SolverContext, ITermVar, Strategy<SolverContext, SolverState, SelectedConstraintSolverState<CResolveQuery>>, SolverState, SelectedConstraintSolverState<CResolveQuery>> debugSelectCResolveQuery
+        = Strategy2.define("debugSelectCResolveQuery", "v", "s", (v, s) -> Strategies.debug(it -> it.project(v).toString(), it -> it.getSelected().toString(), s));
+    public static Strategy<SolverContext, SolverState, SelectedConstraintSolverState<CResolveQuery>> debugSelectCResolveQuery(ITermVar v, Strategy<SolverContext, SolverState, SelectedConstraintSolverState<CResolveQuery>> s) {
+//        return s;
+        return debugSelectCResolveQuery.apply(v, s);
     }
 
     public static <SolverState, O> Strategy<SolverContext, SolverState, O> printSolverState(String prefix, Strategy<SolverContext, SolverState, O> s) {

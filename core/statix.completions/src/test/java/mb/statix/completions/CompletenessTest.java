@@ -355,9 +355,9 @@ public abstract class CompletenessTest {
                     "State:\n  " + state);
 
                 if (state.getConstraints().stream().filter(c -> c.getVars().contains(var))
-                    .anyMatch(CompletenessTest::isLiteralAstProperty) &&
-                    isLiteral(completionExpectation.getExpectations().get(var))) {
-                    // The variable is a literal that has an @decl annotation.
+                        .anyMatch(CompletenessTest::isLiteralAstProperty) &&
+                        isLiteral(completionExpectation.getExpectations().get(var))) {
+                    // The variable is a literal that has an @decl or @lit annotation.
                     log.info("Found declaration name or literal, inserting...");
                     ITerm term = completionExpectation.getExpectations().get(var);
 
