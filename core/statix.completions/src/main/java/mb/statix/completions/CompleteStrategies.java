@@ -317,7 +317,7 @@ import static mb.strategies.Strategy2.define;
                 System.out.println("REJECTED: " + s.project(v));
                 System.out.println("=============");
                 try (PrintWriter pw = new PrintWriter(System.out)) {
-                    s.writeMessages(pw, (t, u) -> new UnifierFormatter(u, 2).format(t));
+                    s.writeMessages(pw, (t, u) -> new UnifierFormatter(u, Integer.MAX_VALUE).format(t));
                 }
                 System.out.println("=============");
             }

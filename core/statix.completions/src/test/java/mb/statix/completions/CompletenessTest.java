@@ -13,12 +13,16 @@ import mb.nabl2.terms.stratego.StrategoTermIndices;
 import mb.nabl2.terms.stratego.StrategoTerms;
 import mb.resource.DefaultResourceKey;
 import mb.resource.ResourceKey;
+import mb.sequences.Seq;
 import mb.statix.common.PlaceholderVarMap;
 import mb.statix.common.SolverContext;
 import mb.statix.common.SolverState;
 import mb.statix.common.StatixAnalyzer;
 import mb.statix.common.StatixSpec;
+import mb.statix.common.strategies.InferStrategy;
+import mb.statix.constraints.CAstId;
 import mb.statix.constraints.CAstProperty;
+import mb.statix.constraints.CEqual;
 import mb.statix.constraints.messages.IMessage;
 import mb.statix.constraints.messages.MessageKind;
 import mb.statix.solver.Delay;
@@ -35,6 +39,7 @@ import org.spoofax.terms.TermFactory;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -231,7 +236,7 @@ public abstract class CompletenessTest {
                     continue;
                 } else {
                     // No literals to insert
-                    fail("All completions failed and could not insert any literals.");
+                    fail("All completions failed and could not insert any literals. The following are waiting: " + String.join(", ", failedVars.stream().map(Object::toString).collect(Collectors.toList())));
                     break;
                 }
             }
@@ -354,17 +359,31 @@ public abstract class CompletenessTest {
                     isLiteral(completionExpectation.getExpectations().get(var))) {
                     // The variable is a literal that has an @decl annotation.
                     log.info("Found declaration name or literal, inserting...");
-                    ITerm name = completionExpectation.getExpectations().get(var);
-                    @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(var, new TermCompleter.CompletionSolverProposal(completionExpectation.getState(), name));
+                    ITerm term = completionExpectation.getExpectations().get(var);
+
+                    // Add a constraint that inserts the literal, and perform inference
+                    CEqual ceq = new CEqual(var, term);
+                    SolverState newSolverState = completionExpectation.getState().updateConstraints(newCtx.getSpec(), Collections.singletonList(ceq), Collections.emptyList());
+                    List<SolverState> inferredSolverStates = InferStrategy.getInstance().eval(newCtx, newSolverState).toList().eval();
+                    if (inferredSolverStates.isEmpty()) {
+                        logCompletionStepResult(Level.Warn, "Inference failed when inserting literal. Could not insert: " + term + "\n",
+                            testName, var, completionExpectation);
+                        stats.endRound();
+                        return CompletionResult.fail();
+                    }
+                    SolverState inferredSolverState = inferredSolverStates.get(0);
+
+                    // Replace the term in the expectation
+                    @Nullable CompletionExpectation<? extends ITerm> candidate = completionExpectation.tryReplace(var, new TermCompleter.CompletionSolverProposal(inferredSolverState, term));
                     if(candidate == null) {
-                        logCompletionStepResult(Level.Warn, "Expected a declaration name or literal. Could not insert: " + name + "\n",
+                        logCompletionStepResult(Level.Warn, "Expected a declaration name or literal. Could not insert: " + term + "\n",
                             testName, var, completionExpectation);
                         stats.endRound();
                         return CompletionResult.fail();
                     }
                     stats.insertedLiteral();
                     newCompletionExpectation = candidate;
-                    logCompletionStepResult(Level.Info, "Inserted 1 declaration name or literal: " + name + "\n " + candidate.getIncompleteAst(),
+                    logCompletionStepResult(Level.Info, "Inserted 1 declaration name or literal: " + term + "\n " + candidate.getIncompleteAst(),
                         testName, var, completionExpectation);
                     stats.endRound();
                     return CompletionResult.inserted(newCompletionExpectation);
