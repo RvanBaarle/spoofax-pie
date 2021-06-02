@@ -374,7 +374,7 @@ public final class SolverState {
         PrintWriter writer = new PrintWriter(out);
         try {
             writer.println("SolverState:");
-            write(writer, (t, u) -> new UnifierFormatter(u, /* Increased from 2 */ 8).format(t));
+            write(writer, (t, u) -> new UnifierFormatter(u, /* Increased from 2 */ Integer.MAX_VALUE).format(t));
         } catch (IOException e) {
             // This can never happen.
             throw new RuntimeException(e);

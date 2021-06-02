@@ -182,9 +182,8 @@ public abstract class CompletenessTest {
             final Set<ITermVar> failedVars = new HashSet<>();
             // List of delayed variables
             final Set<ITermVar> delayedVars = new HashSet<>();
-            // Whether we did anything useful since the last time we tried all delays
-            boolean progressedSinceDelays = false;
-            boolean insertedSinceFailure = false;
+            // Whether we did anything useful since the last time we tried all delays/failures
+            boolean madeProgress = false;
             while(!completionExpectation.isComplete()) {
                 cleanup();
 
@@ -199,18 +198,17 @@ public abstract class CompletenessTest {
                         CompletionResult result = future.get(5, TimeUnit.SECONDS);
                         switch(result.state) {
                             case Inserted:
-                                insertedSinceFailure = true;
                                 // Fallthrough:
                             case Success:
-                                progressedSinceDelays = true;
+                                madeProgress = true;
                                 completionExpectation = result.getCompletionExpectation();
                                 break;
                             case Skip:
-                                log.info("Delayed {}", var);
+                                log.warn("Delayed {}", var);
                                 delayedVars.add(var);
                                 break;
                             case Fail:
-                                log.info("Failed {}", var);
+                                log.warn("Failed {}", var);
                                 failedVars.add(var);
                                 break;
                         }
@@ -222,17 +220,12 @@ public abstract class CompletenessTest {
                         fail(() -> "Error was thrown.");
                         return;
                     }
-                } else if (progressedSinceDelays && !delayedVars.isEmpty()) {
-                    // Try all delayed variables again
-                    log.warn("All variables delayed, trying again.");
-                    delayedVars.clear();
-                    progressedSinceDelays = false;
-                    continue;
-                } else if (insertedSinceFailure && !failedVars.isEmpty()) {
-                    log.warn("All variables delayed or rejected, retrying since new literals have been inserted.");
+                } else if (madeProgress && (!delayedVars.isEmpty() || !failedVars.isEmpty())) {
+                    log.warn("All variables delayed or rejected, retrying since we made progress.");
                     // Try again on all completion variables
                     failedVars.clear();
-                    insertedSinceFailure = false;
+                    delayedVars.clear();
+                    madeProgress = false;
                     continue;
                 } else {
                     // No literals to insert
