@@ -286,6 +286,10 @@ public final class SolverState {
         return new SolverState(applyState, messages, constraints.freeze(), delays.freeze(), existentials, completeness.freeze(), expanded, meta);
     }
 
+    public SolverState withState(IState.Immutable state) {
+        return new SolverState(state, messages, constraints, delays, existentials, completeness, expanded, meta);
+    }
+
     /**
      * Update the constraints, keeping completeness and delayed constraints in sync.
      *

@@ -1,7 +1,11 @@
 package mb.statix.completions;
 
+import mb.nabl2.terms.IListTerm;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
+import mb.nabl2.terms.ListTerms;
+import mb.nabl2.terms.Terms;
+import mb.nabl2.terms.build.TermBuild;
 import mb.nabl2.terms.matching.TermPattern;
 import mb.nabl2.terms.unification.OccursException;
 import mb.nabl2.terms.unification.Unifiers;
@@ -11,6 +15,7 @@ import mb.statix.common.StrategoPlaceholders;
 import mb.nabl2.terms.substitution.ISubstitution;
 import mb.nabl2.terms.substitution.PersistentSubstitution;
 import mb.statix.common.SolverState;
+import mb.statix.solver.IState;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.immutables.value.Value;
 
@@ -18,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * An incomplete AST,
@@ -96,11 +102,12 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
             return null;
         }
 
-        if (this.getState() != null && term.getVars().stream().anyMatch(it -> this.getState().getState().vars().contains(it))) {
-            // The proposal contains variables that are also in the rest of the program.
-            // Since this can inadvertently capture other constraints, we reject this proposal.
-            return null;
-        }
+//        // Ensure any variables occurring in the term are fresh
+//        // As if they where -Plhdr() constructors that have been replaced by fresh variables.
+//        IState.Transient tmpState = proposal.getNewState().getState().melt();
+//        ITerm term = makeVarsFresh(proposal.getTerm(), tmpState);
+//        SolverState newState = proposal.getNewState().withState(tmpState.freeze());
+        SolverState newState = proposal.getNewState();
 
         ISubstitution.@Nullable Immutable substitution = trySubtitute(var, term);
         if (substitution == null) {
@@ -109,11 +116,25 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
             return null;
         }
 
+        IUniDisunifier.@Nullable Immutable expectedUnifier = tryUnify(this.getState().getState().unifier(), this.getExpectations().entrySet());
+        if (expectedUnifier == null) {
+            // The expectations cannot unify with the current unifier,
+            // so we reject this proposal.
+            return null;
+        }
+
+        IUniDisunifier.@Nullable Immutable expectedUnifier2 = tryUnify(expectedUnifier, substitution.entrySet());
+        if (expectedUnifier2 == null) {
+            // The substitution cannot unify with the current unifier,
+            // so we reject this proposal.
+            return null;
+        }
+
         // Additionally, we can only accept a proposal if the other variables can be matched to their new values,
         // or where the new value is the same as the old value, the new value is a variable, or the new value is unknown.
         for (ITermVar v : this.getVars()) {
             if (v.equals(var)) continue;
-            ITerm actualTerm =  proposal.getNewState().project(v);
+            ITerm actualTerm = newState.project(v);
             boolean matches = trySubtitute(v, actualTerm) != null;
             if (!matches) {
                 // The variable can never be replaced by the value in the unifier,
@@ -134,7 +155,7 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
             expectedAsts.put(entry.getKey(), entry.getValue());
         }
         ITerm newIncompleteAst = PersistentSubstitution.Immutable.of(var, term).apply(getIncompleteAst());
-        return CompletionExpectation.of(newIncompleteAst, expectedAsts, proposal.getNewState());
+        return CompletionExpectation.of(newIncompleteAst, expectedAsts, newState);
     }
 
     public ISubstitution.@Nullable Immutable trySubtitute(ITermVar var, ITerm actualTerm) {
@@ -142,5 +163,38 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
         assert expectedTerm != null;
         // Does the term we got, including variables, match the expected term?
         return TermPattern.P.fromTerm(actualTerm).match(expectedTerm).orElse(null);
+    }
+
+    public IUniDisunifier.@Nullable Immutable tryUnify(IUniDisunifier.Immutable unifier, Iterable<Map.Entry<ITermVar, ITerm>> pairs) {
+        try {
+            return unifier.unify(pairs).map(IUniDisunifier.Result::unifier).orElse(null);
+        } catch(OccursException e) {
+            return null;
+        }
+    }
+
+    @SuppressWarnings("Convert2MethodRef")
+    private static ITerm makeVarsFresh(ITerm term, IState.Transient state) {
+        return term.match(Terms.cases(
+            appl -> TermBuild.B.newAppl(appl.getOp(), appl.getArgs().stream().map(a -> makeVarsFresh(a, state)).collect(Collectors.toList()), appl.getAttachments()),
+            list -> makeVarsFreshInList(list, state),
+            string -> string,
+            integer -> integer,
+            blob -> blob,
+            var -> freshVar(var, state)
+        ));
+    }
+
+    @SuppressWarnings("Convert2MethodRef")
+    private static IListTerm makeVarsFreshInList(IListTerm term, IState.Transient state) {
+        return term.match(ListTerms.cases(
+            cons -> TermBuild.B.newCons(makeVarsFresh(cons.getHead(), state), makeVarsFreshInList(cons.getTail(), state), cons.getAttachments()),
+            nil -> nil,
+            var -> freshVar(var, state)
+        ));
+    }
+
+    private static ITermVar freshVar(ITermVar var, IState.Transient state) {
+        return state.freshVar(var);
     }
 }
