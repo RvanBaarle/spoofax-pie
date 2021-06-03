@@ -195,7 +195,7 @@ public abstract class CompletenessTest {
                     Future<CompletionResult> future = executorService.submit(runnable);
                     try {
 //                        CompletionResult result = future.get();
-                        CompletionResult result = future.get(5, TimeUnit.SECONDS);
+                        CompletionResult result = future.get(15, TimeUnit.SECONDS);
                         switch(result.state) {
                             case Inserted:
                                 // Fallthrough:
