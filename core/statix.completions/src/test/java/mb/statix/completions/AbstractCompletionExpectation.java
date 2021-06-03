@@ -3,6 +3,9 @@ package mb.statix.completions;
 import mb.nabl2.terms.ITerm;
 import mb.nabl2.terms.ITermVar;
 import mb.nabl2.terms.matching.TermPattern;
+import mb.nabl2.terms.unification.OccursException;
+import mb.nabl2.terms.unification.Unifiers;
+import mb.nabl2.terms.unification.ud.IUniDisunifier;
 import mb.statix.common.PlaceholderVarMap;
 import mb.statix.common.StrategoPlaceholders;
 import mb.nabl2.terms.substitution.ISubstitution;
@@ -90,11 +93,13 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
         if (var.equals(term)) {
             // Trying to replace by the same variable indicates that the proposal
             // did not replace the variable by a term.
-//            if (getState() != null && getState().getConstraints().intersect(proposal.getNewState().getConstraints()).isEmpty()) {
-//                // This is allowed iff the new proposal's constraints
-//                // are different from the current state's constraints.
             return null;
-//            }
+        }
+
+        if (this.getState() != null && term.getVars().stream().anyMatch(it -> this.getState().getState().vars().contains(it))) {
+            // The proposal contains variables that are also in the rest of the program.
+            // Since this can inadvertently capture other constraints, we reject this proposal.
+            return null;
         }
 
         ISubstitution.@Nullable Immutable substitution = trySubtitute(var, term);
@@ -108,7 +113,7 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
         // or where the new value is the same as the old value, the new value is a variable, or the new value is unknown.
         for (ITermVar v : this.getVars()) {
             if (v.equals(var)) continue;
-            ITerm actualTerm = proposal.getNewState().project(v);
+            ITerm actualTerm =  proposal.getNewState().project(v);
             boolean matches = trySubtitute(v, actualTerm) != null;
             if (!matches) {
                 // The variable can never be replaced by the value in the unifier,
@@ -121,6 +126,11 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
         HashMap<ITermVar, ITerm> expectedAsts = new HashMap<>(this.getExpectations());
         expectedAsts.remove(var);
         for(Map.Entry<ITermVar, ITerm> entry : substitution.entrySet()) {
+            expectedAsts.compute(entry.getKey(), (k, v) -> {
+                if (v != null && !v.equals(entry.getValue()))
+                    throw new IllegalStateException("Trying to add expectation " + k + " |-> " + entry.getValue() + ", but already has expectation |-> " + v + ".");
+                return entry.getValue();
+            });
             expectedAsts.put(entry.getKey(), entry.getValue());
         }
         ITerm newIncompleteAst = PersistentSubstitution.Immutable.of(var, term).apply(getIncompleteAst());
