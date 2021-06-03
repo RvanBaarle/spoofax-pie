@@ -65,13 +65,13 @@ import static mb.strategies.Strategy2.define;
      * Completes the given placeholder.
      */
     private static final Strategy2<SolverContext, ITermVar, Set<String>, SolverState, SolverState> complete
-        = define("complete", "v", "visitedInjections", (v, visitedInjections) -> withFocusStrategy(v, debugState(v,
+        = define("complete", "v", "visitedInjections", (v, visitedInjections) -> withFocusStrategy(v, //debugState(v,
             seq(time(0, expandAllPredicates(v)))
             .$(time(1, expandAllInjections(v, visitedInjections)))
             .$(time(2, expandAllQueries(v)))
             //.$(time(3, expandDeterministic(v)))
             .$()
-        )
+      //  )
         ));
 
     public static Strategy<SolverContext, SolverState, SolverState> complete(ITermVar v, Set<String> visitedInjections) {
@@ -89,31 +89,31 @@ import static mb.strategies.Strategy2.define;
         // to get actually a useful result.
         // An example where this happens is in this program, on the $Type placeholder:
         //   let function $ID(): $Type = $Exp in 3 end
-        debugState(v,
+     //   debugState(v,
             // Empty the set of expanded things
             seq((Strategy<SolverContext, SolverState, SolverState>)(solverContext, input) -> Seq.of(input.withExpanded(io.usethesource.capsule.Set.Immutable.of())))
             .$(repeat(
-                debugState(v,// printSolverStates("ONCE PRED",
+                //debugState(v,// printSolverStates("ONCE PRED",
                     seq(limit(1, selectConstraints(CUser.class, (constraint, state) -> containsVar(v, constraint, state) && checkNotYetExpanded(state, constraint))))
                     // Expand the focussed rule
-                    .$(debugCUser(v, //printSolverStates("EXPAND PRED",
+                    .$(//debugCUser(v, //printSolverStates("EXPAND PRED",
                         expandPredicateConstraint(v)
                     //  )
-                    )
-                    )
-                    // Perform inference and remove states that have errors
-                    .$(debugState(v, //printSolverStates("ASSERT PRED",
-                        assertValid(v)
                     //)
                     )
+                    // Perform inference and remove states that have errors
+                    .$(//debugState(v, //printSolverStates("ASSERT PRED",
+                        assertValid(v)
+                    //)
+                   // )
                     )
                     .$()
                 //)
-                )
+                //)
                 )
             )
             .$()
-        )
+      //  )
     );
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllPredicates(ITermVar v) {
@@ -134,14 +134,14 @@ import static mb.strategies.Strategy2.define;
      */
     private static final Strategy2<SolverContext, ITermVar, Set<String>, SolverState, SolverState> expandAllInjections
         = define("expandAllInjections", "v", "visitedInjections", (v, visitedInjections) ->
-            debugState(v,
+            //debugState(v,
                 seq(fixSet(try_(     // Fixset-try because we need to expand injections one-by-one
                 expandInjection(visitedInjections, v)
             )))
             // Perform inference and remove states that have errors
             .$(assertValid(v))
             .$()
-            )
+            //)
     );
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllInjections(ITermVar v, Set<String> visitedInjections) {
@@ -222,13 +222,16 @@ import static mb.strategies.Strategy2.define;
      * Expand all query constraints that contain the specified variable.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandAllQueries
-        = define("expandAllQueries", "v", v -> debugState(v,
+        = define("expandAllQueries", "v", v ->// debugState(v,
           distinct(or(id(), fixSet(
             if_(
-                limit(1, debugSelectCResolveQuery(v, selectConstraints(CResolveQuery.class, (constraint, state) -> {
+                limit(1, //debugSelectCResolveQuery(v,
+                    selectConstraints(CResolveQuery.class, (constraint, state) -> {
                     final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
                     return containsAnyVar(innerVars, constraint, state);
-                }))),
+                }
+                //)
+                )),
                 seq(debugCResolveQuery(v,
                     expandQueryConstraint()
                 )
@@ -238,7 +241,7 @@ import static mb.strategies.Strategy2.define;
                 id()
             )
         )))
-    )
+   // )
     );
 
     public static Strategy<SolverContext, SolverState, SolverState> expandAllQueries(ITermVar v) {
@@ -251,7 +254,7 @@ import static mb.strategies.Strategy2.define;
      * Expand anything deterministically.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> expandDeterministic
-        = define("expandDeterministic", "v", v -> debugState(v,
+        = define("expandDeterministic", "v", v -> //debugState(v,
         fixSet(distinct(try_(seq(//printSolverState("EXPAND STATE",
             selectConstraints(CUser.class, (constraint, state) -> {
                 final io.usethesource.capsule.Set.Immutable<ITermVar> innerVars = state.project(v).getVars();
@@ -271,7 +274,7 @@ import static mb.strategies.Strategy2.define;
                 )
             )
         .$())))
-    )
+   // )
     );
 
     public static Strategy<SolverContext, SolverState, SolverState> expandDeterministic(ITermVar v) {
@@ -308,7 +311,7 @@ import static mb.strategies.Strategy2.define;
      * Perform inference, and reject the resulting state if it has errors.
      */
     private static final Strategy1<SolverContext, ITermVar, SolverState, SolverState> assertValid
-        = define("assertValid", "v", v -> debugState(v,
+        = define("assertValid", "v", v -> //debugState(v,
         seq(infer())
         // Remove states that have errors
         .$(assertThat((ctx, s) -> {
@@ -326,7 +329,7 @@ import static mb.strategies.Strategy2.define;
         // Delay stuck queries
         .$(delayStuckQueries())
         .$()
-        )
+        //)
     );
 
     public static Strategy<SolverContext, SolverState, SolverState> assertValid(ITermVar v) {
