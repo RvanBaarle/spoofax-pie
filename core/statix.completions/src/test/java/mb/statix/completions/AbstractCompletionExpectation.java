@@ -102,11 +102,6 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
             return null;
         }
 
-//        // Ensure any variables occurring in the term are fresh
-//        // As if they where -Plhdr() constructors that have been replaced by fresh variables.
-//        IState.Transient tmpState = proposal.getNewState().getState().melt();
-//        ITerm term = makeVarsFresh(proposal.getTerm(), tmpState);
-//        SolverState newState = proposal.getNewState().withState(tmpState.freeze());
         SolverState newState = proposal.getNewState();
 
         ISubstitution.@Nullable Immutable substitution = trySubtitute(var, term);
@@ -116,7 +111,7 @@ abstract class AbstractCompletionExpectation<T extends ITerm> {
             return null;
         }
 
-        IUniDisunifier.@Nullable Immutable expectedUnifier = tryUnify(this.getState().getState().unifier(), this.getExpectations().entrySet());
+        IUniDisunifier.@Nullable Immutable expectedUnifier = tryUnify(proposal.getNewState().getState().unifier(), this.getExpectations().entrySet());
         if (expectedUnifier == null) {
             // The expectations cannot unify with the current unifier,
             // so we reject this proposal.
