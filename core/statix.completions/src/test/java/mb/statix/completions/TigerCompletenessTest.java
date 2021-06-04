@@ -160,7 +160,7 @@ public class TigerCompletenessTest extends CompletenessTest {
             tigerTest("/xmpl/trtest3.tig"),
             tigerTest("/xmpl/trtest4.tig"),
             tigerTest("/xmpl/typecheck-error1.tig"),
-
+//            tigerTest("/xmpl/typecheck-error1.tig"),  // erroneous
             tigerTest("/xmpl2/mytest5.tig"),
             tigerTest("/xmpl2/mytest6.tig"),
             tigerTest("/xmpl2/mytest7.tig"),
@@ -181,7 +181,7 @@ public class TigerCompletenessTest extends CompletenessTest {
         final String specName = "static-semantics";
         final String rootRuleName = "programOk";
         final String csvPath = TIGER_CSV_OUTPUT_PATH + expectedTermPath + CSV_EXT;
-        return completenessTest(testPath + expectedTermPath + ATERM_EXT, inputPath, specPath, specName, csvPath, rootRuleName);
+        return completenessTest(testPath, testPath + expectedTermPath + ATERM_EXT, inputPath, specPath, specName, csvPath, rootRuleName);
     }
 
 }
