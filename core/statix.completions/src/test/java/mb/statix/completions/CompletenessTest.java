@@ -255,7 +255,7 @@ public abstract class CompletenessTest {
                     return new FailTestResult("Interrupted.");
                 } catch(ExecutionException ex) {
                     log.error("Error was thrown: " + ex.getMessage(), ex);
-                    return new FailTestResult("Error was thrown.");
+                    return new FailTestResult("Error was thrown: " + ex.getMessage());
                 }
             } else if(madeProgress && (!delayedVars.isEmpty() || !failedVars.isEmpty())) {
                 log.warn("All variables delayed or rejected, retrying since we made progress.");

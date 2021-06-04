@@ -82,7 +82,7 @@ public class TigerCompletenessTest extends CompletenessTest {
             tigerTest("/appel/test30.tig"),
             tigerTest("/appel/test37.tig"),
             tigerTest("/appel/test41.tig"),
-            tigerTest("/appel/test42.tig"),             // failed
+            tigerTest("/appel/test42.tig"),
             tigerTest("/appel/test44.tig"),
             tigerTest("/appel/test47.tig"),
             tigerTest("/appel/test48.tig"),
@@ -94,7 +94,7 @@ public class TigerCompletenessTest extends CompletenessTest {
             tigerTest("/examples/for.tig"),
             tigerTest("/examples/nested.tig"),
             tigerTest("/examples/point.tig"),
-            tigerTest("/examples/queens.tig"),          // failed det
+            tigerTest("/examples/queens.tig"),          // timed out
             tigerTest("/examples/rec-types.tig"),
             tigerTest("/examples/recursion.tig"),
             tigerTest("/examples/tiny.tig"),
@@ -134,23 +134,23 @@ public class TigerCompletenessTest extends CompletenessTest {
             tigerTest("/xmpl/a.tig"),
             tigerTest("/xmpl/arrays.tig"),
             tigerTest("/xmpl/arrays-tiny.tig"),
-            tigerTest("/xmpl/aterm.tig"),             // failed
+            tigerTest("/xmpl/aterm.tig"),
             tigerTest("/xmpl/break.tig"),
             tigerTest("/xmpl/eval-test1.tig"),
             tigerTest("/xmpl/eval-test2.tig"),
             tigerTest("/xmpl/even-odd.tig"),
-            tigerTest("/xmpl/extract.tig"),           // failed det
+            tigerTest("/xmpl/extract.tig"),           // timed out
             tigerTest("/xmpl/fac.tig"),
             tigerTest("/xmpl/for.tig"),
             tigerTest("/xmpl/function.tig"),
             tigerTest("/xmpl/let.tig"),
-            tigerTest("/xmpl/merge.tig"),             // failed
+            tigerTest("/xmpl/merge.tig"),             // timed out
             tigerTest("/xmpl/multi-arg.tig"),
             tigerTest("/xmpl/mytest4.tig"),
             tigerTest("/xmpl/mytest5.tig"),
             tigerTest("/xmpl/nestedfunctions.tig"),
-            tigerTest("/xmpl/prettyprint.tig"),       // failed
-            tigerTest("/xmpl/queens.tig"),            // failed
+            tigerTest("/xmpl/prettyprint.tig"),       // timed out
+            tigerTest("/xmpl/queens.tig"),            // timed out
             tigerTest("/xmpl/rec1.tig"),
             tigerTest("/xmpl/record.tig"),
             tigerTest("/xmpl/renaming1.tig"),
@@ -159,7 +159,7 @@ public class TigerCompletenessTest extends CompletenessTest {
             tigerTest("/xmpl/trtest2.tig"),
             tigerTest("/xmpl/trtest3.tig"),
             tigerTest("/xmpl/trtest4.tig"),
-            tigerTest("/xmpl/typecheck-error1.tig"),
+//            tigerTest("/xmpl/typecheck-error1.tig"),  // erroneous
 //            tigerTest("/xmpl/typecheck-error1.tig"),  // erroneous
             tigerTest("/xmpl2/mytest5.tig"),
             tigerTest("/xmpl2/mytest6.tig"),
