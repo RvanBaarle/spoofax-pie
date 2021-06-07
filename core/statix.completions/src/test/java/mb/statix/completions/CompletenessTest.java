@@ -56,6 +56,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -441,10 +442,15 @@ public abstract class CompletenessTest {
                 // For each proposal, find the candidates that fit
                 final CompletionExpectation<? extends ITerm> currentCompletionExpectation = completionExpectation;
 
-                final List<CompletionExpectation<? extends ITerm>> candidates = proposals.stream()
-                    .map(p -> currentCompletionExpectation.tryReplace(var, p))
+                List<CompletionExpectation<? extends ITerm>> candidates = proposals.stream()
+                    .<CompletionExpectation<? extends ITerm>>map(p -> currentCompletionExpectation.tryReplace(var, p))
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .collect(groupingBy(it -> it.getVars().size()))
+                    .entrySet()
+                    .stream()
+                    .min(Comparator.comparingInt(it -> it.getKey()))
+                    .map(it -> it.getValue())
+                    .orElse(Collections.emptyList());
                 if(candidates.size() == 1) {
                     // Only one candidate, let's apply it
                     logCompletionStepResultWithCandidates(Level.Info, "Only one candidate.", testName, var, currentCompletionExpectation, candidates);
