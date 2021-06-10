@@ -18,7 +18,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class TigerTestGenerator extends TestGenerator {
+/**
+ * Test generator for Tiger.
+ */
+public final class TigerTestGenerator extends TestGenerator {
 
     protected static final String TESTPATH = "/tiger/";
 

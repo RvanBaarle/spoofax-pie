@@ -58,34 +58,37 @@ public abstract class TestGenerator {
         // Write xmpl/my_test.tig.aterm (the complete expected ast)
         writeTerm(outputDirectory.resolve(testName + ".aterm"), term, StandardCharsets.UTF_8);
 
-        // Write xmpl/my_test.tig.yml (the test suite metadata)
-        final TestSuiteMetadata metadata = new TestSuiteMetadata();
-        // - filename
-        metadata.setFilename(testName);
-        // - number of nodes in the AST
-        metadata.setAstSize(getTermSize(term));
-        // - number of characters in the text
-        metadata.setTextSize(text.length());
-        writeMetadata(outputDirectory.resolve(testName + ".yml"), metadata, this.mapper);
-
         // Split the test suite into separate test cases,
         // each with a single subterm replaced by a placeholder
+        final int astSize = getTermSize(term);
         final List<IStrategoTerm> alternatives = findAllAlternatives(term);
-        assert alternatives.size() == metadata.getAstSize();
+        assert alternatives.size() == astSize;
 
         // Write each test case
         for(int i = 0; i < alternatives.size(); i++) {
             final IStrategoTerm alternative = alternatives.get(i);
             writeTestCase(outputDirectory, testName, i, alternative, "Unknown Sort");
         }
+
+        // Write xmpl/my_test.tig.yml (the test suite metadata)
+        final TestSuiteMetadata metadata = new TestSuiteMetadata();
+        // - filename
+        metadata.setFilename(testName);
+        // - test case count
+        metadata.setTestCaseCount(alternatives.size());
+        // - number of nodes in the AST
+        metadata.setAstSize(astSize);
+        // - number of characters in the text
+        metadata.setTextSize(text.length());
+        writeMetadata(outputDirectory.resolve(testName + ".yml"), metadata, this.mapper);
     }
 
     /**
      * Writes a test case.
      *
      * @param outputDirectory the output directory where the test files are written
-     * @param testName the filename of the test (e.g, {@code my_test.tig})
-     * @param testIndex the one-based index of the test (e.g., {@code 1})
+     * @param testName the filename of the test (e.g, {@code xmpl/my_test.tig})
+     * @param testIndex the zero-based index of the test (e.g., {@code 0})
      * @param incompleteTerm a term with a single placeholder (e.g, {@code Exp-Plhdr()})
      * @param sort the sort of the placeholder (e.g., {@code Exp})
      */
@@ -204,7 +207,7 @@ public abstract class TestGenerator {
      * @param mapper the YAML mapper
      */
     private static void writeMetadata(Path path, Object metadata, ObjectMapper mapper) throws IOException {
-        try(BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+        try(final BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
             mapper.writeValue(writer, metadata);
         }
     }
@@ -217,7 +220,7 @@ public abstract class TestGenerator {
      * @param cs the characer set to use
      */
     private static void writeTerm(Path path, IStrategoTerm term, Charset cs) throws IOException {
-        SimpleTextTermWriter writer = new SimpleTextTermWriter(Integer.MAX_VALUE, true, true, true, true);
+        final SimpleTextTermWriter writer = new SimpleTextTermWriter(Integer.MAX_VALUE, true, true, true, true);
         writer.writeToPath(term, path, cs);
     }
 
@@ -242,10 +245,14 @@ public abstract class TestGenerator {
     /**
      * Metadata for a test suite.
      */
-    private static final class TestSuiteMetadata {
+    public static final class TestSuiteMetadata {
         private String filename;
         public String getFilename() { return filename; }
         public void setFilename(String filename) { this.filename = filename; }
+
+        private int testCaseCount;
+        public int getTestCaseCount() { return testCaseCount; }
+        public void setTestCaseCount(int testCaseCount) { this.testCaseCount = testCaseCount; }
 
         private int textSize;
         public int getTextSize() { return textSize; }
@@ -259,7 +266,7 @@ public abstract class TestGenerator {
     /**
      * Metadata for a test case.
      */
-    private static final class TestCaseMetadata {
+    public static final class TestCaseMetadata {
         private String filename;
         public String getFilename() { return filename; }
         public void setFilename(String filename) { this.filename = filename; }

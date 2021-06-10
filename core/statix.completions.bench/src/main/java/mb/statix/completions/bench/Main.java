@@ -1,6 +1,9 @@
 package mb.statix.completions.bench;
 
+import mb.statix.completions.TermCompleter;
+import mb.statix.completions.bench.performance.TestBenchmark;
 import mb.statix.completions.bench.performance.TestGenerator;
+import mb.statix.completions.bench.performance.TigerTestBenchmark;
 import mb.statix.completions.bench.performance.TigerTestGenerator;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -84,12 +87,18 @@ public final class Main {
         generator.generateAll(outputDirectory);
     }
 
-    private static void runTestCases(String[] args) throws IOException {
+    private static void runTestCases(String[] args) throws IOException, InterruptedException {
         final Options options = new Options();
         options.addOption(new Option("i", "input", true, "Input directory."));
         final CommandLine cmd = parseArgs(options, args);
 
-        throw new IllegalStateException("Not implemented.");
+        if (!cmd.hasOption("input")) {
+            throw new IllegalArgumentException("Expected --input option, got nothing.");
+        }
+        final Path inputDirectory = Paths.get(cmd.getOptionValue("input"));
+
+        final TestBenchmark tester = new TigerTestBenchmark(new TermFactory(), new TermCompleter());
+        tester.testAll(inputDirectory);
     }
 
     private static String[] skip1(String[] args) {
