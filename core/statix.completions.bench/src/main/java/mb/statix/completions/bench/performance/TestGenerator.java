@@ -12,16 +12,13 @@ import org.spoofax.terms.io.SimpleTextTermWriter;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Generates test cases.
@@ -52,6 +49,9 @@ public abstract class TestGenerator {
      * @param term the full term that the input file parses to
      */
     protected void writeTestSuite(Path outputDirectory, String testName, String text, IStrategoTerm term) throws IOException {
+        // Create parent directory
+        Files.createDirectories(outputDirectory.resolve(testName).getParent());
+
         // Write xmpl/my_test.tig (the complete code)
         writeString(outputDirectory.resolve(testName), text, StandardCharsets.UTF_8);
 
@@ -74,7 +74,7 @@ public abstract class TestGenerator {
         assert alternatives.size() == metadata.getAstSize();
 
         // Write each test case
-        for (int i = 0; i < alternatives.size(); i++) {
+        for(int i = 0; i < alternatives.size(); i++) {
             final IStrategoTerm alternative = alternatives.get(i);
             writeTestCase(outputDirectory, testName, i, alternative, "Unknown Sort");
         }
@@ -122,7 +122,7 @@ public abstract class TestGenerator {
         newTerms.add(replaceWithPlaceholder(term));
 
         // For each subterms, split
-        for (int i = 0; i < term.getSubtermCount(); i++) {
+        for(int i = 0; i < term.getSubtermCount(); i++) {
             IStrategoTerm subterm = term.getSubterm(i);
             // Get all possible alternatives for the given subterm
             final List<IStrategoTerm> newSubterms = findAllAlternatives(subterm);
@@ -158,7 +158,7 @@ public abstract class TestGenerator {
      */
     private static List<IStrategoTerm> replaceSubterms(IStrategoTerm term, int index, List<IStrategoTerm> newSubterms, ITermFactory factory) {
         final List<IStrategoTerm> newTerms = new ArrayList<>(newSubterms.size());
-        for (IStrategoTerm newSubterm : newSubterms) {
+        for(IStrategoTerm newSubterm : newSubterms) {
             newTerms.add(replaceSubterm(term, index, newSubterm, factory));
         }
         return newTerms;
@@ -176,18 +176,18 @@ public abstract class TestGenerator {
     private static IStrategoTerm replaceSubterm(IStrategoTerm term, int index, IStrategoTerm newSubterm, ITermFactory factory) {
         // Construct the new array of subterms
         final IStrategoTerm[] newSubterms = new IStrategoTerm[term.getSubtermCount()];
-        for (int i = 0; i < term.getSubtermCount(); i++) {
+        for(int i = 0; i < term.getSubtermCount(); i++) {
             newSubterms[i] = term.getSubterm(i);
         }
         newSubterms[index] = newSubterm;
 
-        if (term instanceof IStrategoAppl) {
+        if(term instanceof IStrategoAppl) {
             final IStrategoAppl applTerm = (IStrategoAppl)term;
             return factory.replaceAppl(applTerm.getConstructor(), newSubterms, applTerm);
-        } else if (term instanceof IStrategoList) {
+        } else if(term instanceof IStrategoList) {
             final IStrategoList listTerm = (IStrategoList)term;
             return factory.replaceList(newSubterms, listTerm);
-        } else if (term instanceof IStrategoTuple) {
+        } else if(term instanceof IStrategoTuple) {
             final IStrategoTuple tupleTerm = (IStrategoTuple)term;
             return factory.replaceTuple(newSubterms, tupleTerm);
         } else {
@@ -204,7 +204,7 @@ public abstract class TestGenerator {
      * @param mapper the YAML mapper
      */
     private static void writeMetadata(Path path, Object metadata, ObjectMapper mapper) throws IOException {
-        try (BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
+        try(BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
             mapper.writeValue(writer, metadata);
         }
     }
@@ -230,8 +230,7 @@ public abstract class TestGenerator {
      * @return the path
      */
     private static Path writeString(Path path, String csq, Charset cs)
-        throws IOException
-    {
+        throws IOException {
         Files.write(path,
             csq.getBytes(cs),
             StandardOpenOption.CREATE,
@@ -289,10 +288,10 @@ public abstract class TestGenerator {
 
         final ArrayDeque<IStrategoTerm> worklist = new ArrayDeque<>();
         worklist.push(term);
-        while (!worklist.isEmpty()) {
+        while(!worklist.isEmpty()) {
             IStrategoTerm currentTerm = worklist.pop();
             size += 1;
-            for (IStrategoTerm subterm : currentTerm.getSubterms()) {
+            for(IStrategoTerm subterm : currentTerm.getSubterms()) {
                 worklist.push(subterm);
             }
         }
