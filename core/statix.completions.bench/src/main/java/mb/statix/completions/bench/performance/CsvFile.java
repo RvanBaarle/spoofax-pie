@@ -27,6 +27,9 @@ public final class CsvFile implements Closeable {
      */
     public static CsvFile create(Appendable appendable) throws IOException {
         final CSVFormat format = CSVFormat.EXCEL;
+        // Write the separator we use as the first line,
+        // so Excel actually understands that
+        // the values in a Comma-Separated-Values (CSV) file are separated by comma's.
         appendable.append("sep=").append(String.valueOf(format.getDelimiter())).append("\n");
         return new CsvFile(format
             .withHeader(BenchmarkStats.CsvRow.getCsvHeaders())

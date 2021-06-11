@@ -1,5 +1,7 @@
 package mb.statix.completions.bench;
 
+import mb.log.api.Logger;
+import mb.log.slf4j.SLF4JLoggerFactory;
 import mb.statix.completions.TermCompleter;
 import mb.statix.completions.bench.performance.BenchmarkStats;
 import mb.statix.completions.bench.performance.CsvFile;
@@ -35,6 +37,8 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPacka
 public final class Main {
     private Main() { /* Cannot be instantiated. */ }
 
+    private static final SLF4JLoggerFactory loggerFactory = new SLF4JLoggerFactory();
+    private static final Logger log = loggerFactory.create(TestBenchmark.class);
     private static final SummaryGeneratingListener listener = new SummaryGeneratingListener();
 
     public static void main(String[] args) throws Exception {
@@ -83,10 +87,14 @@ public final class Main {
         if (!cmd.hasOption("output")) {
             throw new IllegalArgumentException("Expected --output option, got nothing.");
         }
-        final Path outputDirectory = Paths.get(cmd.getOptionValue("output"));
+        final Path outputDirectory = Paths.get(cmd.getOptionValue("output")).toAbsolutePath();
+
+        log.info("Generating test cases to {}", outputDirectory);
 
         final TestGenerator generator = new TigerTestGenerator(new TermFactory());
         generator.generateAll(outputDirectory);
+
+        log.info("Finished generating test cases to {}", outputDirectory);
     }
 
     private static void runTestCases(String[] args) throws IOException, InterruptedException {
@@ -98,17 +106,21 @@ public final class Main {
         if (!cmd.hasOption("input")) {
             throw new IllegalArgumentException("Expected --input option, got nothing.");
         }
-        final Path inputDirectory = Paths.get(cmd.getOptionValue("input"));
+        final Path inputDirectory = Paths.get(cmd.getOptionValue("input")).toAbsolutePath();
 
         if (!cmd.hasOption("file")) {
             throw new IllegalArgumentException("Expected --file option, got nothing.");
         }
-        final Path outputFile = Paths.get(cmd.getOptionValue("file"));
+        final Path outputFile = Paths.get(cmd.getOptionValue("file")).toAbsolutePath();
+
+        log.info("Running test cases from {}, writing results to {}", inputDirectory, outputFile);
 
         try (final CsvFile csv = CsvFile.create(outputFile)) {
             final TestBenchmark tester = new TigerTestBenchmark(csv, new TermFactory(), new TermCompleter());
             tester.testAll(inputDirectory);
         }
+
+        log.info("Finished running test cases from {}, wrote results to {}", inputDirectory, outputFile);
     }
 
     private static String[] skip1(String[] args) {
