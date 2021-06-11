@@ -69,7 +69,7 @@ import static mb.strategies.Strategy2.define;
             seq(time(0, expandAllPredicates(v)))
             .$(time(1, expandAllInjections(v, visitedInjections)))
             .$(time(2, expandAllQueries(v)))
-            //.$(time(3, expandDeterministic(v)))
+            .$(time(3, expandDeterministic(v)))
             .$()
       //  )
         ));
