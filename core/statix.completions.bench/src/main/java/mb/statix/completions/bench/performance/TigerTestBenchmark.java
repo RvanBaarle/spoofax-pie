@@ -126,9 +126,9 @@ public final class TigerTestBenchmark extends TestBenchmark {
 //        "xmpl2/mytest16.tig"
     );
 
-    public TigerTestBenchmark(ITermFactory factory, TermCompleter completer) {
+    public TigerTestBenchmark(CsvFile csv, ITermFactory factory, TermCompleter completer) {
         super(factory, StatixSpec.fromClassLoaderResources(CompletenessTest.class, TESTPATH + "tiger.stx.aterm"),
-            "static-semantics", "programOk", completer);
+            "static-semantics", "programOk", csv, completer);
     }
 
     @Override

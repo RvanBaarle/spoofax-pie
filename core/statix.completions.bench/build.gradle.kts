@@ -42,6 +42,7 @@ dependencies {
   runtimeOnly     ("org.junit.jupiter:junit-jupiter-engine")
 
   // CSV
+  implementation("org.apache.commons:commons-csv:1.8")
   implementation("com.opencsv:opencsv:4.1")
 
   // Yaml

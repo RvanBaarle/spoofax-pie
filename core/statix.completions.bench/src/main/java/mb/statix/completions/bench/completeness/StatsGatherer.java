@@ -246,7 +246,7 @@ public class StatsGatherer {
      */
     private void writeCsv(Path path) {
         try(BufferedWriter writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {
-            writer.append("sep=,\n");
+            writer.append("sep=" + CSVWriter.DEFAULT_SEPARATOR + "\n");
             final StatefulBeanToCsv<RoundStats> csv = new StatefulBeanToCsvBuilder<RoundStats>(writer)
                 .withSeparator(CSVWriter.DEFAULT_SEPARATOR)
                 .build();

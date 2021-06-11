@@ -32,7 +32,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A test benchmark.
@@ -47,13 +46,15 @@ public abstract class TestBenchmark {
     private static final SLF4JLoggerFactory loggerFactory = new SLF4JLoggerFactory();
     private static final Logger log = loggerFactory.create(TestBenchmark.class);
     private final TermCompleter completer;
+    private final CsvFile csv;
 
-    public TestBenchmark(ITermFactory factory, StatixSpec spec, String specName, String rootRuleName, TermCompleter completer) {
+    public TestBenchmark(ITermFactory factory, StatixSpec spec, String specName, String rootRuleName, CsvFile csv, TermCompleter completer) {
         this.factory = factory;
         this.spec = spec;
         this.specName = specName;
         this.rootRuleName = rootRuleName;
         this.completer = completer;
+        this.csv = csv;
         this.mapper.findAndRegisterModules();
     }
 
@@ -97,7 +98,7 @@ public abstract class TestBenchmark {
         final TestGenerator.TestCaseMetadata testCaseMetadata = readMetadata(inputDirectory.resolve(testCaseName + ".yml"), TestGenerator.TestCaseMetadata.class, this.mapper);
 
         final BenchmarkStats stats = new BenchmarkStats();
-        stats.startTest(testName, testIndex, testSuiteMetadata, testCaseMetadata);
+        stats.startTest(testName, testIndex, testCaseName, testSuiteMetadata, testCaseMetadata);
 
         // Prepare the Spec
         final StatixAnalyzer analyzer = new StatixAnalyzer(this.spec, this.factory, loggerFactory);
@@ -128,10 +129,9 @@ public abstract class TestBenchmark {
             List<TermCompleter.CompletionSolverProposal> proposals = completer.complete(ctx, TestBenchmark::isInj, state, var);
             stats.finishCompletion(proposals);
 
-            stats.finishTest();
-
-            stats.printSummary();
-            // TODO: Write CSV
+            final BenchmarkStats.CsvRow csvRow = stats.finishTest();
+            csvRow.printSummary();
+            csv.addRow(csvRow);
         }
     }
 

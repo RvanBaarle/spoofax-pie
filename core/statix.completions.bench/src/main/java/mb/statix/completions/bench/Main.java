@@ -1,6 +1,8 @@
 package mb.statix.completions.bench;
 
 import mb.statix.completions.TermCompleter;
+import mb.statix.completions.bench.performance.BenchmarkStats;
+import mb.statix.completions.bench.performance.CsvFile;
 import mb.statix.completions.bench.performance.TestBenchmark;
 import mb.statix.completions.bench.performance.TestGenerator;
 import mb.statix.completions.bench.performance.TigerTestBenchmark;
@@ -64,7 +66,7 @@ public final class Main {
             .filters(includeClassNamePatterns(".*Test"))
             .build();
         final Launcher launcher = LauncherFactory.create();
-        final TestPlan testPlan = launcher.discover(request);
+        final TestPlan testPlan = launcher.discover(request);   // This should be kept.
         launcher.registerTestExecutionListeners(listener);
         launcher.execute(request);
 
@@ -90,6 +92,7 @@ public final class Main {
     private static void runTestCases(String[] args) throws IOException, InterruptedException {
         final Options options = new Options();
         options.addOption(new Option("i", "input", true, "Input directory."));
+        options.addOption(new Option("f", "file", true, "Output file."));
         final CommandLine cmd = parseArgs(options, args);
 
         if (!cmd.hasOption("input")) {
@@ -97,8 +100,15 @@ public final class Main {
         }
         final Path inputDirectory = Paths.get(cmd.getOptionValue("input"));
 
-        final TestBenchmark tester = new TigerTestBenchmark(new TermFactory(), new TermCompleter());
-        tester.testAll(inputDirectory);
+        if (!cmd.hasOption("file")) {
+            throw new IllegalArgumentException("Expected --file option, got nothing.");
+        }
+        final Path outputFile = Paths.get(cmd.getOptionValue("file"));
+
+        try (final CsvFile csv = CsvFile.create(outputFile)) {
+            final TestBenchmark tester = new TigerTestBenchmark(csv, new TermFactory(), new TermCompleter());
+            tester.testAll(inputDirectory);
+        }
     }
 
     private static String[] skip1(String[] args) {
