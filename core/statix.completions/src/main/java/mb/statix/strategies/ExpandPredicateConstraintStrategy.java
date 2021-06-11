@@ -82,7 +82,7 @@ public final class ExpandPredicateConstraintStrategy extends AbstractStrategy1<S
     private static Set.Immutable<String> addToSet(Set.Immutable<String> set, String element) {
         Set.Transient<String> transientSet = set.asTransient();
         transientSet.__insert(element);
-        System.out.println("Added " + element + ", set contains: {" + String.join(",", transientSet) + "}");
+        //System.out.println("Added " + element + ", set contains: {" + String.join(",", transientSet) + "}");
         return transientSet.freeze();
     }
 

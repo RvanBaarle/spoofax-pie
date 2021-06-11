@@ -25,7 +25,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.io.TAFTermReader;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A test benchmark.
@@ -71,11 +71,11 @@ public abstract class TestBenchmark {
      * @param testName the filename of the test (e.g, {@code xmpl/my_test.tig})
      */
     public void runTestSuite(Path inputDirectory, String testName) throws IOException, InterruptedException {
-        final TestGenerator.TestSuiteMetadata metadata = readMetadata(inputDirectory.resolve(testName + ".yml"), TestGenerator.TestSuiteMetadata.class, this.mapper);
-        final int testCount = metadata.getTestCaseCount();
+        final TestGenerator.TestSuiteMetadata testSuiteMetadata = readMetadata(inputDirectory.resolve(testName + ".yml"), TestGenerator.TestSuiteMetadata.class, this.mapper);
+        final int testCount = testSuiteMetadata.getTestCaseCount();
 
         for (int i = 0; i < testCount; i++) {
-            runTestCase(inputDirectory, testName, i);
+            runTestCase(inputDirectory, testName, i, testSuiteMetadata);
         }
     }
 
@@ -85,10 +85,19 @@ public abstract class TestBenchmark {
      * @param inputDirectory the input directory where the test files reside
      * @param testName the filename of the test (e.g, {@code xmpl/my_test.tig})
      * @param testIndex the zero-based index of the test (e.g., {@code 0})
+     * @param testSuiteMetadata the test suite metadata
      */
-    private void runTestCase(Path inputDirectory, String testName, int testIndex) throws IOException, InterruptedException {
-        long prepareStartTime = System.nanoTime();
+    private void runTestCase(
+        Path inputDirectory,
+        String testName,
+        int testIndex,
+        TestGenerator.TestSuiteMetadata testSuiteMetadata
+    ) throws IOException, InterruptedException {
         final String testCaseName = String.format("%s.test_%04d", testName, testIndex);
+        final TestGenerator.TestCaseMetadata testCaseMetadata = readMetadata(inputDirectory.resolve(testCaseName + ".yml"), TestGenerator.TestCaseMetadata.class, this.mapper);
+
+        final BenchmarkStats stats = new BenchmarkStats();
+        stats.startTest(testName, testIndex, testSuiteMetadata, testCaseMetadata);
 
         // Prepare the Spec
         final StatixAnalyzer analyzer = new StatixAnalyzer(this.spec, this.factory, loggerFactory);
@@ -103,38 +112,26 @@ public abstract class TestBenchmark {
 
         try(final StrategyEventHandler eventHandler = StrategyEventHandler.none()) {// new DebugEventHandler(Paths.get("debug.yml"))) {
             // Analyze the AST
-            long analyzeStartTime = System.nanoTime();
+            stats.startAnalysis();
             SolverState startState = analyzer.createStartState(replacedTerm, this.specName, this.rootRuleName)
                 .withExistentials(Collections.singletonList(var))
                 .precomputeCriticalEdges(this.spec.getSpec());
-            SolverContext ctx = analyzer.createContext(eventHandler);
+            SolverContext ctx = analyzer.createContext(eventHandler).withReporters(
+                stats::addExpandPredicateTime,
+                stats::addExpandInjectionTime,
+                stats::addExpandQueriesTime,
+                stats::addExpandDeterministicTime);
             SolverState state = analyzer.analyze(ctx, startState);
 
             // Complete
-            long completeStartTime = System.nanoTime();
+            stats.startCompletion();
             List<TermCompleter.CompletionSolverProposal> proposals = completer.complete(ctx, TestBenchmark::isInj, state, var);
-            long completeEndTime = System.nanoTime();
+            stats.finishCompletion(proposals);
 
-            // Record:
-            // - completion time
-            final long completionTime = completeEndTime - completeStartTime;
-            // - analysis time
-            final long analysisTime = completeStartTime - analyzeStartTime;
-            // - preparation time
-            final long preparationTime = analyzeStartTime - prepareStartTime;
-            // - proposals found
-            final int proposalCount = proposals.size();
-            // TODO: And copy:
-            // - ast size
-            // - text size
-            // - sort
-            // TODO: And write to CSV (or YAML)
-            System.out.println("===== " + testCaseName + " =====");
-            System.out.println("Proposal   count: " + proposalCount);
-            System.out.println("Completion  time: " + completionTime / 1000000 + " ms");
-            System.out.println("Analysis    time: " + analysisTime / 1000000 + " ms");
-            System.out.println("Preparation time: " + preparationTime / 1000000 + " ms");
-            System.out.println("Time/proposal   : " + (completionTime / proposalCount) / 1000000 + " ms");
+            stats.finishTest();
+
+            stats.printSummary();
+            // TODO: Write CSV
         }
     }
 
