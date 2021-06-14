@@ -1,0 +1,6 @@
+Mod(
+  Let(
+    [VarDecNoType("a", Record("rectype", []))]
+  , [Int("0")]
+  )
+)

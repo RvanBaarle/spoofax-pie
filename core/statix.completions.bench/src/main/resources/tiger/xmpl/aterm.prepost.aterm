@@ -1,0 +1,98 @@
+Mod(
+  Let(
+    [ TypeDecs(
+        [ TypeDec(
+            "aterm"
+          , RecordTy([Field("fun", "string"), Field("args", "alist")])
+          )
+        , TypeDec(
+            "alist"
+          , RecordTy([Field("hd", "aterm"), Field("tl", "alist")])
+          )
+        ]
+      )
+    , FunDecs(
+        [ FunDec(
+            "app"
+          , [FArg("fun", Tid("string")), FArg("args", Tid("alist"))]
+          , Tid("aterm")
+          , Record(
+              "aterm"
+            , [InitField("fun", Var("fun")), InitField("args", Var("args"))]
+            )
+          )
+        , FunDec(
+            "match"
+          , [FArg("x", Tid("aterm")), FArg("y", Tid("aterm"))]
+          , Tid("int")
+          , If(
+              Eq(Var("x"), NilExp())
+            , Int("0")
+            , If(
+                Eq(Var("y"), NilExp())
+              , Int("0")
+              , If(
+                  Eq(
+                    FieldVar(Var("x"), "fun")
+                  , FieldVar(Var("y"), "fun")
+                  )
+                , Call(
+                    "match_args"
+                  , [FieldVar(Var("x"), "args"), FieldVar(Var("y"), "args")]
+                  )
+                , Int("0")
+                )
+              )
+            )
+          )
+        , FunDec(
+            "match_args"
+          , [FArg("xs", Tid("alist")), FArg("ys", Tid("alist"))]
+          , Tid("int")
+          , If(
+              And(
+                Neq(Var("xs"), NilExp())
+              , Neq(Var("ys"), NilExp())
+              )
+            , And(
+                Call(
+                  "match"
+                , [FieldVar(Var("xs"), "hd"), FieldVar(Var("ys"), "hd")]
+                )
+              , Call(
+                  "match_args"
+                , [FieldVar(Var("xs"), "tl"), FieldVar(Var("ys"), "tl")]
+                )
+              )
+            , If(
+                And(
+                  Eq(Var("xs"), NilExp())
+                , Eq(Var("ys"), NilExp())
+                )
+              , Int("1")
+              , Int("0")
+              )
+            )
+          )
+        , FunDec(
+            "test1"
+          , []
+          , Tid("aterm")
+          , Call(
+              "app"
+            , [ String("\"Succ\"")
+              , Record(
+                  "alist"
+                , [ InitField("hd", Call("app", [String("\"Zero\""), NilExp()]))
+                  , InitField("tl", NilExp())
+                  ]
+                )
+              ]
+            )
+          )
+        ]
+      )
+    ]
+  , [Call("test1", [])]
+  )
+)

@@ -1,0 +1,9 @@
+Mod(
+  Let(
+    [ TypeDecs(
+        [TypeDec("a", Tid("int")), TypeDec("a", Tid("string"))]
+      )
+    ]
+  , [Int("0")]
+  )
+)
