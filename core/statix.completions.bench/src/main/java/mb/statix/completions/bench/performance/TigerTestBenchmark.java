@@ -32,81 +32,81 @@ public final class TigerTestBenchmark extends TestBenchmark {
         "appel/test06.tig",
         "appel/test07.tig",
         "appel/test08.tig",
-        "appel/test09.tig",
-        "appel/test10.tig",
-        "appel/test11.tig",
+        "appel/test09.tig",                     // excluded because of semantic error
+        "appel/test10.tig",                     // excluded because of semantic error
+        "appel/test11.tig",                     // excluded because of semantic error
         "appel/test12.tig",
-        "appel/test13.tig",
-        "appel/test14.tig",
-        "appel/test15.tig",
+        "appel/test13.tig",                     // excluded because of semantic error
+        "appel/test14.tig",                     // excluded because of semantic error
+        "appel/test15.tig",                     // excluded because of semantic error
         "appel/test16.tig",
-        "appel/test17.tig",
-        "appel/test18.tig",
-        "appel/test19.tig",
-        "appel/test20.tig",
-        "appel/test21.tig",
-        "appel/test22.tig",
-        "appel/test23.tig",
-        "appel/test24.tig",
-        "appel/test25.tig",
-        "appel/test26.tig",
+        "appel/test17.tig",                     // excluded because of semantic error
+        "appel/test18.tig",                     // excluded because of semantic error
+        "appel/test19.tig",                     // excluded because of semantic error
+        "appel/test20.tig",                     // excluded because of semantic error
+        "appel/test21.tig",                     // excluded because of semantic error
+        "appel/test22.tig",                     // excluded because of semantic error
+        "appel/test23.tig",                     // excluded because of semantic error
+        "appel/test24.tig",                     // excluded because of semantic error
+        "appel/test25.tig",                     // excluded because of semantic error
+        "appel/test26.tig",                     // excluded because of semantic error
         "appel/test27.tig",
-        "appel/test28.tig",
-        "appel/test29.tig",
+        "appel/test28.tig",                     // excluded because of semantic error
+        "appel/test29.tig",                     // excluded because of semantic error
         "appel/test30.tig",
-        "appel/test31.tig",
-        "appel/test32.tig",
-        "appel/test33.tig",
-        "appel/test34.tig",
-        "appel/test35.tig",
-        "appel/test36.tig",
+        "appel/test31.tig",                     // excluded because of semantic error
+        "appel/test32.tig",                     // excluded because of semantic error
+        "appel/test33.tig",                     // excluded because of semantic error
+        "appel/test34.tig",                     // excluded because of semantic error
+        "appel/test35.tig",                     // excluded because of semantic error
+        "appel/test36.tig",                     // excluded because of semantic error
         "appel/test37.tig",
-        "appel/test38.tig",
-        "appel/test39.tig",
-        "appel/test40.tig",
+        "appel/test38.tig",                     // excluded because of semantic error
+        "appel/test39.tig",                     // excluded because of semantic error
+        "appel/test40.tig",                     // excluded because of semantic error
         "appel/test41.tig",
         "appel/test42.tig",
-        "appel/test43.tig",
+        "appel/test43.tig",                     // excluded because of semantic error
         "appel/test44.tig",
-        "appel/test45.tig",
+        "appel/test45.tig",                     // excluded because of semantic error
         "appel/test47.tig",
         "appel/test48.tig",
 
         "examples/arith.tig",
-        "examples/fac-error.tig",
+        "examples/fac-error.tig",               // excluded because of semantic error
         "examples/fact-anf.tig",
         "examples/fact-anf2.tig",
         "examples/fact-resolvetest.tig",
         "examples/for.tig",
-        "examples/let-binding.tig",
-        "examples/list-type.tig",
+        "examples/let-binding.tig",             // excluded because of semantic error
+        "examples/list-type.tig",               // excluded because of semantic error
         "examples/nested.tig",
         "examples/point.tig",
         "examples/queens.tig",
         "examples/rec-types.tig",
-        "examples/record-errors.tig",
+        "examples/record-errors.tig",           // excluded because of semantic error
         "examples/recursion.tig",
-        "examples/redeclarations.tig",
+        "examples/redeclarations.tig",          // excluded because of semantic error
         "examples/tiny.tig",
         "examples/tinyrec.tig",
         "examples/tinytiny.tig",
-        "examples/type-dec.tig",
+        "examples/type-dec.tig",                // excluded because of semantic error
         "examples/verytiny.tig",
         "examples/while-break.tig",
         "examples/while.tig",
 
-        "microbenchmarks/branching.tig",
-        "microbenchmarks/break-intensive.tig",
-        "microbenchmarks/list.tig",
-        "microbenchmarks/permute.tig",
-        "microbenchmarks/queens-looped.tig",
-        "microbenchmarks/queens2.tig",
-        "microbenchmarks/sieve.tig",
-        "microbenchmarks/towers.tig",
-        "microbenchmarks/var-local.tig",
-        "microbenchmarks/var-parent.tig",
+        "microbenchmarks/branching.tig",        // excluded because of semantic error
+        "microbenchmarks/break-intensive.tig",  // excluded because of semantic error
+        "microbenchmarks/list.tig",             // excluded because of semantic error
+        "microbenchmarks/permute.tig",          // excluded because of semantic error
+        "microbenchmarks/queens-looped.tig",    // excluded because of semantic error
+        "microbenchmarks/queens2.tig",          // excluded because of semantic error
+        "microbenchmarks/sieve.tig",            // excluded because of semantic error
+        "microbenchmarks/towers.tig",           // excluded because of semantic error
+        "microbenchmarks/var-local.tig",        // excluded because of semantic error
+        "microbenchmarks/var-parent.tig",       // excluded because of semantic error
         "microbenchmarks/while-call.tig",
-        "microbenchmarks/while-loop.tig",
+        "microbenchmarks/while-loop.tig",       // excluded because of semantic error
 
         "natives/chr.tig",
         "natives/concat.tig",
@@ -120,14 +120,14 @@ public final class TigerTestBenchmark extends TestBenchmark {
         "natives/substring.tig",
 
         "tests/binding/binding01.tig",
-        "tests/binding/binding02.tig",
-        "tests/binding/binding03.tig",
-        "tests/binding/binding04.tig",
-        "tests/binding/binding05.tig",
-        "tests/binding/binding06.tig",
-        "tests/binding/binding07.tig",
+        "tests/binding/binding02.tig",          // excluded because of semantic error
+        "tests/binding/binding03.tig",          // excluded because of semantic error
+        "tests/binding/binding04.tig",          // excluded because of semantic error
+        "tests/binding/binding05.tig",          // excluded because of semantic error
+        "tests/binding/binding06.tig",          // excluded because of semantic error
+        "tests/binding/binding07.tig",          // excluded because of semantic error
         "tests/binding/binding08.tig",
-        "tests/binding/binding10.tig",
+        "tests/binding/binding10.tig",          // excluded because of semantic error
         "tests/binding/bindings09.tig",
         "tests/binding/bindings11.tig",
 
@@ -167,10 +167,11 @@ public final class TigerTestBenchmark extends TestBenchmark {
         "xmpl/trtest2.tig",
         "xmpl/trtest3.tig",
         "xmpl/trtest4.tig",
-        //"xmpl/typecheck-error1.tig",    // excluded
-        "xmpl2/error1.tig",
-        "xmpl2/matrix.tig",
-        "xmpl2/mytest1.tig",
+        "xmpl/typecheck-error1.tig",            // excluded because of semantic error
+
+        "xmpl2/error1.tig",                     // excluded because of semantic error
+        "xmpl2/matrix.tig",                     // excluded because of semantic error
+        "xmpl2/mytest1.tig",                    // excluded because of semantic error
         "xmpl2/mytest10.tig",
         "xmpl2/mytest11.tig",
         "xmpl2/mytest12.tig",
@@ -178,13 +179,13 @@ public final class TigerTestBenchmark extends TestBenchmark {
         "xmpl2/mytest14.tig",
         "xmpl2/mytest15.tig",
         "xmpl2/mytest16.tig",
-        "xmpl2/mytest2.tig",
-        "xmpl2/mytest3.tig",
+        "xmpl2/mytest2.tig",                    // excluded because of semantic error
+        "xmpl2/mytest3.tig",                    // excluded because of semantic error
         "xmpl2/mytest5.tig",
         "xmpl2/mytest6.tig",
         "xmpl2/mytest7.tig",
-        "xmpl2/pp-test1.tig",
-        "xmpl2/tiny1.tig"
+        "xmpl2/pp-test1.tig",                   // excluded because of semantic error
+        "xmpl2/tiny1.tig"                       // excluded because of semantic error
     );
 
     public TigerTestBenchmark(CsvFile csv, ITermFactory factory, TermCompleter completer) {
