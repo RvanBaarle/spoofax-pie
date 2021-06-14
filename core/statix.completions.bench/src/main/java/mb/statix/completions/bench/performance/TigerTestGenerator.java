@@ -25,7 +25,7 @@ public final class TigerTestGenerator extends TestGenerator {
 
     protected static final String TESTPATH = "/tiger/";
 
-    private final List<String> tests = Arrays.asList(
+    public static final List<String> tests = Arrays.asList(
         "test1.tig",
         "test2.tig",
         "test3.tig",
