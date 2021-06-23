@@ -86,11 +86,11 @@ public interface Computation<T> extends Seq<T> {
     /**
      * Returns a computation that sources from the specified supplier.
      *
-     * @param supplier the supplier of results
+     * @param supplier the supplier of results (or @code{null} when it failed)
      * @param <T> the type of results
      * @return a computation
      */
-    static <T> Computation<T> from(Supplier<T> supplier) {
+    static <T> Computation<T> from(Supplier<@Nullable T> supplier) {
         Objects.requireNonNull(supplier);
 
         return supplier::get;
@@ -98,9 +98,6 @@ public interface Computation<T> extends Seq<T> {
 
     @Override
     default InterruptibleIterator<T> iterator() {
-        // Iterator that evaluates the computation
-        // and returns a singleton iterator (if the result was not null)
-        // or an empty iterator (if the result was null).
         return new InterruptibleIteratorBase<T>() {
             private boolean done = false;
             @Override
@@ -140,7 +137,7 @@ public interface Computation<T> extends Seq<T> {
     }
 
     @Override
-    default Seq<T> constrainOnce() {
+    default Computation<T> constrainOnce() {
         return new Computation<T>() {
             private boolean done = false;
 
@@ -154,7 +151,7 @@ public interface Computation<T> extends Seq<T> {
             }
 
             @Override
-            public Seq<T> constrainOnce() {
+            public Computation<T> constrainOnce() {
                 return this;
             }
         };

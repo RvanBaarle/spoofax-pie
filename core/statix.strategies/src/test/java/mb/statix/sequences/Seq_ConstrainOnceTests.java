@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -28,6 +29,18 @@ public final class Seq_ConstrainOnceTests {
             constrained.take(4).toList().tryEval();
         });
         assertEquals(4, i.get());
+    }
+
+    @Test
+    public void shouldReturnSameObject_whenCallingConstrainOnceOnAConstrainedSequence() throws InterruptedException {
+        // Arrange
+        final AtomicInteger i = new AtomicInteger();
+        final Seq<Integer> sut = Seq.from(i::getAndIncrement).constrainOnce();
+
+        // Act
+        final Seq<Integer> doubleConstrained = sut.constrainOnce();
+
+        assertSame(sut, doubleConstrained);
     }
 
 }

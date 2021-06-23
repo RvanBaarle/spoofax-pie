@@ -225,6 +225,11 @@ public interface Seq<T> {
                     }
                 };
             }
+
+            @Override
+            public Seq<T> buffer() {
+                return this;
+            }
         };
     }
 
@@ -251,6 +256,11 @@ public interface Seq<T> {
                 final InterruptibleIterator<T> currentIterator = this.iterator;
                 this.iterator = null;
                 return currentIterator;
+            }
+
+            @Override
+            public Seq<T> constrainOnce() {
+                return this;
             }
         };
     }
