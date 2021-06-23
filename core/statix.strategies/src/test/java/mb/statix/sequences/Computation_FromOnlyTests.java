@@ -7,15 +7,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * Tests {@link Computation#from}.
+ * Tests {@link Computation#fromOnly}.
  */
 @SuppressWarnings({"Convert2MethodRef", "CodeBlock2Expr"})
-public final class Computation_FromTests {
+public final class Computation_FromOnlyTests {
 
     @Test
     public void returnsFailingComputation_whenSupplierReturnsNull() throws InterruptedException {
         // Arrange
-        final Computation<Integer> sut = Computation.from(() -> null);
+        final Computation<Integer> sut = Computation.fromOnly(() -> null);
 
         // Act/Assert
         assertNull(sut.tryEval());
@@ -24,7 +24,7 @@ public final class Computation_FromTests {
     @Test
     public void returnsValue_whenSupplierReturnsValue() throws InterruptedException {
         // Arrange
-        final Computation<Integer> sut = Computation.from(() -> 42);
+        final Computation<Integer> sut = Computation.fromOnly(() -> 42);
 
         // Act
         @Nullable final Integer result = sut.tryEval();

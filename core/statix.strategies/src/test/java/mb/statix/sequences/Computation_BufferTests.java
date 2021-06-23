@@ -17,7 +17,7 @@ public final class Computation_BufferTests {
     public void buffersResult_whenEvaluatedMultipleTimes() throws InterruptedException {
         // Arrange
         final AtomicInteger called = new AtomicInteger();
-        final Computation<Integer> sut = Computation.from(() -> called.getAndIncrement()).buffer();
+        final Computation<Integer> sut = Computation.fromOnly(() -> called.getAndIncrement()).buffer();
 
         // Act
         @Nullable Integer result1 = sut.tryEval();
@@ -34,7 +34,7 @@ public final class Computation_BufferTests {
     public void shouldReturnSameObject_whenCallingBufferOnABufferedComputation() throws InterruptedException {
         // Arrange
         final AtomicInteger called = new AtomicInteger();
-        final Computation<Integer> sut = Computation.from(() -> called.getAndIncrement()).buffer();
+        final Computation<Integer> sut = Computation.fromOnly(() -> called.getAndIncrement()).buffer();
 
         // Act
         final Computation<Integer> doubleBuffered = sut.buffer();

@@ -52,7 +52,7 @@ public interface Computation<T> extends Seq<T> {
      * @param <T> the type of result
      * @return a failed computation
      */
-    static <T> Computation<T> fail() { return () -> null; }
+    static <T> Computation<T> fail() { return Seq.fail(); }
 
     /**
      * Returns a computation that failed.
@@ -60,7 +60,7 @@ public interface Computation<T> extends Seq<T> {
      * @param <T> the type of result
      * @return a failed computation
      */
-    static <T> Computation<T> empty() { return fail(); }
+    static <T> Computation<T> empty() { return Seq.fail(); }
 
     /**
      * Returns a computation that failed.
@@ -68,7 +68,7 @@ public interface Computation<T> extends Seq<T> {
      * @param <T> the type of result
      * @return a failed computation
      */
-    static <T> Computation<T> of() { return fail(); }
+    static <T> Computation<T> of() { return Seq.fail(); }
 
     /**
      * Returns a constant computation.
@@ -77,11 +77,7 @@ public interface Computation<T> extends Seq<T> {
      * @param <T> the type of result
      * @return a computation
      */
-    static <T> Computation<T> of(T result) {
-        Objects.requireNonNull(result);
-
-        return () -> result;
-    }
+    static <T> Computation<T> of(T result) { return Seq.of(result); }
 
     /**
      * Returns a computation that sources from the specified supplier.
@@ -90,7 +86,7 @@ public interface Computation<T> extends Seq<T> {
      * @param <T> the type of results
      * @return a computation
      */
-    static <T> Computation<T> from(Supplier<@Nullable T> supplier) {
+    static <T> Computation<T> fromOnly(Supplier<@Nullable T> supplier) {
         Objects.requireNonNull(supplier);
 
         return supplier::get;

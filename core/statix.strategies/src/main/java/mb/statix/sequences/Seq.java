@@ -31,14 +31,12 @@ import java.util.stream.Stream;
 public interface Seq<T> {
 
     /**
-     * Returns an empty sequence.
+     * Returns a computation that failed.
      *
-     * @param <T> the type of results
-     * @return a sequence
+     * @param <T> the type of result
+     * @return a failed computation
      */
-    static <T> Seq<T> fail() {
-        return InterruptibleIterator::empty;
-    }
+    static <T> Computation<T> fail() { return () -> null; }
 
     /**
      * Returns an empty sequence.
@@ -46,7 +44,7 @@ public interface Seq<T> {
      * @param <T> the type of results
      * @return an empty sequence
      */
-    static <T> Seq<T> empty() {
+    static <T> Computation<T> empty() {
         return fail();
     }
 
@@ -56,21 +54,21 @@ public interface Seq<T> {
      * @param <T> the type of results
      * @return an empty sequence
      */
-    static <T> Seq<T> of() {
+    static <T> Computation<T> of() {
         return fail();
     }
 
     /**
-     * Returns a sequence with the specified result.
+     * Returns a computation with the specified result.
      *
      * @param result the result
-     * @param <T>    the type of results
-     * @return a sequence
+     * @param <T>    the type of result
+     * @return a computation
      */
-    static <T> Seq<T> of(T result) {
+    static <T> Computation<T> of(T result) {
         Objects.requireNonNull(result);
 
-        return Seq.from(Collections.singletonList(result));
+        return () -> result;
     }
 
     /**
@@ -84,6 +82,7 @@ public interface Seq<T> {
         Objects.requireNonNull(results);
 
         if(results.length == 0) return fail();
+        if(results.length == 1) return of(results[0]);
 
         List<T> list = new ArrayList<>(results.length);
         for(final T result : results) {

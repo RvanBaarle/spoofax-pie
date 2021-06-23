@@ -1,6 +1,5 @@
 package mb.statix.sequences;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,7 +19,7 @@ public final class Computation_IteratorTests {
     public void returnsIteratorThatLazilyEvaluates() throws InterruptedException {
         // Arrange
         final AtomicInteger called = new AtomicInteger();
-        final Computation<Integer> sut = Computation.from(() -> called.getAndIncrement());
+        final Computation<Integer> sut = Computation.fromOnly(() -> called.getAndIncrement());
 
         // Act/Assert
         final InterruptibleIterator<Integer> iterator = sut.iterator();
@@ -34,7 +33,7 @@ public final class Computation_IteratorTests {
     @Test
     public void returnsIteratorThatDealsWithNull() throws InterruptedException {
         // Arrange
-        final Computation<Integer> sut = Computation.from(() -> null);
+        final Computation<Integer> sut = Computation.fromOnly(() -> null);
 
         // Act/Assert
         final InterruptibleIterator<Integer> iterator = sut.iterator();

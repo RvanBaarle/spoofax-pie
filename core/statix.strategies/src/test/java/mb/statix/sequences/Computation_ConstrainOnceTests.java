@@ -19,7 +19,7 @@ public final class Computation_ConstrainOnceTests {
     public void throws_whenEvaluatedMultipleTimes() throws InterruptedException {
         // Arrange
         final AtomicInteger called = new AtomicInteger();
-        final Computation<Integer> sut = Computation.from(() -> called.getAndIncrement()).constrainOnce();
+        final Computation<Integer> sut = Computation.fromOnly(() -> called.getAndIncrement()).constrainOnce();
 
         // Act
         @Nullable Integer result1 = sut.tryEval();
@@ -35,7 +35,7 @@ public final class Computation_ConstrainOnceTests {
     public void shouldReturnSameObject_whenCallingConstrainOnceOnAConstrainedComputation() throws InterruptedException {
         // Arrange
         final AtomicInteger called = new AtomicInteger();
-        final Computation<Integer> sut = Computation.from(() -> called.getAndIncrement()).constrainOnce();
+        final Computation<Integer> sut = Computation.fromOnly(() -> called.getAndIncrement()).constrainOnce();
 
         // Act
         final Computation<Integer> doubleConstrained = sut.constrainOnce();

@@ -19,7 +19,7 @@ public final class Computation_EvalTests {
     @Test
     public void returnsValue_whenComputationSucceeded() throws InterruptedException {
         // Arrange
-        final Computation<Integer> sut = Computation.from(() -> 42);
+        final Computation<Integer> sut = Computation.fromOnly(() -> 42);
 
         // Act
         final Integer result = sut.eval();
@@ -31,7 +31,7 @@ public final class Computation_EvalTests {
     @Test
     public void throws_whenComputationFailed() throws InterruptedException {
         // Arrange
-        final Computation<Integer> sut = Computation.from(() -> null);
+        final Computation<Integer> sut = Computation.fromOnly(() -> null);
 
         // Act/Assert
         assertThrows(IllegalStateException.class, () -> {
@@ -43,7 +43,7 @@ public final class Computation_EvalTests {
     public void doesNotCompute_whileNotEvaluated() throws InterruptedException {
         // Arrange
         final AtomicBoolean called = new AtomicBoolean(false);
-        final Computation<Integer> sut = Computation.from(() -> { called.set(true); return 42; });
+        final Computation<Integer> sut = Computation.fromOnly(() -> { called.set(true); return 42; });
 
         // Act/Assert
         assertFalse(called.get());
@@ -55,7 +55,7 @@ public final class Computation_EvalTests {
     public void recomputes_whenEvalIsCalled() throws InterruptedException {
         // Arrange
         final AtomicInteger calls = new AtomicInteger();
-        final Computation<Integer> sut = Computation.from(() -> { calls.incrementAndGet(); return 42; });
+        final Computation<Integer> sut = Computation.fromOnly(() -> { calls.incrementAndGet(); return 42; });
 
         // Act
         sut.eval();

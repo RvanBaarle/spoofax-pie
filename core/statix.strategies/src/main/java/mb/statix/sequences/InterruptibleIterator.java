@@ -16,8 +16,8 @@ public interface InterruptibleIterator<T> {
 
     T next() throws InterruptedException;
 
+    @SuppressWarnings("unchecked")
     static <T> InterruptibleIterator<T> empty() {
-        //noinspection unchecked
         return (InterruptibleIterator<T>)EmptyInterruptibleIterator.EMPTY_ITERATOR;
     }
 
