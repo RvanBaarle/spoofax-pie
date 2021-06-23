@@ -15,11 +15,11 @@ public abstract class InterruptibleIteratorBase<T> implements InterruptibleItera
      * Specifies the state of the iterator.
      */
     private enum State {
-        /** The iterator has computed the next element. */
-        Ready,
         /** The iterator has not yet computed the next element. */
         Preparing,
-        /** The iterator has finished. */
+        /** The iterator has computed the next element. */
+        Ready,
+        /** The iterator has no more elements. */
         Finished,
     }
 
@@ -69,6 +69,7 @@ public abstract class InterruptibleIteratorBase<T> implements InterruptibleItera
      * @param value the next element
      */
     protected void setNext(T value) {
+        assert state == State.Preparing : "Only one call to either setNext() or finished() is allowed per element.";
         this.nextValue = value;
         this.state = State.Ready;
     }
@@ -77,6 +78,9 @@ public abstract class InterruptibleIteratorBase<T> implements InterruptibleItera
      * Indicates that the iterator is done.
      */
     protected void finished() {
+        assert state == State.Preparing : "Only one call to either setNext() or finished() is allowed per element.";
+        // Set to null to release any object from this iterator for garbage collection.
+        this.nextValue = null;
         this.state = State.Finished;
     }
 }

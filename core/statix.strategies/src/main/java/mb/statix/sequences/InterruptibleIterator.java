@@ -16,17 +16,12 @@ public interface InterruptibleIterator<T> {
 
     T next() throws InterruptedException;
 
-    @SuppressWarnings("unchecked")
-    static <T> InterruptibleIterator<T> empty() {
-        return (InterruptibleIterator<T>)EmptyInterruptibleIterator.EMPTY_ITERATOR;
-    }
-
     /**
      * Applies the given action to each remaining value in the iterator.
      *
      * @param action the action to apply to each value
      */
-    default void forEachRemaining(Consumer<? super T> action) throws InterruptedException {
+    default void forEachRemaining(InterruptibleConsumer<? super T> action) throws InterruptedException {
         Objects.requireNonNull(action);
         while (hasNext()) {
             action.accept(next());
@@ -41,7 +36,14 @@ public interface InterruptibleIterator<T> {
      * @return the interruptible iterator
      */
     static <T> InterruptibleIterator<T> wrap(Iterator<T> iterator) {
-        return new InterruptibleIteratorWrapper<>(iterator);
+        if (iterator instanceof InterruptibleIteratorUnwrapper) {
+            // Return originally unwrapped interruptible iterator
+            return ((InterruptibleIteratorUnwrapper<T>)iterator).iterator;
+        } else {
+            // Wrap normal iterator
+            return new InterruptibleIteratorWrapper<>(iterator);
+        }
+
     }
 
     /**
@@ -56,33 +58,16 @@ public interface InterruptibleIterator<T> {
      * @return the iterator
      */
     static <T> Iterator<T> unwrap(InterruptibleIterator<T> iterator) {
-        return new InterruptibleIteratorUnwrapper<>(iterator);
+        if (iterator instanceof InterruptibleIteratorWrapper) {
+            // Return originally wrapped normal iterator
+            return ((InterruptibleIteratorWrapper<T>)iterator).iterator;
+        } else {
+            // Unwrap interruptible iterator
+            return new InterruptibleIteratorUnwrapper<>(iterator);
+        }
     }
 
 }
-
-/**
- * An empty interruptible iterator.
- *
- * @param <T> the type of values in the iterator
- */
-class EmptyInterruptibleIterator<T> implements InterruptibleIterator<T> {
-    public static final EmptyInterruptibleIterator<Object> EMPTY_ITERATOR
-        = new EmptyInterruptibleIterator<>();
-
-    private EmptyInterruptibleIterator() { }
-
-    @Override
-    public boolean hasNext() {
-        return false;
-    }
-
-    @Override
-    public T next() {
-        throw new NoSuchElementException();
-    }
-}
-
 
 /**
  * Wraps an {@link Iterator}.
@@ -90,7 +75,7 @@ class EmptyInterruptibleIterator<T> implements InterruptibleIterator<T> {
  * @param <T> the type of values in the iterator
  */
 class InterruptibleIteratorWrapper<T> implements InterruptibleIterator<T> {
-    private final Iterator<T> iterator;
+    final Iterator<T> iterator;
 
     public InterruptibleIteratorWrapper(Iterator<T> iterator) {
         this.iterator = iterator;
@@ -117,7 +102,7 @@ class InterruptibleIteratorWrapper<T> implements InterruptibleIterator<T> {
  * @param <T> the type of values in the iterator
  */
 class InterruptibleIteratorUnwrapper<T> implements Iterator<T> {
-    private final InterruptibleIterator<T> iterator;
+    final InterruptibleIterator<T> iterator;
 
     public InterruptibleIteratorUnwrapper(InterruptibleIterator<T> iterator) {
         this.iterator = iterator;

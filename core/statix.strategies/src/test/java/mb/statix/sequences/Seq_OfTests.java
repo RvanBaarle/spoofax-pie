@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests {@link Seq#of}.
@@ -30,6 +31,16 @@ public final class Seq_OfTests {
 
         // Assert
         assertEquals(Arrays.asList(), seq.toList().tryEval());
+    }
+
+    @Test
+    public void returnsAComputation_whenGivenASingletonArray() throws InterruptedException {
+        // Act
+        Seq<String> seq = Seq.of(new String[] { "a" });
+
+        // Assert
+        assertTrue(seq instanceof Computation);
+        assertEquals(Arrays.asList("a"), seq.toList().tryEval());
     }
 
     @Test
