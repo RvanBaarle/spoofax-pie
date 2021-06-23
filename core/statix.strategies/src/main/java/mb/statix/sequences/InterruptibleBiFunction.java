@@ -4,8 +4,8 @@ package mb.statix.sequences;
  * A function that accepts two arguments and produces a result,
  * optionally throwing an {@link InterruptedException}.
  *
- * @param <T> the type of the first argument
- * @param <U> the type of the second argument
+ * @param <T> the type of the first argument to this function
+ * @param <T> the type of the second argument to this function
  * @param <R> the type of result
  */
 @FunctionalInterface

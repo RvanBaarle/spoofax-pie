@@ -4,7 +4,7 @@ package mb.statix.sequences;
  * A consumer functional interface that can be interrupted
  * (and throws an {@link InterruptedException} in this case).
  *
- * @param <T> the type of values being consumed
+ * @param <T> the type of the argument to this function
  */
 @FunctionalInterface
 public interface InterruptibleConsumer<T> {
