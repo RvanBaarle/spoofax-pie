@@ -14,11 +14,7 @@ import mb.statix.sequences.Seq;
  */
 public abstract class NamedStrategy<CTX, T, R> implements Strategy<CTX, T, R> {
 
-    @Override public final Seq<R> eval(CTX ctx, T input) {
-        return doEval(ctx, input);
-    }
-
-    protected abstract Seq<R> doEval(CTX ctx, T input);
+    @Override public abstract Seq<R> eval(CTX ctx, T input);
 
     @Override public abstract String getName();
 

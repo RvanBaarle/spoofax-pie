@@ -10,7 +10,7 @@ public class MyTestStrategy1 extends NamedStrategy1<Object, String, String, Stri
     public final AtomicInteger doEvalCalls = new AtomicInteger();
 
     @Override
-    public Seq<String> doEval(Object ctx, String part1, String input) {
+    public Computation<String> eval(Object ctx, String part1, String input) {
         doEvalCalls.incrementAndGet();
         return Computation.fromOnly(() -> part1 + input);
     }

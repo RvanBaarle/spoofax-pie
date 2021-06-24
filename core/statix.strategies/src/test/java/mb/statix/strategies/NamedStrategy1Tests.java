@@ -11,18 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 public final class NamedStrategy1Tests {
 
     @Test
-    public void eval_shouldCallDoEval() {
-        // Arrange
-        final MyTestStrategy1 strategy = new MyTestStrategy1();
-
-        // Act
-        strategy.eval(new Object(), "Hello, ", "world!");
-
-        // Assert
-        assertEquals(1, strategy.doEvalCalls.get());
-    }
-
-    @Test
     public void isAnonymous_shouldReturnFalse() {
         // Arrange
         final MyTestStrategy1 strategy = new MyTestStrategy1();

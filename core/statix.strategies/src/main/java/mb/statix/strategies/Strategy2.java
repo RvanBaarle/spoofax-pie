@@ -74,7 +74,7 @@ public interface Strategy2<CTX, A1, A2, T, R> extends StrategyDecl, PrintableStr
         }
 
         @Override
-        public Seq<R> doEval(CTX ctx, A2 arg2, T input) {
+        public Seq<R> eval(CTX ctx, A2 arg2, T input) {
             return Strategy2.this.eval(ctx, arg1, arg2, input);
         }
 
@@ -139,7 +139,7 @@ public interface Strategy2<CTX, A1, A2, T, R> extends StrategyDecl, PrintableStr
         }
 
         @Override
-        public Seq<R> doEval(CTX ctx, T input) {
+        public Seq<R> eval(CTX ctx, T input) {
             return Strategy2.this.eval(ctx, arg1, arg2, input);
         }
 

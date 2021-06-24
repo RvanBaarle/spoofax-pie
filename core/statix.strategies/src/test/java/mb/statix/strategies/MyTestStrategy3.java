@@ -1,7 +1,6 @@
 package mb.statix.strategies;
 
 import mb.statix.sequences.Computation;
-import mb.statix.sequences.Seq;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -9,7 +8,7 @@ public class MyTestStrategy3 extends NamedStrategy3<Object, String, String, Stri
     public final AtomicInteger doEvalCalls = new AtomicInteger();
 
     @Override
-    public Seq<String> doEval(Object ctx, String part1, String part2, String part3, String input) {
+    public Computation<String> eval(Object ctx, String part1, String part2, String part3, String input) {
         doEvalCalls.incrementAndGet();
         return Computation.fromOnly(() -> part1 + part2 + part3 + input);
     }
