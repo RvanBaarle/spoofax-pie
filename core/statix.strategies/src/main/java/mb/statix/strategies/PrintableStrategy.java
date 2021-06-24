@@ -8,6 +8,7 @@ import mb.statix.sequences.InterruptibleFunction;
 import mb.statix.sequences.InterruptiblePredicate;
 import mb.statix.sequences.InterruptibleSupplier;
 import mb.statix.utils.CaseFormat;
+import mb.statix.utils.StringUtils;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -101,6 +102,8 @@ public interface PrintableStrategy extends Writable {
             sb.append("<biconsumer>");
         } else if (arg instanceof Supplier || arg instanceof InterruptibleSupplier) {
             sb.append("<supplier>");
+        } else if (arg instanceof CharSequence) {
+            sb.append('"').append(StringUtils.escapeJava((CharSequence)arg)).append('"');
         } else if (arg instanceof Class) {
             sb.append(((Class<?>)arg).getSimpleName());
         } else {

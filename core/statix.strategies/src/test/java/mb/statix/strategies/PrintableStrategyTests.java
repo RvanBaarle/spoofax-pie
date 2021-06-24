@@ -231,6 +231,19 @@ public final class PrintableStrategyTests {
     }
 
     @Test
+    public void writeArg_shouldWriteStringQuotedAndEscapedByDefault() {
+        // Arrange
+        final MyTestStrategy strategy = new MyTestStrategy();
+        final StringBuilder sb = new StringBuilder();
+
+        // Act
+        strategy.writeArg(sb, 0, "On a\nnew line!");
+
+        // Assert
+        assertEquals("\"On a\\nnew line!\"", sb.toString());
+    }
+
+    @Test
     public void writeArg_shouldWriteStringRepresentationByDefault() {
         // Arrange
         final MyTestStrategy strategy = new MyTestStrategy();
