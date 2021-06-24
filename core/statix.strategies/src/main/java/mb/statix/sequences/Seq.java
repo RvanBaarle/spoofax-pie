@@ -774,6 +774,7 @@ public interface Seq<T> {
      * @return the new computation
      */
     default Computation<T> single() {
+        if (this instanceof Computation) return (Computation<T>)this;
         return () -> {
             final InterruptibleIterator<T> iterator = Seq.this.iterator();
 

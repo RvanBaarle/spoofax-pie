@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * Tests {@link Seq#single}.
@@ -47,6 +48,18 @@ public final class Seq_SingleTests {
 
         // Assert
         assertEquals("X", seq.tryEval());
+    }
+
+    @Test
+    public void returnsComputation_whenSequenceIsComputation() throws InterruptedException {
+        // Arrange
+        Seq<String> input = Computation.of("X");
+
+        // Act
+        Computation<String> seq = input.single();
+
+        // Assert
+        assertSame(input, seq);
     }
 
     @Test
