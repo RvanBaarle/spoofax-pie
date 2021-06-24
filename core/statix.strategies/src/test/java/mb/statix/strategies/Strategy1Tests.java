@@ -4,6 +4,8 @@ import mb.statix.sequences.Computation;
 import mb.statix.sequences.Seq;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -14,7 +16,7 @@ public final class Strategy1Tests {
     @Test
     public void getArity_shouldReturn1() {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
 
         // Act
         final int arity = strategy.getArity();
@@ -26,20 +28,20 @@ public final class Strategy1Tests {
     @Test
     public void apply_getName_shouldReturnNameOfOriginalStrategy() {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
 
         // Act
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ");
         final String name = appliedStrategy.getName();
 
         // Assert
-        assertEquals("my-test-strategy", name);
+        assertEquals("my-test-strategy-1", name);
     }
 
     @Test
     public void apply_getParamName_shouldCallGetParamNameOfOriginalStrategy() {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
 
         // Act/Assert
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ");
@@ -51,7 +53,7 @@ public final class Strategy1Tests {
     @Test
     public void apply_writeArg_shouldCallWriteArgOfOriginalStrategy() {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
         final StringBuilder sb = new StringBuilder();
 
         // Act
@@ -65,7 +67,7 @@ public final class Strategy1Tests {
     @Test
     public void apply_isAnonymous_shouldReturnIsAnonymousOfOriginalStrategy() {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
 
         // Act
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ");
@@ -78,7 +80,7 @@ public final class Strategy1Tests {
     @Test
     public void apply_isAtom_shouldReturnTrue() {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
 
         // Act
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ");
@@ -91,7 +93,7 @@ public final class Strategy1Tests {
     @Test
     public void apply_getPrecedence_shouldCallGetPrecedenceOfOriginalStrategy() {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
 
         // Act
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ");
@@ -104,20 +106,20 @@ public final class Strategy1Tests {
     @Test
     public void apply_writeTo_shouldWriteStrategyNameAndArguments() {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
 
         // Act
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ");
         final String str = appliedStrategy.writeTo(new StringBuilder()).toString();
 
         // Assert
-        assertEquals("my-test-strategy(0: \"Hello, \")", str);
+        assertEquals("my-test-strategy-1(0: \"Hello, \")", str);
     }
 
     @Test
     public void apply_eval_shouldImplicitlyApplyArguments() throws InterruptedException {
         // Arrange
-        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy();
+        final Strategy1<Object, String, String, String> strategy = new MyTestStrategy1();
 
         // Act
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ");
@@ -127,35 +129,4 @@ public final class Strategy1Tests {
         assertEquals("Hello, World", result);
     }
 
-    @SuppressWarnings("SwitchStatementWithTooFewBranches")
-    private static class MyTestStrategy extends NamedStrategy1<Object, String, String, String> {
-        @Override
-        public Seq<String> doEval(Object ctx, String part1, String input) {
-            return Computation.fromOnly(() -> part1 + input);
-        }
-
-        @Override
-        public String getName() {
-            return "my-test-strategy";
-        }
-
-        @Override
-        public String getParamName(int index) {
-            switch (index) {
-                case 0: return "part1";
-                default: throw new IndexOutOfBoundsException("Index " + index + " out of bounds.");
-            }
-        }
-
-        @Override
-        public int getPrecedence() {
-            return 42;
-        }
-
-        @Override
-        public void writeArg(StringBuilder sb, int index, Object arg) {
-            sb.append(index).append(": ");    // Prefix added for testing
-            super.writeArg(sb, index, arg);
-        }
-    }
 }
