@@ -18,8 +18,6 @@ public abstract class NamedStrategy<CTX, T, R> implements Strategy<CTX, T, R> {
 
     @Override public abstract String getName();
 
-    @Override public abstract String getParamName(int index);
-
     @Override public boolean isAnonymous() { return false; }
 
     @Override public StringBuilder writeTo(StringBuilder sb) { sb.append(getName()); return sb; }

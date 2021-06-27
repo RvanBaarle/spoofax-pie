@@ -43,12 +43,23 @@ public interface PrintableStrategy extends Writable {
     }
 
     /**
+     * Gets the arity of the strategy.
+     *
+     * The arity of a basic strategy {@code T -> R} is 0.
+     *
+     * @return the arity of the strategy, excluding the input argument
+     */
+    int getArity();
+
+    /**
      * Gets the name of the parameter.
      *
      * @param index the zero-based index
      * @return the parameter name
      */
     default String getParamName(int index) {
+        if (index < 0 || index >= getArity())
+            throw new IndexOutOfBoundsException("Parameter index " + index + " out of range for " + getName() + "`" + getArity());
         return "a" + index;
     }
 

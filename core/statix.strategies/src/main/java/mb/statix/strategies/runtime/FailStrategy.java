@@ -8,6 +8,7 @@ import mb.statix.strategies.NamedStrategy;
  *
  * @param <CTX> the type of context (invariant)
  * @param <T> the type of input (contravariant)
+ * @param <R> the type of output (covariant)
  */
 public final class FailStrategy<CTX, T, R> extends NamedStrategy<CTX, T, R> {
 
@@ -29,7 +30,7 @@ public final class FailStrategy<CTX, T, R> extends NamedStrategy<CTX, T, R> {
 
     @Override
     public String getParamName(int index) {
-        throw new IndexOutOfBoundsException("Index " + index + " is out of bounds.");
+        return super.getParamName(index);
     }
 
 }

@@ -30,7 +30,7 @@ public final class IdStrategy<CTX, T> extends NamedStrategy<CTX, T, T> {
 
     @Override
     public String getParamName(int index) {
-        throw new IndexOutOfBoundsException("Index " + index + " is out of bounds.");
+        return super.getParamName(index);
     }
 
 }

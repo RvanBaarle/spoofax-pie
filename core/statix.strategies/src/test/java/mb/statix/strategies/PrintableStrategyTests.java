@@ -268,6 +268,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return -1; } // Lower precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("x + y"); return sb; }
         };
@@ -287,6 +288,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return 0; } // Equal precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("x ?: y"); return sb; }
         };
@@ -306,6 +308,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return 1; } // Higher precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("x * y"); return sb; }
         };
@@ -325,6 +328,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return 0; } // Equal precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("x + y"); return sb; }
         };
@@ -344,6 +348,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return true; }
+            @Override public int getArity() { return 0; }
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("x"); return sb; }
         };
 
@@ -363,6 +368,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return -1; } // Lower precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("y + z"); return sb; }
         };
@@ -382,6 +388,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return 0; } // Equal precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("y ?: z"); return sb; }
         };
@@ -402,6 +409,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return 1; } // Higher precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("y * z"); return sb; }
         };
@@ -421,6 +429,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return 0; } // Equal precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("y + z"); return sb; }
         };
@@ -440,6 +449,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return true; }
+            @Override public int getArity() { return 0; }
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("z"); return sb; }
         };
 
@@ -459,6 +469,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return -1; } // Lower precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("a < b + c"); return sb; }
         };
@@ -479,6 +490,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return 1; } // Higher precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("a ? b : c"); return sb; }
         };
@@ -499,6 +511,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return false; }
+            @Override public int getArity() { return 0; }
             @Override public int getPrecedence() { return 1; } // Higher precedence
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("a * b"); return sb; }
         };
@@ -519,6 +532,7 @@ public final class PrintableStrategyTests {
         final StringBuilder sb = new StringBuilder();
         final PrintableStrategy strategy = new PrintableStrategy() {
             @Override public boolean isAtom() { return true; }
+            @Override public int getArity() { return 0; }
             @Override public StringBuilder writeTo(StringBuilder sb) { sb.append("y"); return sb; }
         };
 
@@ -532,7 +546,11 @@ public final class PrintableStrategyTests {
         assertEquals("x ? y : z", sb.toString());
     }
 
-    private static class MyTestStrategy implements PrintableStrategy { }
-    private static class MyTest2 implements PrintableStrategy { }
+    private static class MyTestStrategy implements PrintableStrategy {
+        @Override public int getArity() { return 3; }
+    }
+    private static class MyTest2 implements PrintableStrategy {
+        @Override public int getArity() { return 3; }
+    }
 
 }
