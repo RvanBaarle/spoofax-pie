@@ -73,7 +73,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     @Test
     public void shouldEvaluateSequenceLazy() throws InterruptedException {
         // Arrange
-        // The number of times eval() is called on each of the strategies.
         final OrStrategy<Object, Integer, Integer> strategy = OrStrategy.getInstance();
         final TestListStrategy<Integer, Integer> s1 = new TestListStrategy<>(it -> Arrays.asList(it + 1, it + 2, it + 3));
         final TestListStrategy<Integer, Integer> s2 = new TestListStrategy<>(it -> Arrays.asList(it * 1, it * 2, it * 3));
