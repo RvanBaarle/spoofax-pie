@@ -24,3 +24,7 @@ tasks.test {
 tasks.jacocoTestReport {
   dependsOn(tasks.test)
 }
+
+//tasks { withType<Test> {
+//  debug = true
+//} }

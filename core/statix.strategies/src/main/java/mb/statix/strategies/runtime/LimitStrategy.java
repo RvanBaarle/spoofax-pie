@@ -7,7 +7,7 @@ import mb.statix.strategies.Strategy;
 /**
  * Limiting strategy.
  *
- * This evaluates returns at most the number of elements specified in the limit.
+ * This returns at most the number of elements specified in the limit.
  *
  * @param <CTX> the type of context (invariant)
  * @param <T> the type of input (contravariant)

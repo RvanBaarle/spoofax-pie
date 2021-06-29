@@ -35,7 +35,7 @@ public interface Seq<T> {
      * @param <T> the type of result
      * @return a failed computation
      */
-    static <T> Computation<T> fail() { return () -> null; }
+    static <T> Computation<T> fail() { return Constants.emptyComputation(); }
 
     /**
      * Returns an empty sequence.

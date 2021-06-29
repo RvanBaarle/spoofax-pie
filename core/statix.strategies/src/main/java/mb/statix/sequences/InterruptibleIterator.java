@@ -12,8 +12,22 @@ import java.util.function.Consumer;
  */
 public interface InterruptibleIterator<T> {
 
+    /**
+     * Returns whether the iteration has more elements.
+     *
+     * @return {@code true} if the iterator has more elements;
+     * otherwise, {@code false}
+     * @throws InterruptedException if the operation was interrupted
+     */
     boolean hasNext() throws InterruptedException;
 
+    /**
+     * Returns the next element in the iteration.
+     *
+     * @return the next element in the iteration
+     * @throws NoSuchElementException if the iterator has no more elements
+     * @throws InterruptedException if the operation was interrupted
+     */
     T next() throws InterruptedException;
 
     /**
@@ -25,6 +39,126 @@ public interface InterruptibleIterator<T> {
         Objects.requireNonNull(action);
         while (hasNext()) {
             action.accept(next());
+        }
+    }
+
+    /**
+     * Returns an empty iterator.
+     *
+     * @param <T> the type of values in the iterator
+     * @return the interruptible iterator
+     */
+    static <T> InterruptibleIterator<T> of() {
+        return Constants.emptyIterator();
+    }
+
+    /**
+     * Returns an iterator with the specified element.
+     *
+     * @param element the element in the iterator
+     * @param <T> the type of values in the iterator
+     * @return the interruptible iterator
+     */
+    static <T> InterruptibleIterator<T> of(T element) {
+        return new InterruptibleIterator<T>() {
+            private int index = 0;
+            @Override
+            public boolean hasNext() throws InterruptedException {
+                return index == 0;
+            }
+
+            @Override
+            public T next() throws InterruptedException {
+                if (!hasNext()) throw new NoSuchElementException();
+                index += 1;
+                return element;
+            }
+        };
+    }
+
+    /**
+     * Returns an iterator with the specified elements.
+     *
+     * @param element1 the first element in the iterator
+     * @param element2 the second element in the iterator
+     * @param <T> the type of values in the iterator
+     * @return the interruptible iterator
+     */
+    static <T> InterruptibleIterator<T> of(T element1, T element2) {
+        return new InterruptibleIterator<T>() {
+            private int index = 0;
+            @Override
+            public boolean hasNext() throws InterruptedException {
+                return index >= 0 && index < 2;
+            }
+
+            @Override
+            public T next() throws InterruptedException {
+                switch (index) {
+                    case 0: index += 1; return element1;
+                    case 1: index += 1; return element2;
+                    default: throw new NoSuchElementException();
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns an iterator with the specified elements.
+     *
+     * @param element1 the first element in the iterator
+     * @param element2 the second element in the iterator
+     * @param element3 the third element in the iterator
+     * @param <T> the type of values in the iterator
+     * @return the interruptible iterator
+     */
+    static <T> InterruptibleIterator<T> of(T element1, T element2, T element3) {
+        return new InterruptibleIterator<T>() {
+            private int index = 0;
+            @Override
+            public boolean hasNext() throws InterruptedException {
+                return index >= 0 && index < 3;
+            }
+
+            @Override
+            public T next() throws InterruptedException {
+                switch (index) {
+                    case 0: index += 1; return element1;
+                    case 1: index += 1; return element2;
+                    case 2: index += 1; return element3;
+                    default: throw new NoSuchElementException();
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns an iterator with the specified elements.
+     *
+     * @param elements the elements in the iterator
+     * @param <T> the type of values in the iterator
+     * @return the interruptible iterator
+     */
+    @SafeVarargs static <T> InterruptibleIterator<T> of(T... elements) {
+        switch (elements.length) {
+            case 0: return of();
+            case 1: return of(elements[0]);
+            case 2: return of(elements[0], elements[1]);
+            case 3: return of(elements[0], elements[1], elements[2]);
+            default: return new InterruptibleIterator<T>() {
+                private int index = 0;
+                @Override
+                public boolean hasNext() throws InterruptedException {
+                    return index >= 0 && index < elements.length;
+                }
+
+                @Override
+                public T next() throws InterruptedException {
+                    if (index < 0 || index >= elements.length) throw new NoSuchElementException();
+                    index += 1;
+                    return elements[index];
+                }
+            };
         }
     }
 
