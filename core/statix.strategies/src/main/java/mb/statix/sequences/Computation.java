@@ -102,11 +102,11 @@ public interface Computation<T> extends Seq<T> {
                     this.done = true;
                     @Nullable T value = tryEval();
                     if (value != null) {
-                        setNext(value);
+                        yield(value);
                         return;
                     }
                 }
-                finished();
+                yieldBreak();
             }
         };
     }

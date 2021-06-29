@@ -1,11 +1,7 @@
 package mb.statix.sequences;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,8 +57,8 @@ import static org.junit.jupiter.api.Assertions.*;
         final InterruptibleIteratorBase<String> sut = new InterruptibleIteratorBase<String>() {
             @Override
             protected void computeNext() throws InterruptedException {
-                setNext("a");
-                setNext("b");
+                yield("a");
+                yield("b");
             }
         };
 
@@ -78,8 +74,8 @@ import static org.junit.jupiter.api.Assertions.*;
         final InterruptibleIteratorBase<String> sut = new InterruptibleIteratorBase<String>() {
             @Override
             protected void computeNext() throws InterruptedException {
-                finished();
-                setNext("b");
+                yieldBreak();
+                yield("b");
             }
         };
 
@@ -95,8 +91,8 @@ import static org.junit.jupiter.api.Assertions.*;
         final InterruptibleIteratorBase<String> sut = new InterruptibleIteratorBase<String>() {
             @Override
             protected void computeNext() throws InterruptedException {
-                setNext("a");
-                finished();
+                yield("a");
+                yieldBreak();
             }
         };
 
@@ -117,10 +113,10 @@ import static org.junit.jupiter.api.Assertions.*;
         @Override
         protected void computeNext() throws InterruptedException {
             if (i < elements.length) {
-                setNext(elements[i]);
+                yield(elements[i]);
                 i += 1;
             } else {
-                finished();
+                yieldBreak();
             }
         }
     }

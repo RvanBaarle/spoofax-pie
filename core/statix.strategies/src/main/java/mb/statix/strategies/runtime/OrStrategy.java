@@ -10,6 +10,9 @@ import mb.statix.strategies.Strategy;
 /**
  * Disjunction strategy.
  *
+ * This evaluates two strategies on the input, and returns the elements of the first sequence
+ * and then the elements of the second sequence, but only if at least one succeeds.
+ *
  * @param <CTX> the type of context (invariant)
  * @param <T> the type of input (contravariant)
  * @param <R> the type of output (covariant)

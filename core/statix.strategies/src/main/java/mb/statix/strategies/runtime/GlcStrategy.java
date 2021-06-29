@@ -5,9 +5,6 @@ import mb.statix.sequences.InterruptibleIteratorBase;
 import mb.statix.sequences.Seq;
 import mb.statix.strategies.NamedStrategy3;
 import mb.statix.strategies.Strategy;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.util.Iterator;
 
 /**
  * Guarded left choice strategy.
@@ -33,35 +30,37 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
             // Iterable from the sequence whose results we're returning
             final InterruptibleIterator<U> conditionIter = conditionSeq.iterator();
 
-            /*
-            // 0:
-            if (conditionIter.hasNext()) {
-                // 1:
-                while (conditionIter.hasNext()) {
-                    final U next = conditionIter.next();
-                    final Seq<R> onSuccessSeq = onSuccess.eval(ctx, next);
-                    final InterruptibleIterator<R> onSuccessIter = onSuccessSeq.iterator();
-                    // 2:
-                    while (onSuccessIter.hasNext()) {
-                        yield(onSuccessIter.next());
-                        // 3:
+            // Implementation if `yield` and `yieldBreak` could actually suspend computation
+            @SuppressWarnings("unused")
+            private void computeNextCoroutine() throws InterruptedException {
+                // 0:
+                if(conditionIter.hasNext()) {
+                    // 1:
+                    while(conditionIter.hasNext()) {
+                        final U next = conditionIter.next();
+                        final Seq<R> onSuccessSeq = onSuccess.eval(ctx, next);
+                        final InterruptibleIterator<R> onSuccessIter = onSuccessSeq.iterator();
+                        // 2:
+                        while(onSuccessIter.hasNext()) {
+                            this.yield(onSuccessIter.next());
+                            // 3:
+                        }
+                        // 4:
                     }
-                    // 4:
+                    // 5:
+                } else {
+                    // 6:
+                    final InterruptibleIterator<R> onFailureIter = onFailure.eval(ctx, input).iterator();
+                    // 7:
+                    while(onFailureIter.hasNext()) {
+                        this.yield(onFailureIter.next());
+                        // 8:
+                    }
+                    // 9:
                 }
-                // 5:
-            } else {
-                // 6:
-                final InterruptibleIterator<R> onFailureIter = onFailure.eval(ctx, input).iterator();
-                // 7:
-                while (onFailureIter.hasNext()) {
-                    yield(onFailureIter.next());
-                    // 8:
-                }
-                // 9:
+                // 10:
+                yieldBreak();
             }
-            // 10:
-            yieldBreak();
-             */
 
             // STATE MACHINE
             private int state = 0;
@@ -95,7 +94,7 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
                                 this.state = 4;
                                 continue;
                             }
-                            setNext(onSuccessIter.next());
+                            yield(onSuccessIter.next());
                             this.state = 3;
                             return;
                         case 3:
@@ -116,7 +115,7 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
                                 this.state = 9;
                                 continue;
                             }
-                            setNext(onFailureIter.next());
+                            yield(onFailureIter.next());
                             this.state = 8;
                             return;
                         case 8:
@@ -126,7 +125,7 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
                             this.state = 10;
                             continue;
                         case 10:
-                            finished();
+                            yieldBreak();
                             this.state = -1;
                             return;
                         default:

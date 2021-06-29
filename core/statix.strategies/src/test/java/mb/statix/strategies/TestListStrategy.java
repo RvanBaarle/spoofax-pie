@@ -3,7 +3,6 @@ package mb.statix.strategies;
 import mb.statix.sequences.InterruptibleIterator;
 import mb.statix.sequences.InterruptibleIteratorBase;
 import mb.statix.sequences.Seq;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,9 +40,9 @@ public final class TestListStrategy<T, R> implements Strategy<Object, T, R> {
                     protected void computeNext() throws InterruptedException {
                         nextCalls.incrementAndGet();
                         if (index < 0 || index >= results.size()) {
-                            finished();
+                            yieldBreak();
                         } else {
-                            setNext(results.get(index));
+                            yield(results.get(index));
                             index += 1;
                         }
                     }

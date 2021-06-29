@@ -58,27 +58,33 @@ public abstract class InterruptibleIteratorBase<T> implements InterruptibleItera
     /**
      * Computes the next element for the iterator.
      *
-     * This method should call either {@link #setNext} to return the next element,
-     * or {@link #finished} to indicate the end of the iterator.
+     * This method should call either {@link #yield} to return the next element,
+     * or {@link #yieldBreak} to indicate the end of the iterator.
      */
     protected abstract void computeNext() throws InterruptedException;
 
     /**
      * Indicates what the next element will be.
      *
+     * Only one element can be the next element.
+     * The caller must return from the method.
+     *
      * @param value the next element
      */
-    protected void setNext(T value) {
-        assert state == State.Preparing : "Only one call to either setNext() or finished() is allowed per element.";
+    protected void yield(T value) {
+        assert state == State.Preparing : "Only one call to either yield() or yieldBreak() is allowed per iteration.";
         this.nextValue = value;
         this.state = State.Ready;
     }
 
     /**
      * Indicates that the iterator is done.
+     *
+     * The iterator can only finish once.
+     * The caller must return from the method.
      */
-    protected void finished() {
-        assert state == State.Preparing : "Only one call to either setNext() or finished() is allowed per element.";
+    protected void yieldBreak() {
+        assert state == State.Preparing : "Only one call to either yield() or yieldBreak() is allowed per iteration.";
         // Set to null to release any object from this iterator for garbage collection.
         this.nextValue = null;
         this.state = State.Finished;

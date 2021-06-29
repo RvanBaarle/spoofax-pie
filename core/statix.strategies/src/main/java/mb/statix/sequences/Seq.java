@@ -5,7 +5,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -133,7 +132,7 @@ public interface Seq<T> {
         return () -> new InterruptibleIteratorBase<T>() {
             @Override
             protected void computeNext() {
-                setNext(supplier.get());
+                yield(supplier.get());
             }
         };
     }
@@ -155,7 +154,7 @@ public interface Seq<T> {
             protected void computeNext() throws InterruptedException {
                 // Return the next element
                 if(iterator != null && iterator.hasNext()) {
-                    setNext(iterator.next());
+                    yield(iterator.next());
                     return;
                 }
                 while(index < sequences.length) {
@@ -164,12 +163,12 @@ public interface Seq<T> {
                     index += 1;
                     // Return its first element, if any
                     if(iterator.hasNext()) {
-                        setNext(iterator.next());
+                        yield(iterator.next());
                         return;
                     }
                 }
                 // No more sequences or elements
-                finished();
+                yieldBreak();
             }
         };
     }
@@ -213,14 +212,14 @@ public interface Seq<T> {
                             value = buffer.get(index);
                         } else {
                             if(!iterator.hasNext()) {
-                                finished();
+                                yieldBreak();
                                 return;
                             }
                             value = iterator.next();
                             buffer.add(value);
                         }
                         index += 1;
-                        setNext(value);
+                        yield(value);
                     }
                 };
             }
@@ -502,13 +501,13 @@ public interface Seq<T> {
 
                     if(observed.add(key)) {
                         // The key was not yet present
-                        setNext(value);
+                        yield(value);
                         return;
                     }
                 }
 
                 // The iterator is empty
-                finished();
+                yieldBreak();
             }
         };
     }
@@ -534,12 +533,12 @@ public interface Seq<T> {
 
                 // Return the rest
                 if(iterator.hasNext()) {
-                    setNext(iterator.next());
+                    yield(iterator.next());
                     return;
                 }
 
                 // The iterator is empty
-                finished();
+                yieldBreak();
             }
         };
     }
@@ -564,19 +563,19 @@ public interface Seq<T> {
                     T value = iterator.next();
                     if(!predicate.test(value)) {
                         done = true;
-                        setNext(value);
+                        yield(value);
                         return;
                     }
                 }
 
                 // Return the rest
                 if(iterator.hasNext()) {
-                    setNext(iterator.next());
+                    yield(iterator.next());
                     return;
                 }
 
                 // The iterator is empty
-                finished();
+                yieldBreak();
             }
         };
     }
@@ -596,13 +595,13 @@ public interface Seq<T> {
             protected void computeNext() throws InterruptedException {
                 // Return the first n elements
                 if(taken < n && iterator.hasNext()) {
-                    setNext(iterator.next());
+                    yield(iterator.next());
                     taken += 1;
                     return;
                 }
 
                 // The iterator is empty
-                finished();
+                yieldBreak();
             }
         };
     }
@@ -625,13 +624,13 @@ public interface Seq<T> {
                 if(iterator.hasNext()) {
                     T value = iterator.next();
                     if(predicate.test(value)) {
-                        setNext(value);
+                        yield(value);
                         return;
                     }
                 }
 
                 // We are done
-                finished();
+                yieldBreak();
             }
         };
     }
@@ -654,13 +653,13 @@ public interface Seq<T> {
                 while(iterator.hasNext()) {
                     T value = iterator.next();
                     if(predicate.test(value)) {
-                        setNext(value);
+                        yield(value);
                         return;
                     }
                 }
 
                 // The iterator is empty
-                finished();
+                yieldBreak();
             }
         };
     }
@@ -708,12 +707,12 @@ public interface Seq<T> {
                 if(iterator.hasNext()) {
                     T value = iterator.next();
                     R newValue = transform.apply(value);
-                    setNext(newValue);
+                    yield(newValue);
                     return;
                 }
 
                 // The iterator is empty
-                finished();
+                yieldBreak();
             }
         };
     }
@@ -737,7 +736,7 @@ public interface Seq<T> {
                     // Return elements from the nested iterator
                     if(nestedIterator != null && nestedIterator.hasNext()) {
                         R value = nestedIterator.next();
-                        setNext(value);
+                        yield(value);
                         return;
                     }
 
@@ -749,7 +748,7 @@ public interface Seq<T> {
                 }
 
                 // The iterator is empty
-                finished();
+                yieldBreak();
             }
         };
     }
