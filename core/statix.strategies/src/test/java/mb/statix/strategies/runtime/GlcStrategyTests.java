@@ -16,14 +16,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
- * Tests the {@link IdStrategy} class.
+ * Tests the {@link GlcStrategy} class.
  */
 public final class GlcStrategyTests {
 
     @Test
     public void shouldApplyConditionThenThenBranch_whenConditionSucceeds() throws InterruptedException {
         // Arrange
-        // The number of times eval() is called on each of the strategies.
         final GlcStrategy<Object, Integer, Integer, Integer> strategy = GlcStrategy.getInstance();
         final TestListStrategy<Integer, Integer> sc = new TestListStrategy<>(it -> Arrays.asList(it + 0, it + 1, it + 2));
         final TestListStrategy<Integer, Integer> st = new TestListStrategy<>(it -> Arrays.asList(it + 5));
@@ -39,7 +38,6 @@ public final class GlcStrategyTests {
     @Test
     public void shouldApplyElseBranch_whenConditionFails() throws InterruptedException {
         // Arrange
-        // The number of times eval() is called on each of the strategies.
         final GlcStrategy<Object, Integer, Integer, Integer> strategy = GlcStrategy.getInstance();
         final TestListStrategy<Integer, Integer> sc = new TestListStrategy<>(it -> Collections.emptyList() /* fail */);
         final TestListStrategy<Integer, Integer> st = new TestListStrategy<>(it -> Arrays.asList(it + 5));
@@ -55,7 +53,6 @@ public final class GlcStrategyTests {
     @Test
     public void shouldEvaluateSequenceLazy_whenConditionSucceeds() throws InterruptedException {
         // Arrange
-        // The number of times eval() is called on each of the strategies.
         final GlcStrategy<Object, Integer, Integer, Integer> strategy = GlcStrategy.getInstance();
         final TestListStrategy<Integer, Integer> sc = new TestListStrategy<>(it -> Arrays.asList(it + 0, it + 1, it + 2));
         final TestListStrategy<Integer, Integer> st = new TestListStrategy<>(it -> Arrays.asList(it + 5));
