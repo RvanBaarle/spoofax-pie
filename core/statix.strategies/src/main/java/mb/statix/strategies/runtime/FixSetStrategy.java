@@ -7,25 +7,28 @@ import mb.statix.strategies.NamedStrategy1;
 import mb.statix.strategies.Strategy;
 
 import java.util.ArrayDeque;
-
-import static mb.statix.strategies.runtime.Strategies.try_;
+import java.util.HashSet;
 
 /**
- * Repeat strategy.
+ * Fix-set strategy.
  *
- * This repeats applying the strategy, until the strategy fails.
+ * This repeats applying the strategy, until the strategy fails or the resulting set no longer changes.
+ *
+ * Implementation: note that we don't have to compute the whole set in advance. Given a value X,
+ * if {@code <s> X} fails, X is returned. Otherwise, if {@code <s> X} returns X among its results,
+ * it is returned. In both cases, the strategy is no longer applied to any future X.
  *
  * @param <CTX> the type of context (invariant)
  * @param <T> the type of input and output (invariant)
  */
-public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<CTX, T, T>, T, T> {
+public final class FixSetStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<CTX, T, T>, T, T> {
 
     @SuppressWarnings("rawtypes")
-    private static final RepeatStrategy instance = new RepeatStrategy();
+    private static final FixSetStrategy instance = new FixSetStrategy();
     @SuppressWarnings("unchecked")
-    public static <CTX, T> RepeatStrategy<CTX, T> getInstance() { return (RepeatStrategy<CTX, T>)instance; }
+    public static <CTX, T> FixSetStrategy<CTX, T> getInstance() { return (FixSetStrategy<CTX, T>)instance; }
 
-    private RepeatStrategy() { /* Prevent instantiation. Use getInstance(). */ }
+    private FixSetStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
     public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
@@ -39,6 +42,8 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
                 // is pushed on the stack. As long as the iterator is not iterated,
                 // no computations will be done.
                 // 0:
+                final HashSet<T> visited = new HashSet<>();
+                final HashSet<T> yielded = new HashSet<>();
                 final ArrayDeque<InterruptibleIterator<T>> stack = new ArrayDeque<>();
                 stack.push(InterruptibleIterator.of(input));
                 // 1:
@@ -51,24 +56,38 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
                         continue;
                     }
                     final T element = iterator.next();
-                    final InterruptibleIterator<T> result = s.eval(ctx, element).iterator();
-                    if (!result.hasNext()) {
-                        // The strategy failed. Yield the element itself.
+                    if (!visited.contains(element)) {
+                        // We have not previously handled this element,
+                        // so we mark it visited and not handle it again
+                        visited.add(element);
+                        final InterruptibleIterator<T> result = s.eval(ctx, element).iterator();
+                        if(!result.hasNext()) {
+                            // The strategy failed. Yield the element itself.
+                            yielded.add(element);
+                            this.yield(element);
+                            // 3:
+                        } else {
+                            // The strategy succeeded. Push the resulting iterator on the stack.
+                            stack.push(result);
+                        }
+                    } else if (!yielded.contains(element)){
+                        // We have previously handled this element
+                        // so we're going to yield it and not yield it again
+                        yielded.add(element);
                         this.yield(element);
-                        // 3:
-                    } else {
-                        // The strategy succeeded. Push the resulting iterator on the stack.
-                        stack.push(result);
+                        // 5:
                     }
-                    // 4:
+                    // 6:
                 }
-                // 5:
+                // 7:
                 yieldBreak();
             }
 
             // STATE MACHINE
             private int state = 0;
             // LOCAL VARIABLES
+            private final HashSet<T> visited = new HashSet<>();
+            private final HashSet<T> yielded = new HashSet<>();
             private final ArrayDeque<InterruptibleIterator<T>> stack = new ArrayDeque<>();
 
             @Override
@@ -81,7 +100,7 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
                             continue;
                         case 1:
                             if (stack.isEmpty()) {
-                                this.state = 5;
+                                this.state = 7;
                                 continue;
                             }
                             this.state = 2;
@@ -95,24 +114,43 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
                                 continue;
                             }
                             final T element = iterator.next();
+                            if (visited.contains(element)) {
+                                if (!yielded.contains(element)){
+                                    // We have previously handled this element
+                                    // so we're going to yield it and not yield it again
+                                    yielded.add(element);
+                                    this.yield(element);
+                                    this.state = 5;
+                                    return;
+                                }
+                                this.state = 6;
+                                continue;
+                            }
+                            // We have not previously handled this element,
+                            // so we mark it visited and not handle it again
+                            visited.add(element);
                             final InterruptibleIterator<T> result = s.eval(ctx, element).iterator();
                             if (!result.hasNext()) {
                                 // The strategy failed. Yield the element itself.
+                                yielded.add(element);
                                 this.yield(element);
                                 this.state = 3;
                                 return;
                             }
                             // The strategy succeeded. Push the resulting iterator on the stack.
                             stack.push(result);
-                            this.state = 4;
+                            this.state = 6;
                             continue;
                         case 3:
-                            this.state = 4;
-                            continue;
-                        case 4:
-                            this.state = 1;
+                            this.state = 6;
                             continue;
                         case 5:
+                            this.state = 6;
+                            continue;
+                        case 6:
+                            this.state = 1;
+                            continue;
+                        case 7:
                             yieldBreak();
                             this.state = -1;
                             return;
@@ -126,7 +164,7 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
 
     @Override
     public String getName() {
-        return "repeat";
+        return "fixSet";
     }
 
     @Override
