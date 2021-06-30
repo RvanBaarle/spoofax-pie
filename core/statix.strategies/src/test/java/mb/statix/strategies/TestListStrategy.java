@@ -2,9 +2,6 @@ package mb.statix.strategies;
 
 import mb.statix.lazy.LazySeq;
 import mb.statix.lazy.LazySeqBase;
-import mb.statix.sequences.InterruptibleIterator;
-import mb.statix.sequences.InterruptibleIteratorBase;
-import mb.statix.sequences.Seq;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;

@@ -1,7 +1,6 @@
 package mb.statix.strategies.runtime;
 
 import mb.statix.lazy.LazySeq;
-import mb.statix.sequences.Seq;
 import mb.statix.strategies.Strategy;
 
 import java.util.function.Function;

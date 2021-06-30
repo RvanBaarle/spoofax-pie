@@ -1,8 +1,6 @@
 package mb.statix.strategies;
 
 import mb.statix.lazy.LazySeq;
-import mb.statix.sequences.Computation;
-import mb.statix.sequences.Seq;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

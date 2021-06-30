@@ -1,6 +1,5 @@
 package mb.statix.strategies;
 
-import mb.statix.sequences.Seq;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

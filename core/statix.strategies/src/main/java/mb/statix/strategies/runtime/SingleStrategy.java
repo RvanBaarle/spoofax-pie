@@ -2,13 +2,8 @@ package mb.statix.strategies.runtime;
 
 import mb.statix.lazy.LazySeq;
 import mb.statix.lazy.LazySeqBase;
-import mb.statix.sequences.InterruptibleIterator;
-import mb.statix.sequences.InterruptibleIteratorBase;
-import mb.statix.sequences.Seq;
 import mb.statix.strategies.NamedStrategy1;
 import mb.statix.strategies.Strategy;
-
-import java.util.ArrayDeque;
 
 /**
  * single(s) strategy.

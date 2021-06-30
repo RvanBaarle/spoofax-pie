@@ -2,7 +2,6 @@ package mb.statix.strategies.runtime;
 
 import mb.statix.lazy.LazySeq;
 import mb.statix.lazy.LazySeqBase;
-import mb.statix.sequences.Seq;
 import mb.statix.strategies.NamedStrategy2;
 import mb.statix.strategies.Strategy;
 
