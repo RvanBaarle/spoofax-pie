@@ -8,8 +8,6 @@ import mb.statix.strategies.Strategy;
 
 import java.util.ArrayDeque;
 
-import static mb.statix.strategies.runtime.Strategies.try_;
-
 /**
  * Repeat strategy.
  *
