@@ -1,7 +1,7 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
-import mb.statix.lazy.LazySeqBase;
+import mb.statix.sequences.Seq;
+import mb.statix.sequences.SeqBase;
 import mb.statix.strategies.NamedStrategy1;
 import mb.statix.strategies.Strategy;
 
@@ -24,13 +24,13 @@ public final class SingleStrategy<CTX, T, R> extends NamedStrategy1<CTX, Strateg
     private SingleStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public LazySeq<R> eval(CTX ctx, Strategy<CTX, T, R> s, T input) {
-        return new LazySeqBase<R>() {
+    public Seq<R> eval(CTX ctx, Strategy<CTX, T, R> s, T input) {
+        return new SeqBase<R>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
             private void computeNextCoroutine() throws InterruptedException {
                 // 0:
-                final LazySeq<R> sSeq = s.eval(ctx, input);
+                final Seq<R> sSeq = s.eval(ctx, input);
                 if (sSeq.next()) {
                     final R element = sSeq.getCurrent();
                     if(!sSeq.next()) {
@@ -54,7 +54,7 @@ public final class SingleStrategy<CTX, T, R> extends NamedStrategy1<CTX, Strateg
                 while (true) {
                     switch (state) {
                         case 0:
-                            final LazySeq<R> sSeq = s.eval(ctx, input);
+                            final Seq<R> sSeq = s.eval(ctx, input);
                             if (sSeq.next()) {
                                 final R element = sSeq.getCurrent();
                                 if(!sSeq.next()) {

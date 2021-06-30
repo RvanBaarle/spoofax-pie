@@ -1,6 +1,6 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 import mb.statix.strategies.Strategy;
 
 import java.util.function.Function;
@@ -23,7 +23,7 @@ public final class Strategies {
     public static <CTX, T, R> Strategy<CTX, T, R> rec(Function<Strategy<CTX, T, R>, Strategy<CTX, T, R>> f) {
         return new Strategy<CTX, T, R>() {
             @Override
-            public LazySeq<R> eval(CTX ctx, T input) {
+            public Seq<R> eval(CTX ctx, T input) {
                 return f.apply(this).eval(ctx, input);
             }
         };

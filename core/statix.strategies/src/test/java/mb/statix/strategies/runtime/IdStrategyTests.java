@@ -1,6 +1,6 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,7 +19,7 @@ public final class IdStrategyTests {
         final String input = "My input";
 
         // Act
-        final LazySeq<String> result = strategy.eval(new Object(), input);
+        final Seq<String> result = strategy.eval(new Object(), input);
 
         // Assert
         assertTrue(result.next());

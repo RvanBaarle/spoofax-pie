@@ -1,6 +1,6 @@
 package mb.statix.strategies;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 
 /**
  * Abstract class for a named strategy.
@@ -14,7 +14,7 @@ import mb.statix.lazy.LazySeq;
  */
 public abstract class NamedStrategy<CTX, T, R> implements Strategy<CTX, T, R> {
 
-    @Override public abstract LazySeq<R> eval(CTX ctx, T input);
+    @Override public abstract Seq<R> eval(CTX ctx, T input);
 
     @Override public abstract String getName();
 

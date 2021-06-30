@@ -1,6 +1,6 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 import mb.statix.strategies.NamedStrategy;
 
 /**
@@ -19,8 +19,8 @@ public final class FailStrategy<CTX, T, R> extends NamedStrategy<CTX, T, R> {
 
     private FailStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
-    @Override public final LazySeq<R> eval(CTX ctx, T input) {
-        return LazySeq.of();
+    @Override public final Seq<R> eval(CTX ctx, T input) {
+        return Seq.of();
     }
 
     @Override

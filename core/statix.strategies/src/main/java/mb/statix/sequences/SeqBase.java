@@ -1,4 +1,4 @@
-package mb.statix.lazy;
+package mb.statix.sequences;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -7,7 +7,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @param <T> the type of values in the sequence (covariant)
  */
-public abstract class LazySeqBase<T> implements LazySeq<T> {
+public abstract class SeqBase<T> implements Seq<T> {
 
     /**
      * Specifies the state of the iterator.

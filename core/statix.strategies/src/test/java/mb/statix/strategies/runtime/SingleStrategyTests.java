@@ -1,6 +1,6 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 import mb.statix.strategies.TestListStrategy;
 import org.junit.jupiter.api.Test;
 
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final FailStrategy<Object, String, Integer> s = FailStrategy.getInstance();
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), s, "abc");
+        final Seq<Integer> result = strategy.eval(new Object(), s, "abc");
 
         // Assert
         assertEquals(Arrays.asList(), result.collect(Collectors.toList()));
@@ -35,7 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final TestListStrategy<String, Integer> s = new TestListStrategy<>(it -> Arrays.asList(it.length()));
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), s, "abc");
+        final Seq<Integer> result = strategy.eval(new Object(), s, "abc");
 
         // Assert
         assertEquals(Arrays.asList(3), result.collect(Collectors.toList()));
@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final TestListStrategy<String, Integer> s = new TestListStrategy<>(it -> Arrays.asList(it.length(), it.length() + 1));
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), s, "abc");
+        final Seq<Integer> result = strategy.eval(new Object(), s, "abc");
 
         // Assert
         assertEquals(Arrays.asList(), result.collect(Collectors.toList()));
@@ -61,7 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final TestListStrategy<String, Integer> s = new TestListStrategy<>(it -> Arrays.asList(it.length(), it.length() + 1));
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), s, "abc");
+        final Seq<Integer> result = strategy.eval(new Object(), s, "abc");
         assertEquals(0, s.evalCalls.get());        // not yet called
         assertEquals(0, s.nextCalls.get());        // not yet called
 

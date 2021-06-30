@@ -1,6 +1,6 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,7 +18,7 @@ public final class FailStrategyTests {
         final FailStrategy<Object, String, Integer> strategy = FailStrategy.getInstance();
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), "My input");
+        final Seq<Integer> result = strategy.eval(new Object(), "My input");
 
         // Assert
         assertFalse(result.next());

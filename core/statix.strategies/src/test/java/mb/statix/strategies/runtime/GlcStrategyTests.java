@@ -1,6 +1,6 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 import mb.statix.strategies.TestListStrategy;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +27,7 @@ public final class GlcStrategyTests {
         final TestListStrategy<Integer, Integer> se = new TestListStrategy<>(it -> Arrays.asList(it * 10));
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
+        final Seq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
 
         // Assert
         assertEquals(Arrays.asList(47, 48, 49), result.collect(Collectors.toList()));
@@ -42,7 +42,7 @@ public final class GlcStrategyTests {
         final TestListStrategy<Integer, Integer> se = new TestListStrategy<>(it -> Arrays.asList(it * 10));
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
+        final Seq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
 
         // Assert
         assertEquals(Arrays.asList(420), result.collect(Collectors.toList()));
@@ -57,7 +57,7 @@ public final class GlcStrategyTests {
         final TestListStrategy<Integer, Integer> se = new TestListStrategy<>(it -> Arrays.asList(it * 10));
 
         // Act/Assert
-        final LazySeq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
+        final Seq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
 
         assertTrue(result.next());
         assertEquals(1, sc.nextCalls.get());        // called to get the first element

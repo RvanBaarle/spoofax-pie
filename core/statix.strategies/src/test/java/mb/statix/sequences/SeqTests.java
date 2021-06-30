@@ -1,6 +1,8 @@
-package mb.statix.lazy;
+package mb.statix.sequences;
 
 import mb.statix.sequences.InterruptibleSupplier;
+import mb.statix.sequences.Seq;
+import mb.statix.sequences.SeqBase;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -16,15 +18,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests the {@link LazySeq} class.
+ * Tests the {@link Seq} class.
  */
 @SuppressWarnings("Convert2MethodRef")
-public final class LazySeqTests {
+public final class SeqTests {
 
     @Test
     public void of_shouldReturnEmptySequence_whenGivenNoArguments() throws InterruptedException {
         // Act
-        final LazySeq<Integer> seq = LazySeq.of();
+        final Seq<Integer> seq = Seq.of();
 
         // Assert
         assertFalse(seq.next());
@@ -39,7 +41,7 @@ public final class LazySeqTests {
         final int c = 30;
 
         // Act
-        final LazySeq<Integer> seq = LazySeq.of(a, b, c);
+        final Seq<Integer> seq = Seq.of(a, b, c);
 
         // Assert
         assertThrows(Exception.class, () -> seq.getCurrent(), "Undefined behavior");
@@ -56,7 +58,7 @@ public final class LazySeqTests {
     @Test
     public void of_shouldReturnEmptySequence_whenGivenEmptyArray() throws InterruptedException {
         // Act
-        final LazySeq<Integer> seq = LazySeq.of(new Integer[0]);
+        final Seq<Integer> seq = Seq.of(new Integer[0]);
 
         // Assert
         assertFalse(seq.next());
@@ -69,7 +71,7 @@ public final class LazySeqTests {
         final InterruptibleSupplier<Integer> supplier = counter::getAndIncrement;
 
         // Act
-        final LazySeq<Integer> seq = LazySeq.from(supplier);
+        final Seq<Integer> seq = Seq.from(supplier);
 
         // Assert
         assertTrue(seq.next());
@@ -91,7 +93,7 @@ public final class LazySeqTests {
         };
 
         // Act
-        final LazySeq<Integer> seq = LazySeq.from(supplier);
+        final Seq<Integer> seq = Seq.from(supplier);
 
         // Assert
         assertTrue(seq.next());
@@ -113,7 +115,7 @@ public final class LazySeqTests {
         };
 
         // Act
-        final LazySeq<Integer> seq = LazySeq.from(supplier);
+        final Seq<Integer> seq = Seq.from(supplier);
 
         // Assert
         assertTrue(seq.next());
@@ -144,7 +146,7 @@ public final class LazySeqTests {
         };
 
         // Act
-        final LazySeq<Integer> seq = LazySeq.from(supplier);
+        final Seq<Integer> seq = Seq.from(supplier);
 
         // Assert
         assertFalse(closed.get());
@@ -158,7 +160,7 @@ public final class LazySeqTests {
         final Iterator<Integer> iterator = Arrays.asList(0, 1, 2).listIterator();
 
         // Act
-        final LazySeq<Integer> seq = LazySeq.asSeq(iterator);
+        final Seq<Integer> seq = Seq.asSeq(iterator);
 
         // Assert
         assertTrue(seq.next());
@@ -173,11 +175,11 @@ public final class LazySeqTests {
     @Test
     public void asSeq_shouldReturnOriginalSequence_whenWrappingIteratorWrappingSequence() throws InterruptedException {
         // Arrange
-        final LazySeq<Integer> seq = LazySeq.of(0, 1, 2);
-        final Iterator<Integer> iterator = LazySeq.asIterator(seq);
+        final Seq<Integer> seq = Seq.of(0, 1, 2);
+        final Iterator<Integer> iterator = Seq.asIterator(seq);
 
         // Act
-        final LazySeq<Integer> newSeq = LazySeq.asSeq(iterator);
+        final Seq<Integer> newSeq = Seq.asSeq(iterator);
 
         // Assert
         assertSame(seq, newSeq);
@@ -186,10 +188,10 @@ public final class LazySeqTests {
     @Test
     public void asIterator_shouldReturnSequenceValues_whenWrappingSequence() throws InterruptedException {
         // Arrange
-        final LazySeq<Integer> seq = LazySeq.of(0, 1, 2);
+        final Seq<Integer> seq = Seq.of(0, 1, 2);
 
         // Act
-        final Iterator<Integer> iterator = LazySeq.asIterator(seq);
+        final Iterator<Integer> iterator = Seq.asIterator(seq);
 
         // Assert
         assertTrue(iterator.hasNext());
@@ -207,10 +209,10 @@ public final class LazySeqTests {
     public void asIterator_shouldReturnOriginalIterator_whenWrappingSequenceWrappingIterator() throws InterruptedException {
         // Arrange
         final Iterator<Integer> iterator = Arrays.asList(0, 1, 2).listIterator();
-        final LazySeq<Integer> seq = LazySeq.asSeq(iterator);
+        final Seq<Integer> seq = Seq.asSeq(iterator);
 
         // Act
-        final Iterator<Integer> newIterator = LazySeq.asIterator(seq);
+        final Iterator<Integer> newIterator = Seq.asIterator(seq);
 
         // Assert
         assertSame(iterator, newIterator);
@@ -220,7 +222,7 @@ public final class LazySeqTests {
     public void asIterator_shouldCloseSequence() throws Exception {
         // Arrange
         final AtomicBoolean closed = new AtomicBoolean();
-        final LazySeq<Integer> seq = new LazySeqBase<Integer>() {
+        final Seq<Integer> seq = new SeqBase<Integer>() {
             @Override
             protected void computeNext() throws InterruptedException {
                 yieldBreak();
@@ -234,7 +236,7 @@ public final class LazySeqTests {
         };
 
         // Act
-        final Iterator<Integer> iterator = LazySeq.asIterator(seq);
+        final Iterator<Integer> iterator = Seq.asIterator(seq);
 
         // Assert
         assertFalse(closed.get());

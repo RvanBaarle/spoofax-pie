@@ -1,11 +1,8 @@
-package mb.statix.lazy;
-
-import mb.statix.sequences.InterruptibleSupplier;
+package mb.statix.sequences;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.stream.Collector;
-import java.util.stream.Stream;
 
 /**
  * A lazy sequence is a lazy computation of multiple values.
@@ -21,7 +18,7 @@ import java.util.stream.Stream;
  *
  * @param <T> the type of values in the sequence (covariant)
  */
-public interface LazySeq<T> extends AutoCloseable {
+public interface Seq<T> extends AutoCloseable {
 
     /**
      * Gets the current element in the iterator.
@@ -52,7 +49,7 @@ public interface LazySeq<T> extends AutoCloseable {
      * @return the empty sequence
      */
     @SuppressWarnings("unchecked")
-    static <T> LazySeq<T> of() {
+    static <T> Seq<T> of() {
         return EmptySeq.instance;
     }
 
@@ -63,7 +60,7 @@ public interface LazySeq<T> extends AutoCloseable {
      * @param <T> the type of values in the sequence (covariant)
      * @return the sequence
      */
-    @SafeVarargs static <T> LazySeq<T> of(T... elements) {
+    @SafeVarargs static <T> Seq<T> of(T... elements) {
         if (elements.length == 0) return of();
         return new ArraySeq<>(elements);
     }
@@ -80,8 +77,8 @@ public interface LazySeq<T> extends AutoCloseable {
      * @param <T> the type of values being supplied (covariant)
      * @return the sequence
      */
-    static <T> LazySeq<T> from(InterruptibleSupplier<T> supplier) {
-        return new SupplierSeq<>(supplier);
+    static <T> Seq<T> from(InterruptibleSupplier<T> supplier) {
+        return new SuppliedSeq<>(supplier);
     }
 
     /**
@@ -96,8 +93,8 @@ public interface LazySeq<T> extends AutoCloseable {
      * @param <T> the type of value being supplied (covariant)
      * @return the sequence of one element
      */
-    static <T> LazySeq<T> fromOnce(InterruptibleSupplier<T> supplier) {
-        return new SupplierSeq<>(supplier).limit(1);
+    static <T> Seq<T> fromOnce(InterruptibleSupplier<T> supplier) {
+        return new SuppliedSeq<>(supplier).limit(1);
     }
 
     /**
@@ -107,10 +104,10 @@ public interface LazySeq<T> extends AutoCloseable {
      * @param <T> the type of values in the iterator
      * @return the lazy sequence
      */
-    static <T> LazySeq<T> asSeq(Iterator<T> iterator) {
-        if (iterator instanceof LazySeqIterator) {
+    static <T> Seq<T> asSeq(Iterator<T> iterator) {
+        if (iterator instanceof SeqIterator) {
             // Return originally wrapped lazy sequence
-            return ((LazySeqIterator<T>)iterator).seq;
+            return ((SeqIterator<T>)iterator).seq;
         } else {
             // Wrap normal iterator
             return new IteratorSeq<>(iterator);
@@ -128,13 +125,13 @@ public interface LazySeq<T> extends AutoCloseable {
      * @param <T> the type of values in the sequence
      * @return the iterator
      */
-    static <T> Iterator<T> asIterator(LazySeq<T> seq) {
+    static <T> Iterator<T> asIterator(Seq<T> seq) {
         if (seq instanceof IteratorSeq) {
             // Return originally wrapped iterator
             return ((IteratorSeq<T>)seq).iterator;
         } else {
             // Unwrap interruptible iterator
-            return new LazySeqIterator<>(seq);
+            return new SeqIterator<>(seq);
         }
     }
 
@@ -162,7 +159,7 @@ public interface LazySeq<T> extends AutoCloseable {
      * If this sequence is being iterated in between calls to the resulting sequence,
      * the results are undefined.
      */
-    default LazySeq<T> limit(int n) {
+    default Seq<T> limit(int n) {
         return new LimitSeq<>(this, n);
     }
 
@@ -197,7 +194,7 @@ public interface LazySeq<T> extends AutoCloseable {
  *
  * @param <T> the type of values in the sequence (covariant)
  */
-final class EmptySeq<T> implements LazySeq<T> {
+final class EmptySeq<T> implements Seq<T> {
     @SuppressWarnings("rawtypes")
     public static EmptySeq instance = new EmptySeq();
 
@@ -224,7 +221,7 @@ final class EmptySeq<T> implements LazySeq<T> {
  *
  * @param <T> the type of elements in the array (covariant)
  */
-final class ArraySeq<T> implements LazySeq<T> {
+final class ArraySeq<T> implements Seq<T> {
     private int index = -1;
     private final T[] elements;
 
@@ -256,10 +253,10 @@ final class ArraySeq<T> implements LazySeq<T> {
  *
  * @param <T> the type of elements in the array (covariant)
  */
-final class SupplierSeq<T> extends LazySeqBase<T> {
+final class SuppliedSeq<T> extends SeqBase<T> {
     private final InterruptibleSupplier<T> supplier;
 
-    public SupplierSeq(InterruptibleSupplier<T> supplier) {
+    public SuppliedSeq(InterruptibleSupplier<T> supplier) {
         this.supplier = supplier;
     }
 
@@ -294,11 +291,11 @@ final class SupplierSeq<T> extends LazySeqBase<T> {
  *
  * @param <T> the type of elements in the array (covariant)
  */
-final class LimitSeq<T> extends LazySeqBase<T> {
-    private final LazySeq<T> seq;
+final class LimitSeq<T> extends SeqBase<T> {
+    private final Seq<T> seq;
     private int limit;
 
-    public LimitSeq(LazySeq<T> seq, int limit) {
+    public LimitSeq(Seq<T> seq, int limit) {
         this.seq = seq;
         this.limit = limit;
     }
@@ -325,12 +322,12 @@ final class LimitSeq<T> extends LazySeqBase<T> {
  * @param <T> the type of elements in the sequence (covariant)
  */
 final class PeekingSeq<T> implements PeekableSeq<T> {
-    private final LazySeq<T> seq;
+    private final Seq<T> seq;
     private T current;
     private boolean hasNext;
     private boolean peeked = false;
 
-    public PeekingSeq(LazySeq<T> seq) {
+    public PeekingSeq(Seq<T> seq) {
         this.seq = seq;
     }
 
@@ -382,7 +379,7 @@ final class PeekingSeq<T> implements PeekableSeq<T> {
  *
  * @param <T> the type of values in the iterator (covariant)
  */
-final class IteratorSeq<T> extends LazySeqBase<T> {
+final class IteratorSeq<T> extends SeqBase<T> {
     final Iterator<T> iterator;
 
     public IteratorSeq(Iterator<T> iterator) {
@@ -400,7 +397,7 @@ final class IteratorSeq<T> extends LazySeqBase<T> {
 }
 
 /**
- * Iterator wrapping a {@link LazySeq}.
+ * Iterator wrapping a {@link Seq}.
  *
  * Note that any {@link InterruptedException} thrown in the unwrapped sequence
  * cause the thread's {@link Thread#isInterrupted()} to be set,
@@ -410,11 +407,11 @@ final class IteratorSeq<T> extends LazySeqBase<T> {
  *
  * @param <T> the type of values in the sequence (covariant)
  */
-class LazySeqIterator<T> implements Iterator<T>, AutoCloseable {
-    final LazySeq<T> seq;
+class SeqIterator<T> implements Iterator<T>, AutoCloseable {
+    final Seq<T> seq;
     private boolean consumed = false;
 
-    public LazySeqIterator(LazySeq<T> seq) {
+    public SeqIterator(Seq<T> seq) {
         this.seq = seq;
     }
 

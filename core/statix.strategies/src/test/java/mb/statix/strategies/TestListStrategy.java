@@ -1,7 +1,7 @@
 package mb.statix.strategies;
 
-import mb.statix.lazy.LazySeq;
-import mb.statix.lazy.LazySeqBase;
+import mb.statix.sequences.Seq;
+import mb.statix.sequences.SeqBase;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,10 +25,10 @@ public final class TestListStrategy<T, R> implements Strategy<Object, T, R> {
     }
 
     @Override
-    public LazySeq<R> eval(Object o, T input) {
+    public Seq<R> eval(Object o, T input) {
         evalCalls.incrementAndGet();
         final List<R> results = transformation.apply(input);
-        return new LazySeqBase<R>() {
+        return new SeqBase<R>() {
             private int index = 0;
             @Override
             protected void computeNext() throws InterruptedException {

@@ -1,8 +1,8 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
-import mb.statix.lazy.LazySeqBase;
-import mb.statix.lazy.PeekableSeq;
+import mb.statix.sequences.Seq;
+import mb.statix.sequences.SeqBase;
+import mb.statix.sequences.PeekableSeq;
 import mb.statix.strategies.NamedStrategy1;
 import mb.statix.strategies.Strategy;
 
@@ -26,8 +26,8 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
     private RepeatStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public LazySeq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
-        return new LazySeqBase<T>() {
+    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+        return new SeqBase<T>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
             private void computeNextCoroutine() throws InterruptedException {
@@ -37,13 +37,13 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
                 // is pushed on the stack. As long as the iterator is not iterated,
                 // no computations will be done.
                 // 0:
-                final ArrayDeque<LazySeq<T>> stack = new ArrayDeque<>();
-                stack.push(LazySeq.of(input));
+                final ArrayDeque<Seq<T>> stack = new ArrayDeque<>();
+                stack.push(Seq.of(input));
                 // 1:
                 while (!stack.isEmpty()) {
                     // 2:
                     // Get the next non-empty iterator on the stack
-                    final LazySeq<T> seq = stack.peek();
+                    final Seq<T> seq = stack.peek();
                     if (!seq.next()) {
                         stack.pop();
                         continue;
@@ -67,14 +67,14 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
             // STATE MACHINE
             private int state = 0;
             // LOCAL VARIABLES
-            private final ArrayDeque<LazySeq<T>> stack = new ArrayDeque<>();
+            private final ArrayDeque<Seq<T>> stack = new ArrayDeque<>();
 
             @Override
             protected void computeNext() throws InterruptedException {
                 while (true) {
                     switch (state) {
                         case 0:
-                            stack.push(LazySeq.of(input));
+                            stack.push(Seq.of(input));
                             this.state = 1;
                             continue;
                         case 1:
@@ -87,7 +87,7 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
                         case 2:
                             // Get the next non-empty iterator on the stack
                             assert stack.peek() != null;
-                            final LazySeq<T> seq = stack.peek();
+                            final Seq<T> seq = stack.peek();
                             if (!seq.next()) {
                                 stack.pop();
                                 this.state = 1;

@@ -1,7 +1,7 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
-import mb.statix.lazy.LazySeqBase;
+import mb.statix.sequences.Seq;
+import mb.statix.sequences.SeqBase;
 import mb.statix.strategies.NamedStrategy3;
 import mb.statix.strategies.Strategy;
 
@@ -23,19 +23,19 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
     private GlcStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public LazySeq<R> eval(CTX ctx, Strategy<CTX, T, U> condition, Strategy<CTX, U, R> onSuccess, Strategy<CTX, T, R> onFailure, T input) {
-        return new LazySeqBase<R>() {
+    public Seq<R> eval(CTX ctx, Strategy<CTX, T, U> condition, Strategy<CTX, U, R> onSuccess, Strategy<CTX, T, R> onFailure, T input) {
+        return new SeqBase<R>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
             private void computeNextCoroutine() throws InterruptedException {
                 // 0:
-                final LazySeq<U> conditionSeq = condition.eval(ctx, input);
+                final Seq<U> conditionSeq = condition.eval(ctx, input);
                 if (conditionSeq.next()) {
                     // 1:
                     do {
                         // 2:
                         final U current = conditionSeq.getCurrent();
-                        final LazySeq<R> onSuccessSeq = onSuccess.eval(ctx, current);
+                        final Seq<R> onSuccessSeq = onSuccess.eval(ctx, current);
                         // 3:
                         while(onSuccessSeq.next()) {
                             // 4:
@@ -47,7 +47,7 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
                     // 7:
                 } else {
                     // 8:
-                    final LazySeq<R> onFailureSeq = onFailure.eval(ctx, input);
+                    final Seq<R> onFailureSeq = onFailure.eval(ctx, input);
                     // 9:
                     while(onFailureSeq.next()) {
                         // 10:
@@ -63,9 +63,9 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
             // STATE MACHINE
             private int state = 0;
             // LOCAL VARIABLES
-            private LazySeq<U> conditionSeq;
-            private LazySeq<R> onSuccessSeq;
-            private LazySeq<R> onFailureSeq;
+            private Seq<U> conditionSeq;
+            private Seq<R> onSuccessSeq;
+            private Seq<R> onFailureSeq;
 
             @Override
             protected void computeNext() throws InterruptedException {

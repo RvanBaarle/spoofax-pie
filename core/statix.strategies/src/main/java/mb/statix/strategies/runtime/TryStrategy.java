@@ -1,6 +1,6 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 import mb.statix.strategies.NamedStrategy1;
 import mb.statix.strategies.Strategy;
 
@@ -22,7 +22,7 @@ public final class TryStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<CTX,
     private TryStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public LazySeq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
         // return <glc(s, id, id)> input
         return GlcStrategy.<CTX, T, T, T>getInstance().apply(
             s, IdStrategy.getInstance(), IdStrategy.getInstance()

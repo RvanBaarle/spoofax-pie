@@ -1,6 +1,6 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.lazy.LazySeq;
+import mb.statix.sequences.Seq;
 import mb.statix.strategies.TestListStrategy;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         final TestListStrategy<Integer, Integer> s = new TestListStrategy<>(it -> Arrays.asList());
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), s, 42);
+        final Seq<Integer> result = strategy.eval(new Object(), s, 42);
 
         // Assert
         assertEquals(Arrays.asList(42), result.collect(Collectors.toList()));
@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         final TestListStrategy<Integer, Integer> s = new TestListStrategy<>(it -> Arrays.asList(it + 1, it + 2, it + 3));
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), s, 42);
+        final Seq<Integer> result = strategy.eval(new Object(), s, 42);
 
         // Assert
         assertEquals(Arrays.asList(43, 44, 45), result.collect(Collectors.toList()));
@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         final TestListStrategy<Integer, Integer> s = new TestListStrategy<>(it -> Arrays.asList(it + 1, it + 2, it + 3));
 
         // Act
-        final LazySeq<Integer> result = strategy.eval(new Object(), s, 42);
+        final Seq<Integer> result = strategy.eval(new Object(), s, 42);
 
         assertTrue(result.next());
         assertEquals(1, s.nextCalls.get());        // called to get the first element
