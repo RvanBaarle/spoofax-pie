@@ -1,5 +1,7 @@
 package mb.statix.strategies;
 
+import mb.statix.lazy.LazySeq;
+import mb.statix.lazy.LazySeqBase;
 import mb.statix.sequences.InterruptibleIterator;
 import mb.statix.sequences.InterruptibleIteratorBase;
 import mb.statix.sequences.Seq;
@@ -18,7 +20,6 @@ import java.util.function.Function;
  */
 public final class TestListStrategy<T, R> implements Strategy<Object, T, R> {
     public final AtomicInteger evalCalls = new AtomicInteger();
-    public final AtomicInteger iteratorCalls = new AtomicInteger();
     public final AtomicInteger nextCalls = new AtomicInteger();
     private final Function<T, List<R>> transformation;
 
@@ -27,26 +28,20 @@ public final class TestListStrategy<T, R> implements Strategy<Object, T, R> {
     }
 
     @Override
-    public Seq<R> eval(Object o, T input) {
+    public LazySeq<R> eval(Object o, T input) {
         evalCalls.incrementAndGet();
         final List<R> results = transformation.apply(input);
-        return new Seq<R>() {
+        return new LazySeqBase<R>() {
+            private int index = 0;
             @Override
-            public InterruptibleIterator<R> iterator() {
-                iteratorCalls.incrementAndGet();
-                return new InterruptibleIteratorBase<R>() {
-                    private int index = 0;
-                    @Override
-                    protected void computeNext() throws InterruptedException {
-                        nextCalls.incrementAndGet();
-                        if (index < 0 || index >= results.size()) {
-                            yieldBreak();
-                        } else {
-                            yield(results.get(index));
-                            index += 1;
-                        }
-                    }
-                };
+            protected void computeNext() throws InterruptedException {
+                nextCalls.incrementAndGet();
+                if (index < 0 || index >= results.size()) {
+                    yieldBreak();
+                } else {
+                    this.yield(results.get(index));
+                    index += 1;
+                }
             }
         };
     }

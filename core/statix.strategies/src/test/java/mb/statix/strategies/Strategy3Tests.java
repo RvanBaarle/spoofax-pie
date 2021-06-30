@@ -120,7 +120,7 @@ public final class Strategy3Tests {
         // Act
         final Strategy2<Object, String, String, String, String> applied1Strategy = strategy.apply("Hello, ");
         final Strategy1<Object, String, String, String> applied2Strategy = applied1Strategy.apply("big ");
-        final String result = applied2Strategy.eval(new Object(), "corona ", "World").single().eval();
+        final String result = applied2Strategy.eval(new Object(), "corona ", "World").single();
 
         // Assert
         assertEquals("Hello, big corona World", result);
@@ -134,7 +134,7 @@ public final class Strategy3Tests {
         // Act
         final Strategy2<Object, String, String, String, String> applied1Strategy = strategy.apply("Hello, ");
         final Strategy<Object, String, String> applied2Strategy = applied1Strategy.apply("tiny ", "corona ");
-        final String result = applied2Strategy.eval(new Object(), "World").single().eval();
+        final String result = applied2Strategy.eval(new Object(), "World").single();
 
         // Assert
         assertEquals("Hello, tiny corona World", result);
@@ -160,7 +160,7 @@ public final class Strategy3Tests {
 
         // Act
         final Strategy2<Object, String, String, String, String> appliedStrategy = strategy.apply("Hello, ");
-        final String result = appliedStrategy.eval(new Object(), "cruel ", "corona ","World").single().eval();
+        final String result = appliedStrategy.eval(new Object(), "cruel ", "corona ","World").single();
 
         // Assert
         assertEquals("Hello, cruel corona World", result);
@@ -258,7 +258,7 @@ public final class Strategy3Tests {
         // Act
         final Strategy1<Object, String, String, String> applied1Strategy = strategy.apply("Hello, ", "beautiful ");
         final Strategy<Object, String, String> applied2Strategy = applied1Strategy.apply("corona ");
-        final String result = applied2Strategy.eval(new Object(), "World").single().eval();
+        final String result = applied2Strategy.eval(new Object(), "World").single();
 
         // Assert
         assertEquals("Hello, beautiful corona World", result);
@@ -284,7 +284,7 @@ public final class Strategy3Tests {
 
         // Act
         final Strategy1<Object, String, String, String> appliedStrategy = strategy.apply("Hello, ", "beautiful ");
-        final String result = appliedStrategy.eval(new Object(), "corona " , "World").single().eval();
+        final String result = appliedStrategy.eval(new Object(), "corona " , "World").single();
 
         // Assert
         assertEquals("Hello, beautiful corona World", result);
@@ -390,7 +390,7 @@ public final class Strategy3Tests {
 
         // Act
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ", "beautiful ", "new ");
-        final String result = appliedStrategy.eval(new Object(), "World").single().eval();
+        final String result = appliedStrategy.eval(new Object(), "World").single();
 
         // Assert
         assertEquals("Hello, beautiful new World", result);

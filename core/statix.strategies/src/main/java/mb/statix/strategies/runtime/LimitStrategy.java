@@ -1,5 +1,7 @@
 package mb.statix.strategies.runtime;
 
+import mb.statix.lazy.LazySeq;
+import mb.statix.lazy.LazySeqBase;
 import mb.statix.sequences.Seq;
 import mb.statix.strategies.NamedStrategy2;
 import mb.statix.strategies.Strategy;
@@ -23,9 +25,59 @@ public final class LimitStrategy<CTX, T, R> extends NamedStrategy2<CTX, Strategy
     private LimitStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public Seq<R> eval(CTX ctx, Strategy<CTX, T, R> s, Integer n, T input) {
-        final Seq<R> s1Seq = s.eval(ctx, input);
-        return s1Seq.take(n);
+    public LazySeq<R> eval(CTX ctx, Strategy<CTX, T, R> s, Integer n, T input) {
+        return new LazySeqBase<R>() {
+            // Implementation if `yield` and `yieldBreak` could actually suspend computation
+            @SuppressWarnings("unused")
+            private void computeNextCoroutine() throws InterruptedException {
+                // 0:
+                final LazySeq<R> s1Seq = s.eval(ctx, input);
+                // 1:
+                while (remaining > 0 && s1Seq.next()) {
+                    this.remaining -= 1;
+                    this.yield(s1Seq.getCurrent());
+                    // 2:
+                }
+                // 3:
+                yieldBreak();
+            }
+
+            // STATE MACHINE
+            private int state = 0;
+            // LOCAL VARIABLES
+            private LazySeq<R> s1Seq;
+            private int remaining = n;
+
+            @Override
+            protected void computeNext() throws InterruptedException {
+                while (true) {
+                    switch (state) {
+                        case 0:
+                            s1Seq = s.eval(ctx, input);
+                            this.state = 1;
+                            continue;
+                        case 1:
+                            if (remaining <= 0 || !s1Seq.next()) {
+                                this.state = 3;
+                                continue;
+                            }
+                            this.remaining -= 1;
+                            this.yield(s1Seq.getCurrent());
+                            this.state = 2;
+                            return;
+                        case 2:
+                            this.state = 1;
+                            continue;
+                        case 3:
+                            yieldBreak();
+                            this.state = -1;
+                            return;
+                        default:
+                            throw new IllegalStateException("Illegal state: " + state);
+                    }
+                }
+            }
+        };
     }
 
     @Override

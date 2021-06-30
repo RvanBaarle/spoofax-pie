@@ -1,12 +1,12 @@
 package mb.statix.strategies;
 
-import mb.statix.sequences.Seq;
+import mb.statix.lazy.LazySeq;
 
 /**
  * A strategy.
  *
  * The {@link #eval} method can be executed at any time, but no actual evaluations should take place.
- * The {@link Seq} returned by the {@link #eval} method is a lazy sequence that, when iterated, will
+ * The {@link LazySeq} returned by the {@link #eval} method is a lazy sequence that, when iterated, will
  * compute its results. Multiple iterations will cause multiple computations, but all implementations
  * of strategies should instantiate only one iterable for each sequence, therefore only iterate once.
  *
@@ -27,6 +27,6 @@ public interface Strategy<CTX, T, R> extends StrategyDecl, PrintableStrategy {
      * @param input the input argument
      * @return the lazy sequence of results; or an empty sequence if the strategy failed
      */
-    Seq<R> eval(CTX ctx, T input);
+    LazySeq<R> eval(CTX ctx, T input);
 
 }

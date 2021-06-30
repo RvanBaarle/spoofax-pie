@@ -1,5 +1,7 @@
 package mb.statix.strategies.runtime;
 
+import mb.statix.lazy.LazySeq;
+import mb.statix.lazy.LazySeqBase;
 import mb.statix.sequences.InterruptibleIterator;
 import mb.statix.sequences.InterruptibleIteratorBase;
 import mb.statix.sequences.Seq;
@@ -24,107 +26,116 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
     private GlcStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public Seq<R> eval(CTX ctx, Strategy<CTX, T, U> condition, Strategy<CTX, U, R> onSuccess, Strategy<CTX, T, R> onFailure, T input) {
-        final Seq<U> conditionSeq = condition.eval(ctx, input);
-        return () -> new InterruptibleIteratorBase<R>() {
-            // Iterable from the sequence whose results we're returning
-            final InterruptibleIterator<U> conditionIter = conditionSeq.iterator();
-
+    public LazySeq<R> eval(CTX ctx, Strategy<CTX, T, U> condition, Strategy<CTX, U, R> onSuccess, Strategy<CTX, T, R> onFailure, T input) {
+        return new LazySeqBase<R>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
             private void computeNextCoroutine() throws InterruptedException {
                 // 0:
-                if(conditionIter.hasNext()) {
+                final LazySeq<U> conditionSeq = condition.eval(ctx, input);
+                if (conditionSeq.next()) {
                     // 1:
-                    while(conditionIter.hasNext()) {
-                        final U next = conditionIter.next();
-                        final Seq<R> onSuccessSeq = onSuccess.eval(ctx, next);
-                        final InterruptibleIterator<R> onSuccessIter = onSuccessSeq.iterator();
+                    do {
                         // 2:
-                        while(onSuccessIter.hasNext()) {
-                            this.yield(onSuccessIter.next());
-                            // 3:
+                        final U current = conditionSeq.getCurrent();
+                        final LazySeq<R> onSuccessSeq = onSuccess.eval(ctx, current);
+                        // 3:
+                        while(onSuccessSeq.next()) {
+                            // 4:
+                            this.yield(onSuccessSeq.getCurrent());
+                            // 5:
                         }
-                        // 4:
-                    }
-                    // 5:
-                } else {
-                    // 6:
-                    final InterruptibleIterator<R> onFailureIter = onFailure.eval(ctx, input).iterator();
+                        // 6:
+                    } while (conditionSeq.next());
                     // 7:
-                    while(onFailureIter.hasNext()) {
-                        this.yield(onFailureIter.next());
-                        // 8:
-                    }
+                } else {
+                    // 8:
+                    final LazySeq<R> onFailureSeq = onFailure.eval(ctx, input);
                     // 9:
+                    while(onFailureSeq.next()) {
+                        // 10:
+                        this.yield(onFailureSeq.getCurrent());
+                        // 11:
+                    }
+                    // 12:
                 }
-                // 10:
+                // 13:
                 yieldBreak();
             }
 
             // STATE MACHINE
             private int state = 0;
             // LOCAL VARIABLES
-            private InterruptibleIterator<R> onSuccessIter;
-            private InterruptibleIterator<R> onFailureIter;
+            private LazySeq<U> conditionSeq;
+            private LazySeq<R> onSuccessSeq;
+            private LazySeq<R> onFailureSeq;
 
             @Override
             protected void computeNext() throws InterruptedException {
                 while (true) {
                     switch (state) {
                         case 0:
-                            if (!conditionIter.hasNext()) {
-                                this.state = 6;
+                            conditionSeq = condition.eval(ctx, input);
+                            if (!conditionSeq.next()) {
+                                this.state = 8;
                                 continue;
                             }
                             this.state = 1;
                             continue;
                         case 1:
-                            if (!conditionIter.hasNext()) {
-                                this.state = 5;
-                                continue;
-                            }
-                            final U next = conditionIter.next();
-                            final Seq<R> onSuccessSeq = onSuccess.eval(ctx, next);
-                            onSuccessIter = onSuccessSeq.iterator();
                             this.state = 2;
                             continue;
                         case 2:
-                            if (!onSuccessIter.hasNext()) {
-                                this.state = 4;
+                            final U current = conditionSeq.getCurrent();
+                            onSuccessSeq = onSuccess.eval(ctx, current);
+                            this.state = 3;
+                            continue;
+                        case 3:
+                            if (!onSuccessSeq.next()) {
+                                this.state = 6;
                                 continue;
                             }
-                            yield(onSuccessIter.next());
-                            this.state = 3;
-                            return;
-                        case 3:
-                            this.state = 2;
+                            this.state = 4;
                             continue;
                         case 4:
-                            this.state = 1;
-                            continue;
+                            this.yield(onSuccessSeq.getCurrent());
+                            this.state = 5;
+                            return;
                         case 5:
-                            this.state = 10;
+                            this.state = 6;
                             continue;
                         case 6:
-                            onFailureIter = onFailure.eval(ctx, input).iterator();
+                            if (conditionSeq.next()) {
+                                this.state = 1;
+                                continue;
+                            }
                             this.state = 7;
                             continue;
                         case 7:
-                            if (!onFailureIter.hasNext()) {
-                                this.state = 9;
-                                continue;
-                            }
-                            yield(onFailureIter.next());
-                            this.state = 8;
-                            return;
+                            this.state = 13;
+                            continue;
                         case 8:
-                            this.state = 7;
+                            onFailureSeq = onFailure.eval(ctx, input);
+                            this.state = 9;
                             continue;
                         case 9:
+                            if (!onFailureSeq.next()) {
+                                this.state = 12;
+                                continue;
+                            }
                             this.state = 10;
                             continue;
                         case 10:
+                            this.yield(onFailureSeq.getCurrent());
+                            this.state = 11;
+                            return;
+                        case 11:
+                            this.state = 9;
+                            continue;
+                        case 12:
+                            this.state = 13;
+                            continue;
+                        case 13:
                             yieldBreak();
                             this.state = -1;
                             return;

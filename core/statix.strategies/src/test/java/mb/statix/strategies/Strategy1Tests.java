@@ -5,6 +5,7 @@ import mb.statix.sequences.Seq;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -123,7 +124,7 @@ public final class Strategy1Tests {
 
         // Act
         final Strategy<Object, String, String> appliedStrategy = strategy.apply("Hello, ");
-        final String result = appliedStrategy.eval(new Object(), "World").single().eval();
+        final String result = appliedStrategy.eval(new Object(), "World").single();
 
         // Assert
         assertEquals("Hello, World", result);

@@ -1,5 +1,8 @@
 package mb.statix.strategies.runtime;
 
+import mb.statix.lazy.LazySeq;
+import mb.statix.lazy.LazySeqBase;
+import mb.statix.lazy.PeekableSeq;
 import mb.statix.sequences.InterruptibleIterator;
 import mb.statix.sequences.InterruptibleIteratorBase;
 import mb.statix.sequences.Seq;
@@ -31,55 +34,60 @@ public final class FixSetStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
     private FixSetStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public Seq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
-        return () -> new InterruptibleIteratorBase<T>() {
+    public LazySeq<T> eval(CTX ctx, Strategy<CTX, T, T> s, T input) {
+        return new LazySeqBase<T>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
             private void computeNextCoroutine() throws InterruptedException {
                 // To avoid as many computations as possible,
-                // this implementation maintains a stack of iterators.
-                // Each time the strategy is evaluated, the resulting iterator
-                // is pushed on the stack. As long as the iterator is not iterated,
+                // this implementation maintains a stack of sequences.
+                // Each time the strategy is evaluated, the resulting sequence
+                // is pushed on the stack. As long as the sequence is not iterated,
                 // no computations will be done.
                 // 0:
                 final HashSet<T> visited = new HashSet<>();
                 final HashSet<T> yielded = new HashSet<>();
-                final ArrayDeque<InterruptibleIterator<T>> stack = new ArrayDeque<>();
-                stack.push(InterruptibleIterator.of(input));
+                final ArrayDeque<LazySeq<T>> stack = new ArrayDeque<>();
+                stack.push(LazySeq.of(input));
                 // 1:
                 while (!stack.isEmpty()) {
                     // 2:
-                    // Get the next non-empty iterator on the stack
-                    final InterruptibleIterator<T> iterator = stack.peek();
-                    if (!iterator.hasNext()) {
+                    // Get the next non-empty sequence on the stack
+                    final LazySeq<T> seq = stack.peek();
+                    if (!seq.next()) {
+                        // 3:
                         stack.pop();
                         continue;
                     }
-                    final T element = iterator.next();
-                    if (!visited.contains(element)) {
+                    final T element = seq.getCurrent();
+                    if(visited.contains(element)) {
+                        if (!yielded.contains(element)){
+                            // We have previously handled this element
+                            // so we're going to yield it and not yield it again
+                            yielded.add(element);
+                            this.yield(element);
+                        }
+                    } else {
+                        // 5:
                         // We have not previously handled this element,
                         // so we mark it visited and not handle it again
                         visited.add(element);
-                        final InterruptibleIterator<T> result = s.eval(ctx, element).iterator();
-                        if(!result.hasNext()) {
+                        // We make the sequence peekable, so we can check whether it is empty
+                        final PeekableSeq<T> result = s.eval(ctx, element).peekable();
+                        if(!result.peek()) {
                             // The strategy failed. Yield the element itself.
                             yielded.add(element);
                             this.yield(element);
-                            // 3:
+                            // 6:
                         } else {
-                            // The strategy succeeded. Push the resulting iterator on the stack.
+                            // The strategy succeeded. Push the sequence on the stack.
                             stack.push(result);
                         }
-                    } else if (!yielded.contains(element)){
-                        // We have previously handled this element
-                        // so we're going to yield it and not yield it again
-                        yielded.add(element);
-                        this.yield(element);
-                        // 5:
+                        // 7:
                     }
-                    // 6:
+                    // 10:
                 }
-                // 7:
+                // 11:
                 yieldBreak();
             }
 
@@ -88,69 +96,67 @@ public final class FixSetStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
             // LOCAL VARIABLES
             private final HashSet<T> visited = new HashSet<>();
             private final HashSet<T> yielded = new HashSet<>();
-            private final ArrayDeque<InterruptibleIterator<T>> stack = new ArrayDeque<>();
+            private final ArrayDeque<LazySeq<T>> stack = new ArrayDeque<>();
 
             @Override
             protected void computeNext() throws InterruptedException {
                 while (true) {
                     switch (state) {
                         case 0:
-                            stack.push(InterruptibleIterator.of(input));
+                            stack.push(LazySeq.of(input));
                             this.state = 1;
                             continue;
                         case 1:
                             if (stack.isEmpty()) {
-                                this.state = 7;
+                                this.state = 11;
                                 continue;
                             }
                             this.state = 2;
                             continue;
                         case 2:
                             // Get the next non-empty iterator on the stack
-                            final InterruptibleIterator<T> iterator = stack.peek();
-                            if (!iterator.hasNext()) {
+                            assert stack.peek() != null;
+                            final LazySeq<T> seq = stack.peek();
+                            if (!seq.next()) {
                                 stack.pop();
                                 this.state = 1;
                                 continue;
                             }
-                            final T element = iterator.next();
+                            final T element = seq.getCurrent();
                             if (visited.contains(element)) {
                                 if (!yielded.contains(element)){
                                     // We have previously handled this element
                                     // so we're going to yield it and not yield it again
                                     yielded.add(element);
                                     this.yield(element);
-                                    this.state = 5;
+                                    this.state = 10;
                                     return;
                                 }
-                                this.state = 6;
+                                this.state = 10;
                                 continue;
                             }
                             // We have not previously handled this element,
                             // so we mark it visited and not handle it again
                             visited.add(element);
-                            final InterruptibleIterator<T> result = s.eval(ctx, element).iterator();
-                            if (!result.hasNext()) {
+                            final PeekableSeq<T> result = s.eval(ctx, element).peekable();
+                            if (!result.peek()) {
                                 // The strategy failed. Yield the element itself.
                                 yielded.add(element);
                                 this.yield(element);
-                                this.state = 3;
+                                this.state = 6;
                                 return;
                             }
                             // The strategy succeeded. Push the resulting iterator on the stack.
                             stack.push(result);
-                            this.state = 6;
-                            continue;
-                        case 3:
-                            this.state = 6;
-                            continue;
-                        case 5:
-                            this.state = 6;
-                            continue;
-                        case 6:
-                            this.state = 1;
+                            this.state = 7;
                             continue;
                         case 7:
+                            this.state = 10;
+                            continue;
+                        case 10:
+                            this.state = 1;
+                            continue;
+                        case 11:
                             yieldBreak();
                             this.state = -1;
                             return;

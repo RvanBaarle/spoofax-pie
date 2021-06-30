@@ -1,5 +1,6 @@
 package mb.statix.strategies;
 
+import mb.statix.lazy.LazySeq;
 import mb.statix.sequences.Computation;
 import mb.statix.sequences.Seq;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ public final class StrategyTests {
     @Test
     public void getArity_shouldReturn0() {
         // Arrange
-        final Strategy<Object, String, Integer> strategy = (o, input) -> Seq.of(input.length());
+        final Strategy<Object, String, Integer> strategy = (o, input) -> LazySeq.of(input.length());
 
         // Act
         final int arity = strategy.getArity();

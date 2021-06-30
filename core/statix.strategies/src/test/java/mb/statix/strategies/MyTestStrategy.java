@@ -1,5 +1,6 @@
 package mb.statix.strategies;
 
+import mb.statix.lazy.LazySeq;
 import mb.statix.sequences.Computation;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -8,9 +9,9 @@ public class MyTestStrategy extends NamedStrategy<Object, String, String> {
     public final AtomicInteger doEvalCalls = new AtomicInteger();
 
     @Override
-    public Computation<String> eval(Object ctx, String input) {
+    public LazySeq<String> eval(Object ctx, String input) {
         doEvalCalls.incrementAndGet();
-        return Computation.fromOnly(() -> input);
+        return LazySeq.fromOnce(() -> input);
     }
 
     @Override

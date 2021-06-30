@@ -118,6 +118,7 @@ public interface PrintableStrategy extends Writable {
         } else if (arg instanceof Class) {
             sb.append(((Class<?>)arg).getSimpleName());
         } else {
+            //noinspection UnnecessaryToStringCall
             sb.append(arg.toString());
         }
     }

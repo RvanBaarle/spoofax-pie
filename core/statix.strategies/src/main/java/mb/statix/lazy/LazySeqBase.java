@@ -35,6 +35,7 @@ public abstract class LazySeqBase<T> implements LazySeq<T> {
         if (this.state == State.Finished) return false;
         this.state = State.Preparing;
         computeNext();
+        assert state != State.Preparing : "No call to either yield() or yieldBreak() was performed this iteration.";
         return this.state == State.Ready;
     }
 
@@ -51,6 +52,9 @@ public abstract class LazySeqBase<T> implements LazySeq<T> {
      *
      * Only one element can be the next element.
      * The caller must return from the method.
+     *
+     * NOTE: To call this function, you need to prefix it with {@code this}, thus {@code this.yield()}.
+     * Unfortunately, calling just {@code yield()} is not allowed.
      *
      * @param value the next element
      */

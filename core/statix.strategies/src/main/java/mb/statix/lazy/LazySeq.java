@@ -4,6 +4,8 @@ import mb.statix.sequences.InterruptibleSupplier;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 /**
  * A lazy sequence is a lazy computation of multiple values.
@@ -67,7 +69,7 @@ public interface LazySeq<T> extends AutoCloseable {
     }
 
     /**
-     * Returns a lazy sequence that uses the given supplier.
+     * Returns a lazy sequence that returns a (possibly infinite) sequence by calling the given supplier.
      *
      * The sequence returns elements until the supplier throws an exception.
      * The thrown exception is propagated to the caller.
@@ -80,6 +82,22 @@ public interface LazySeq<T> extends AutoCloseable {
      */
     static <T> LazySeq<T> from(InterruptibleSupplier<T> supplier) {
         return new SupplierSeq<>(supplier);
+    }
+
+    /**
+     * Returns a lazy sequence of at most one element that results from calling the given supplier once.
+     *
+     * The sequence returns one element unless the supplier throws an exception.
+     * The thrown exception is propagated to the caller.
+     * If the supplier throws {@link NoSuchElementException},
+     * then the sequence is finished but no exception is thrown.
+     *
+     * @param supplier the supplier
+     * @param <T> the type of value being supplied (covariant)
+     * @return the sequence of one element
+     */
+    static <T> LazySeq<T> fromOnce(InterruptibleSupplier<T> supplier) {
+        return new SupplierSeq<>(supplier).limit(1);
     }
 
     /**
@@ -118,6 +136,58 @@ public interface LazySeq<T> extends AutoCloseable {
             // Unwrap interruptible iterator
             return new LazySeqIterator<>(seq);
         }
+    }
+
+    /**
+     * Collects the remaining elements of the sequence.
+     *
+     * @param collector the collector
+     * @param <R> the type of results
+     * @param <A> the type of collector
+     * @return the result of the collector
+     */
+    default <R, A> R collect(Collector<? super T, A, R> collector) throws InterruptedException {
+        final A container = collector.supplier().get();
+        while (this.next()) {
+            collector.accumulator().accept(container, this.getCurrent());
+        }
+        return collector.finisher().apply(container);
+    }
+
+    /**
+     * Returns up to a specified number of elements from this sequence.
+     *
+     * Note that if this sequence has been (partially) iterated,
+     * the resulting sequence starts at that point in this sequence.
+     * If this sequence is being iterated in between calls to the resulting sequence,
+     * the results are undefined.
+     */
+    default LazySeq<T> limit(int n) {
+        return new LimitSeq<>(this, n);
+    }
+
+    /**
+     * Takes the last element from this sequence,
+     * or throws an exception if there is none or if it is not the last element.
+     *
+     * This is a terminal operation.
+     *
+     * @return the last element
+     */
+    default T single() throws InterruptedException {
+        if (!this.next()) throw new NoSuchElementException("No more elements in the sequence.");
+        final T current = this.getCurrent();
+        if (this.next()) throw new IllegalStateException("More than one element in the sequence.");
+        return current;
+    }
+
+    /**
+     * Allows peeking to see if there is a next element.
+     *
+     * @return the peekable sequence
+     */
+    default PeekableSeq<T> peekable() {
+        return new PeekingSeq<>(this);
     }
 
 }
@@ -211,6 +281,99 @@ final class SupplierSeq<T> extends LazySeqBase<T> {
         if (this.supplier instanceof AutoCloseable) {
             ((AutoCloseable)this.supplier).close();
         }
+    }
+}
+
+/**
+ * Returns up to a specified number of elements from the given sequence.
+ *
+ * Note that if the given sequence has been (partially) iterated,
+ * this sequence starts at that point in the given sequence.
+ * If the given sequence is being iterated in between calls to this sequence,
+ * the results are undefined.
+ *
+ * @param <T> the type of elements in the array (covariant)
+ */
+final class LimitSeq<T> extends LazySeqBase<T> {
+    private final LazySeq<T> seq;
+    private int limit;
+
+    public LimitSeq(LazySeq<T> seq, int limit) {
+        this.seq = seq;
+        this.limit = limit;
+    }
+
+    @Override
+    protected void computeNext() throws InterruptedException {
+        if (limit <= 0) {
+            yieldBreak();
+            return;
+        }
+        limit -= 1;
+        seq.next();
+        this.yield(seq.getCurrent());
+    }
+
+    @Override
+    public void close() throws Exception {
+        seq.close();
+    }
+}
+
+/**
+ * A sequence wrapper that allows peeking whether there is a next value.
+ * @param <T> the type of elements in the sequence (covariant)
+ */
+final class PeekingSeq<T> implements PeekableSeq<T> {
+    private final LazySeq<T> seq;
+    private T current;
+    private boolean hasNext;
+    private boolean peeked = false;
+
+    public PeekingSeq(LazySeq<T> seq) {
+        this.seq = seq;
+    }
+
+    @Override
+    public T getCurrent() {
+        return this.peeked ? this.current : this.seq.getCurrent();
+    }
+
+    @Override
+    public boolean next() throws InterruptedException {
+        // Did we peek?
+        if (!this.peeked) {
+            return this.seq.next();
+        } else {
+            this.peeked = false;
+            return this.hasNext;
+        }
+    }
+
+    /**
+     * Peeks at the next value and returns whether it is present,
+     * but does not move the iterator.
+     *
+     * @return {@code true} when a call to {@link #next} will put the iterator on a valid element;
+     * otherwise, {@code false} when the end of the sequence has been reached
+     * @throws InterruptedException if the operation was interrupted
+     */
+    public boolean peek() throws InterruptedException {
+        // Have we peeked yet?
+        if (!this.peeked) {
+            // Store the current value
+            this.current = this.seq.getCurrent();
+            // Compute the next value
+            this.hasNext = this.seq.next();
+            // Note that the inner sequence is ahead.
+            this.peeked = true;
+        }
+        return this.hasNext;
+    }
+
+    @Override
+    public void close() throws Exception {
+        seq.close();
     }
 }
 

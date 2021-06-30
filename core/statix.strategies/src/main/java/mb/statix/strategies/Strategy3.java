@@ -1,6 +1,6 @@
 package mb.statix.strategies;
 
-import mb.statix.sequences.Seq;
+import mb.statix.lazy.LazySeq;
 
 /**
  * A strategy.
@@ -28,7 +28,7 @@ public interface Strategy3<CTX, A1, A2, A3, T, R> extends StrategyDecl, Printabl
      * @param input the input argument
      * @return the lazy sequence of results; or an empty sequence if the strategy failed
      */
-    Seq<R> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, T input);
+    LazySeq<R> eval(CTX ctx, A1 arg1, A2 arg2, A3 arg3, T input);
 
     /**
      * Partially applies the strategy, providing the first argument.
@@ -76,7 +76,7 @@ public interface Strategy3<CTX, A1, A2, A3, T, R> extends StrategyDecl, Printabl
         }
 
         @Override
-        public Seq<R> eval(CTX ctx, A2 arg2, A3 arg3, T input) {
+        public LazySeq<R> eval(CTX ctx, A2 arg2, A3 arg3, T input) {
             return Strategy3.this.eval(ctx, arg1, arg2, arg3, input);
         }
 
@@ -145,7 +145,7 @@ public interface Strategy3<CTX, A1, A2, A3, T, R> extends StrategyDecl, Printabl
         }
 
         @Override
-        public Seq<R> eval(CTX ctx, A3 arg3, T input) {
+        public LazySeq<R> eval(CTX ctx, A3 arg3, T input) {
             return Strategy3.this.eval(ctx, arg1, arg2, arg3, input);
         }
 
@@ -207,7 +207,7 @@ public interface Strategy3<CTX, A1, A2, A3, T, R> extends StrategyDecl, Printabl
         }
 
         @Override
-        public Seq<R> eval(CTX ctx, T input) {
+        public LazySeq<R> eval(CTX ctx, T input) {
             return Strategy3.this.eval(ctx, arg1, arg2, arg3, input);
         }
 

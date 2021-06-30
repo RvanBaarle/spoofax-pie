@@ -1,6 +1,6 @@
 package mb.statix.strategies;
 
-import mb.statix.sequences.Seq;
+import mb.statix.lazy.LazySeq;
 
 /**
  * A strategy.
@@ -24,7 +24,7 @@ public interface Strategy1<CTX, A1, T, R> extends StrategyDecl, PrintableStrateg
      * @param input the input argument
      * @return the lazy sequence of results; or an empty sequence if the strategy failed
      */
-    Seq<R> eval(CTX ctx, A1 arg1, T input);
+    LazySeq<R> eval(CTX ctx, A1 arg1, T input);
 
     /**
      * Partially applies the strategy, providing the first argument.
@@ -69,7 +69,7 @@ public interface Strategy1<CTX, A1, T, R> extends StrategyDecl, PrintableStrateg
         }
 
         @Override
-        public Seq<R> eval(CTX ctx, T input) {
+        public LazySeq<R> eval(CTX ctx, T input) {
             return Strategy1.this.eval(ctx, arg1, input);
         }
 

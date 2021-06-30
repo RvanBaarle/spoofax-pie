@@ -1,5 +1,7 @@
 package mb.statix.strategies.runtime;
 
+import mb.statix.lazy.LazySeq;
+import mb.statix.lazy.LazySeqBase;
 import mb.statix.sequences.InterruptibleIterator;
 import mb.statix.sequences.InterruptibleIteratorBase;
 import mb.statix.sequences.Seq;
@@ -27,16 +29,16 @@ public final class SingleStrategy<CTX, T, R> extends NamedStrategy1<CTX, Strateg
     private SingleStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public Seq<R> eval(CTX ctx, Strategy<CTX, T, R> s, T input) {
-        return () -> new InterruptibleIteratorBase<R>() {
+    public LazySeq<R> eval(CTX ctx, Strategy<CTX, T, R> s, T input) {
+        return new LazySeqBase<R>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
             private void computeNextCoroutine() throws InterruptedException {
                 // 0:
-                final InterruptibleIterator<R> sIter = s.eval(ctx, input).iterator();
-                if (sIter.hasNext()) {
-                    final R element = sIter.next();
-                    if(!sIter.hasNext()) {
+                final LazySeq<R> sSeq = s.eval(ctx, input);
+                if (sSeq.next()) {
+                    final R element = sSeq.getCurrent();
+                    if(!sSeq.next()) {
                         // Only one result. Yield it.
                         this.yield(element);
                         // 1:
@@ -57,10 +59,10 @@ public final class SingleStrategy<CTX, T, R> extends NamedStrategy1<CTX, Strateg
                 while (true) {
                     switch (state) {
                         case 0:
-                            final InterruptibleIterator<R> sIter = s.eval(ctx, input).iterator();
-                            if (sIter.hasNext()) {
-                                final R element = sIter.next();
-                                if(!sIter.hasNext()) {
+                            final LazySeq<R> sSeq = s.eval(ctx, input);
+                            if (sSeq.next()) {
+                                final R element = sSeq.getCurrent();
+                                if(!sSeq.next()) {
                                     // Only one result. Yield it.
                                     this.yield(element);
                                     this.state = 1;

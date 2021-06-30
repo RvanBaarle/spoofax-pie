@@ -1,5 +1,7 @@
 package mb.statix.strategies.runtime;
 
+import mb.statix.lazy.LazySeq;
+import mb.statix.lazy.LazySeqBase;
 import mb.statix.sequences.InterruptibleIterator;
 import mb.statix.sequences.InterruptibleIteratorBase;
 import mb.statix.sequences.Seq;
@@ -26,31 +28,28 @@ public final class AndStrategy<CTX, T, R> extends NamedStrategy2<CTX, Strategy<C
     private AndStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public Seq<R> eval(CTX ctx, Strategy<CTX, T, R> s1, Strategy<CTX, T, R> s2, T input) {
-        final Seq<R> s1Seq = s1.eval(ctx, input);
-        final Seq<R> s2Seq = s2.eval(ctx, input);
-        return () -> new InterruptibleIteratorBase<R>() {
-            // Iterables from the sequences whose results we're returning
-            final InterruptibleIterator<R> s1Iter = s1Seq.iterator();
-            final InterruptibleIterator<R> s2Iter = s2Seq.iterator();
+    public LazySeq<R> eval(CTX ctx, Strategy<CTX, T, R> s1, Strategy<CTX, T, R> s2, T input) {
+        return new LazySeqBase<R>() {
 
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
             private void computeNextCoroutine() throws InterruptedException {
                 // 0:
-                if (s1Iter.hasNext() && s2Iter.hasNext()) {
+                final LazySeq<R> s1Seq = s1.eval(ctx, input);
+                final LazySeq<R> s2Seq = s2.eval(ctx, input);
+                if (s1Seq.next() && s2Seq.next()) {
                     // 1:
-                    while (s1Iter.hasNext()) {
+                    do {
                         // 2:
-                        this.yield(s1Iter.next());
+                        this.yield(s1Seq.getCurrent());
                         // 3:
-                    }
+                    } while (s1Seq.next());
                     // 4:
-                    while (s2Iter.hasNext()) {
+                    do {
                         // 5:
-                        this.yield(s2Iter.next());
+                        this.yield(s2Seq.getCurrent());
                         // 6:
-                    }
+                    } while (s2Seq.next());
                     // 7:
                 }
                 // 8:
@@ -60,46 +59,49 @@ public final class AndStrategy<CTX, T, R> extends NamedStrategy2<CTX, Strategy<C
             // STATE MACHINE
             private int state = 0;
             // LOCAL VARIABLES
-            // <none>
+            private LazySeq<R> s1Seq;
+            private LazySeq<R> s2Seq;
 
             @Override
             protected void computeNext() throws InterruptedException {
                 while (true) {
                     switch (state) {
                         case 0:
-                            if (!s1Iter.hasNext() || !s2Iter.hasNext()) {
+                            s1Seq = s1.eval(ctx, input);
+                            s2Seq = s2.eval(ctx, input);
+                            if (!s1Seq.next() || !s2Seq.next()) {
                                 this.state = 8;
                                 continue;
                             }
                             this.state = 1;
                             continue;
                         case 1:
-                            if (!s1Iter.hasNext()) {
-                                this.state = 4;
-                                continue;
-                            }
                             this.state = 2;
                             continue;
                         case 2:
-                            this.yield(s1Iter.next());
+                            this.yield(s1Seq.getCurrent());
                             this.state = 3;
                             return;
                         case 3:
-                            this.state = 1;
-                            continue;
-                        case 4:
-                            if (!s2Iter.hasNext()) {
-                                this.state = 7;
+                            if (s1Seq.next()) {
+                                this.state = 1;
                                 continue;
                             }
+                            this.state = 4;
+                            continue;
+                        case 4:
                             this.state = 5;
                             continue;
                         case 5:
-                            this.yield(s2Iter.next());
+                            this.yield(s2Seq.getCurrent());
                             this.state = 6;
                             return;
                         case 6:
-                            this.state = 4;
+                            if (s2Seq.next()) {
+                                this.state = 4;
+                                continue;
+                            }
+                            this.state = 7;
                             continue;
                         case 7:
                             this.state = 8;

@@ -1,11 +1,13 @@
 package mb.statix.strategies.runtime;
 
+import mb.statix.lazy.LazySeq;
 import mb.statix.sequences.InterruptibleIterator;
 import mb.statix.sequences.Seq;
 import mb.statix.strategies.TestListStrategy;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final FailStrategy<Object, String, Integer> s = FailStrategy.getInstance();
 
         // Act
-        final Seq<Integer> result = strategy.eval(new Object(), s, "abc");
+        final LazySeq<Integer> result = strategy.eval(new Object(), s, "abc");
 
         // Assert
-        assertEquals(Arrays.asList(), result.toList().eval());
+        assertEquals(Arrays.asList(), result.collect(Collectors.toList()));
     }
 
     @Test
@@ -35,10 +37,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final TestListStrategy<String, Integer> s = new TestListStrategy<>(it -> Arrays.asList(it.length()));
 
         // Act
-        final Seq<Integer> result = strategy.eval(new Object(), s, "abc");
+        final LazySeq<Integer> result = strategy.eval(new Object(), s, "abc");
 
         // Assert
-        assertEquals(Arrays.asList(3), result.toList().eval());
+        assertEquals(Arrays.asList(3), result.collect(Collectors.toList()));
     }
 
     @Test
@@ -48,10 +50,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final TestListStrategy<String, Integer> s = new TestListStrategy<>(it -> Arrays.asList(it.length(), it.length() + 1));
 
         // Act
-        final Seq<Integer> result = strategy.eval(new Object(), s, "abc");
+        final LazySeq<Integer> result = strategy.eval(new Object(), s, "abc");
 
         // Assert
-        assertEquals(Arrays.asList(), result.toList().eval());
+        assertEquals(Arrays.asList(), result.collect(Collectors.toList()));
     }
 
     @Test
@@ -61,19 +63,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final TestListStrategy<String, Integer> s = new TestListStrategy<>(it -> Arrays.asList(it.length(), it.length() + 1));
 
         // Act
-        final Seq<Integer> result = strategy.eval(new Object(), s, "abc");
+        final LazySeq<Integer> result = strategy.eval(new Object(), s, "abc");
         assertEquals(0, s.evalCalls.get());        // not yet called
-        assertEquals(0, s.iteratorCalls.get());    // not yet called
         assertEquals(0, s.nextCalls.get());        // not yet called
 
-        final InterruptibleIterator<Integer> iterator = result.iterator();
-        assertEquals(0, s.evalCalls.get());        // not yet called
-        assertEquals(0, s.iteratorCalls.get());    // not yet called
-        assertEquals(0, s.nextCalls.get());        // not yet called
-
-        assertFalse(iterator.hasNext());
+        assertFalse(result.next());
         assertEquals(1, s.evalCalls.get());        // called once to get the lazy sequence
-        assertEquals(1, s.iteratorCalls.get());    // called once to get the lazy sequence's iterator
         assertEquals(2, s.nextCalls.get());        // called to get the first element, and to see if a second element exists
     }
 

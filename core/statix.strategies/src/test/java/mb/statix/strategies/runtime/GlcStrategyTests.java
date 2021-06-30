@@ -1,23 +1,21 @@
 package mb.statix.strategies.runtime;
 
-import mb.statix.sequences.Computation;
-import mb.statix.sequences.InterruptibleIterator;
-import mb.statix.sequences.InterruptibleIteratorBase;
-import mb.statix.sequences.Seq;
-import mb.statix.strategies.Strategy;
+import mb.statix.lazy.LazySeq;
 import mb.statix.strategies.TestListStrategy;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests the {@link GlcStrategy} class.
  */
+@SuppressWarnings({"PointlessArithmeticExpression", "ArraysAsListWithZeroOrOneArgument"})
 public final class GlcStrategyTests {
 
     @Test
@@ -29,10 +27,10 @@ public final class GlcStrategyTests {
         final TestListStrategy<Integer, Integer> se = new TestListStrategy<>(it -> Arrays.asList(it * 10));
 
         // Act
-        final Seq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
+        final LazySeq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
 
         // Assert
-        assertEquals(Arrays.asList(47, 48, 49), result.toList().eval());
+        assertEquals(Arrays.asList(47, 48, 49), result.collect(Collectors.toList()));
     }
 
     @Test
@@ -44,10 +42,10 @@ public final class GlcStrategyTests {
         final TestListStrategy<Integer, Integer> se = new TestListStrategy<>(it -> Arrays.asList(it * 10));
 
         // Act
-        final Seq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
+        final LazySeq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
 
         // Assert
-        assertEquals(Arrays.asList(420), result.toList().eval());
+        assertEquals(Arrays.asList(420), result.collect(Collectors.toList()));
     }
 
     @Test
@@ -59,45 +57,34 @@ public final class GlcStrategyTests {
         final TestListStrategy<Integer, Integer> se = new TestListStrategy<>(it -> Arrays.asList(it * 10));
 
         // Act/Assert
-        final Seq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
-        assertEquals(1, sc.evalCalls.get());        // called once to get the lazy sequence
-        assertEquals(0, st.evalCalls.get());        // not called until the sequence is evaluated
-        assertEquals(0, se.evalCalls.get());        // not called until the sequence is evaluated
+        final LazySeq<Integer> result = strategy.eval(new Object(), sc, st, se, 42);
 
-        final InterruptibleIterator<Integer> iterator = result.iterator();
-        assertEquals(1, sc.iteratorCalls.get());    // called once to get the lazy sequence's iterator
-        assertEquals(0, st.iteratorCalls.get());    // not called until the sequence is evaluated
-        assertEquals(0, se.iteratorCalls.get());    // not called until the sequence is evaluated
-
-        iterator.next();
+        assertTrue(result.next());
         assertEquals(1, sc.nextCalls.get());        // called to get the first element
         assertEquals(1, st.nextCalls.get());        // called to get the first element
         assertEquals(0, se.nextCalls.get());        // not called
 
-        iterator.next();
+        assertTrue(result.next());
         assertEquals(2, sc.nextCalls.get());        // called to get the second element
+        assertEquals(2, st.nextCalls.get());        // called to get the second element (which doesn't exist), then called to get the first element
+        assertEquals(0, se.nextCalls.get());        // not called
+
+        assertTrue(result.next());
+        assertEquals(3, sc.nextCalls.get());        // called to get the third element
         assertEquals(3, st.nextCalls.get());        // called to get the second element (which doesn't exist), then called to get the first element
         assertEquals(0, se.nextCalls.get());        // not called
 
-        iterator.next();
-        assertEquals(3, sc.nextCalls.get());        // called to get the third element
-        assertEquals(5, st.nextCalls.get());        // called to get the second element (which doesn't exist), then called to get the first element
-        assertEquals(0, se.nextCalls.get());        // not called
-
-        iterator.hasNext();
+        assertFalse(result.next());
         assertEquals(4, sc.nextCalls.get());        // called to determine there is no more
-        assertEquals(6, st.nextCalls.get());        // called to determine there is no more
+        assertEquals(3, st.nextCalls.get());        // called to determine there is no more
         assertEquals(0, se.nextCalls.get());        // not called
 
         // Final tally
         assertEquals(1, sc.evalCalls.get());
         assertEquals(3, st.evalCalls.get());
         assertEquals(0, se.evalCalls.get());
-        assertEquals(1, sc.iteratorCalls.get());
-        assertEquals(3, st.iteratorCalls.get());
-        assertEquals(0, se.iteratorCalls.get());
         assertEquals(4, sc.nextCalls.get());
-        assertEquals(6, st.nextCalls.get());
+        assertEquals(3, st.nextCalls.get());
         assertEquals(0, se.nextCalls.get());
     }
 }
