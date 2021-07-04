@@ -33,7 +33,6 @@ public final class OrStrategy<CTX, T, R> extends NamedStrategy2<CTX, Strategy<CT
             private void computeNextCoroutine() throws InterruptedException {
                 // 0:
                 final Seq<R> s1Seq = s1.eval(ctx, input);
-                final Seq<R> s2Seq = s2.eval(ctx, input);
                 // 1:
                 while (s1Seq.next()) {
                     // 2:
@@ -41,12 +40,14 @@ public final class OrStrategy<CTX, T, R> extends NamedStrategy2<CTX, Strategy<CT
                     // 3:
                 }
                 // 4:
+                final Seq<R> s2Seq = s2.eval(ctx, input);
+                // 5:
                 while (s2Seq.next()) {
-                    // 5:
-                    this.yield(s2Seq.getCurrent());
                     // 6:
+                    this.yield(s2Seq.getCurrent());
+                    // 7:
                 };
-                // 7:
+                // 8:
                 yieldBreak();
             }
 
@@ -62,7 +63,6 @@ public final class OrStrategy<CTX, T, R> extends NamedStrategy2<CTX, Strategy<CT
                     switch (state) {
                         case 0:
                             s1Seq = s1.eval(ctx, input);
-                            s2Seq = s2.eval(ctx, input);
                             this.state = 1;
                             continue;
                         case 1:
@@ -80,20 +80,24 @@ public final class OrStrategy<CTX, T, R> extends NamedStrategy2<CTX, Strategy<CT
                             this.state = 1;
                             continue;
                         case 4:
-                            if (!s2Seq.next()) {
-                                this.state = 7;
-                                continue;
-                            }
+                            s2Seq = s2.eval(ctx, input);
                             this.state = 5;
                             continue;
                         case 5:
-                            this.yield(s2Seq.getCurrent());
+                            if (!s2Seq.next()) {
+                                this.state = 8;
+                                continue;
+                            }
                             this.state = 6;
-                            return;
-                        case 6:
-                            this.state = 4;
                             continue;
+                        case 6:
+                            this.yield(s2Seq.getCurrent());
+                            this.state = 7;
+                            return;
                         case 7:
+                            this.state = 5;
+                            continue;
+                        case 8:
                             yieldBreak();
                             this.state = -1;
                             return;
