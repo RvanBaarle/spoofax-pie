@@ -10,7 +10,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @param <R> the type of result (covariant)
  */
 @FunctionalInterface
-public interface Pattern<CTX, R> {
+public interface Pattern<CTX, T, R> {
 
     /**
      * Matches the pattern.
@@ -20,6 +20,6 @@ public interface Pattern<CTX, R> {
      * @return {@code true} if the pattern matches;
      * otherwise, {@code false}
      */
-    boolean match(CTX ctx, @Nullable Object input);
+    boolean match(CTX ctx, @Nullable T input);
 
 }

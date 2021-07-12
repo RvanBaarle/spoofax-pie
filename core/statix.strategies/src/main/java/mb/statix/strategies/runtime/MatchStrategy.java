@@ -17,7 +17,7 @@ import java.util.HashSet;
  * @param <T> the type of input (contravariant)
  * @param <R> the type of output (covariant)
  */
-public final class MatchStrategy<CTX, T, R> extends NamedStrategy1<CTX, Pattern<CTX, R>, T, R> {
+public final class MatchStrategy<CTX, T, R> extends NamedStrategy1<CTX, Pattern<CTX, T, R>, T, R> {
 
     @SuppressWarnings("rawtypes")
     private static final MatchStrategy instance = new MatchStrategy();
@@ -26,7 +26,7 @@ public final class MatchStrategy<CTX, T, R> extends NamedStrategy1<CTX, Pattern<
 
     private MatchStrategy() { /* Prevent instantiation. Use getInstance(). */ }
 
-    @Override public final Seq<R> eval(CTX ctx, Pattern<CTX, R> pattern, T input) {
+    @Override public final Seq<R> eval(CTX ctx, Pattern<CTX, T, R> pattern, T input) {
         return new SeqBase<R>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")

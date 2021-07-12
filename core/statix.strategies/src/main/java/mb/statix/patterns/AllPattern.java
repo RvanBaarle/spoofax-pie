@@ -7,17 +7,17 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @param <CTX> the type of context (invariant)
  */
-public final class AllPattern<CTX> implements Pattern<CTX, Object> {
+public final class AllPattern<CTX, T> implements Pattern<CTX, T, T> {
 
     @SuppressWarnings("rawtypes")
     private static final AllPattern instance = new AllPattern();
     @SuppressWarnings("unchecked")
-    public static <CTX> AllPattern<CTX> getInstance() { return (AllPattern<CTX>)instance; }
+    public static <CTX, T> AllPattern<CTX, T> getInstance() { return (AllPattern<CTX, T>)instance; }
 
     private AllPattern() { /* Prevent instantiation. Use getInstance(). */ }
 
     @Override
-    public boolean match(CTX ctx, @Nullable Object input) {
+    public boolean match(CTX ctx, @Nullable T input) {
         return true;
     }
 

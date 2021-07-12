@@ -11,7 +11,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * @param <CTX> the type of context (invariant)
  * @param <R> the type of result (covariant)
  */
-public final class TypeOfPattern<CTX, R> implements Pattern<CTX, R> {
+public final class TypeOfPattern<CTX, R> implements Pattern<CTX, Object, R> {
 
     private final Class<? extends R> cls;
 
