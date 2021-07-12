@@ -4,6 +4,7 @@ import mb.statix.sequences.Seq;
 import mb.statix.sequences.SeqBase;
 import mb.statix.strategies.NamedStrategy2;
 import mb.statix.strategies.Strategy;
+import mb.statix.utils.ExcludeFromJacocoGeneratedReport;
 
 /**
  * Limiting strategy.
@@ -28,6 +29,7 @@ public final class LimitStrategy<CTX, T, R> extends NamedStrategy2<CTX, Strategy
         return new SeqBase<R>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
+            @ExcludeFromJacocoGeneratedReport
             private void computeNextCoroutine() throws InterruptedException {
                 // 0:
                 final Seq<R> s1Seq = s.eval(ctx, input);

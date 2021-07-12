@@ -4,6 +4,7 @@ import mb.statix.sequences.Seq;
 import mb.statix.sequences.SeqBase;
 import mb.statix.strategies.NamedStrategy3;
 import mb.statix.strategies.Strategy;
+import mb.statix.utils.ExcludeFromJacocoGeneratedReport;
 
 /**
  * Guarded left choice strategy.
@@ -27,6 +28,7 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
         return new SeqBase<R>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
+            @ExcludeFromJacocoGeneratedReport
             private void computeNextCoroutine() throws InterruptedException {
                 // 0:
                 final Seq<U> conditionSeq = condition.eval(ctx, input);

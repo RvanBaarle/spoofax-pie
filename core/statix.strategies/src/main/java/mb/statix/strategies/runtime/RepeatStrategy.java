@@ -5,6 +5,7 @@ import mb.statix.sequences.SeqBase;
 import mb.statix.sequences.PeekableSeq;
 import mb.statix.strategies.NamedStrategy1;
 import mb.statix.strategies.Strategy;
+import mb.statix.utils.ExcludeFromJacocoGeneratedReport;
 
 import java.util.ArrayDeque;
 
@@ -30,6 +31,7 @@ public final class RepeatStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
         return new SeqBase<T>() {
             // Implementation if `yield` and `yieldBreak` could actually suspend computation
             @SuppressWarnings("unused")
+            @ExcludeFromJacocoGeneratedReport
             private void computeNextCoroutine() throws InterruptedException {
                 // To avoid as many computations as possible,
                 // this implementation maintains a stack of iterators.
