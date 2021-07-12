@@ -149,6 +149,9 @@ public final class FixSetStrategy<CTX, T> extends NamedStrategy1<CTX, Strategy<C
                             stack.push(result);
                             this.state = 7;
                             continue;
+                        case 6:
+                            this.state = 7;
+                            continue;
                         case 7:
                             this.state = 10;
                             continue;

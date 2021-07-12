@@ -30,7 +30,38 @@ public final class FixSetStrategyTests {
     public void shouldApplyStrategy_untilStrategyFails() throws InterruptedException {
         // Arrange
         final FixSetStrategy<Object, String> strategy = FixSetStrategy.getInstance();
-        final TestListStrategy<String, String> s = new TestListStrategy<>(it -> scoreString(it) < 5 ? Arrays.asList(it + "A", it + "B", it + "C") : Arrays.asList(it));
+        final TestListStrategy<String, String> s = new TestListStrategy<>(it -> scoreString(it) < 5 ? Arrays.asList(it + "A", it + "B", it + "C") : Arrays.asList());
+
+        // Act
+        final Seq<String> result = strategy.eval(new Object(), s, "A");
+
+        // Assert
+        assertEquals(Arrays.asList(
+            "AAAAA",
+            "AAAAB",
+            "AAAAC",
+            "AAAB",
+            "AAAC",
+            "AABA",
+            "AABB",
+            "AABC",
+            "AAC",
+            "ABAA",
+            "ABAB",
+            "ABAC",
+            "ABB",
+            "ABC",
+            "ACA",
+            "ACB",
+            "ACC"
+        ), result.collect(Collectors.toList()));
+    }
+
+    @Test
+    public void shouldApplyStrategy_untilStrategyReturnsVisitedElements() throws InterruptedException {
+        // Arrange
+        final FixSetStrategy<Object, String> strategy = FixSetStrategy.getInstance();
+        final TestListStrategy<String, String> s = new TestListStrategy<>(it -> scoreString(it) < 5 ? Arrays.asList(it + "A", it + "B", it + "C") : Arrays.asList(it, it));
 
         // Act
         final Seq<String> result = strategy.eval(new Object(), s, "A");

@@ -9,6 +9,7 @@ import mb.statix.strategies.NamedStrategy1;
  *
  * @param <CTX> the type of context (invariant)
  * @param <T> the type of input (contravariant)
+ * @param <R> the type of output (covariant)
  */
 public final class ConstStrategy<CTX, T, R> extends NamedStrategy1<CTX, R, T, R> {
 

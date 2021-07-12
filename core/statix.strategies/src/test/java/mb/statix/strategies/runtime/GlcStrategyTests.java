@@ -66,17 +66,17 @@ public final class GlcStrategyTests {
 
         assertTrue(result.next());
         assertEquals(2, sc.nextCalls.get());        // called to get the second element
-        assertEquals(2, st.nextCalls.get());        // called to get the second element (which doesn't exist), then called to get the first element
+        assertEquals(3, st.nextCalls.get());        // called to get the second element (which doesn't exist), then called to get the first element
         assertEquals(0, se.nextCalls.get());        // not called
 
         assertTrue(result.next());
         assertEquals(3, sc.nextCalls.get());        // called to get the third element
-        assertEquals(3, st.nextCalls.get());        // called to get the second element (which doesn't exist), then called to get the first element
+        assertEquals(5, st.nextCalls.get());        // called to get the second element (which doesn't exist), then called to get the first element
         assertEquals(0, se.nextCalls.get());        // not called
 
         assertFalse(result.next());
         assertEquals(4, sc.nextCalls.get());        // called to determine there is no more
-        assertEquals(3, st.nextCalls.get());        // called to determine there is no more
+        assertEquals(6, st.nextCalls.get());        // called to determine there is no more
         assertEquals(0, se.nextCalls.get());        // not called
 
         // Final tally
@@ -84,7 +84,7 @@ public final class GlcStrategyTests {
         assertEquals(3, st.evalCalls.get());
         assertEquals(0, se.evalCalls.get());
         assertEquals(4, sc.nextCalls.get());
-        assertEquals(3, st.nextCalls.get());
+        assertEquals(6, st.nextCalls.get());
         assertEquals(0, se.nextCalls.get());
     }
 }

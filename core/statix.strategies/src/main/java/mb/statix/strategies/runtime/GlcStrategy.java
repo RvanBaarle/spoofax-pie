@@ -101,7 +101,7 @@ public final class GlcStrategy<CTX, T, U, R> extends NamedStrategy3<CTX, Strateg
                             this.state = 5;
                             return;
                         case 5:
-                            this.state = 6;
+                            this.state = 3;
                             continue;
                         case 6:
                             if (conditionSeq.next()) {
