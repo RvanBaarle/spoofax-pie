@@ -36,6 +36,7 @@ import mb.spoofax.compiler.adapter.AdapterProjectCompiler;
 import mb.spoofax.compiler.adapter.AdapterProjectCompilerInputBuilder;
 import mb.spoofax.compiler.adapter.CodeCompletionAdapterCompiler;
 import mb.spoofax.compiler.adapter.ConstraintAnalyzerAdapterCompiler;
+import mb.spoofax.compiler.adapter.DynamixAdapterCompiler;
 import mb.spoofax.compiler.adapter.HoverAdapterCompiler;
 import mb.spoofax.compiler.adapter.MultilangAnalyzerAdapterCompiler;
 import mb.spoofax.compiler.adapter.ParserAdapterCompiler;
@@ -475,6 +476,9 @@ public class CfgAstToObject {
         });
         parts.getAllSubTermsInListAsParts("CodeCompletionSection").ifSome(subParts -> {
             final CodeCompletionAdapterCompiler.Input.Builder adapter = adapterBuilder.withCodeCompletion();
+        });
+        parts.getAllSubTermsInListAsParts("DynamixSection").ifSome(subParts -> {
+            final DynamixAdapterCompiler.Input.Builder adapter = adapterBuilder.withDynamix();
         });
         parts.getAllSubTermsInListAsParts("ReferenceResolutionSection").ifSome(subParts -> {
             final ReferenceResolutionAdapterCompiler.Input.Builder builder = adapterBuilder.withReferenceResolution();
