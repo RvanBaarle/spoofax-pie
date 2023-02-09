@@ -62,8 +62,18 @@ signature
     // A target-level TStructMember node, representing one member of a structure
     MRuntimeTStructMember : TStructMember -> MRuntimeValue
 
+  sorts Path Label Scope  // Internal statix sorts
+  constructors
+    PathEmpty : Scope -> Path
+    PathStep : Path * Label * Scope -> Path
+    Label : string -> Label
+    Scope : string * string -> Scope
+
 // Program evaluation
 rules
+
+  external dx-resolve-path(|a)
+
   // dx--eval-program-rule(|string) :: DynamixProgram * ? -> TExp
   dx--eval-program-rule(|ruleName): (inp, term) -> ret'
     where {| MRules, MStackTrace, MGlobal:
@@ -351,6 +361,86 @@ rules
       name' := <dx--eval-expr(|scope) ; dx--assert-source-string(|"Symbol name must be a source string") ; un-double-quote> name
   dx--eval-expr(|scope): MExprTTypeWildcard() -> MRuntimeTType(TInferredT())
 
+  dx--scope-to-framename: Scope(_, x) -> $[frame_[x]]
+  dx--scope-to-typename: Scope(_, x) -> $[frameT_[x]]
+  dx--scope-to-structmember: s@Scope(_, _) -> TStructMember(<dx--scope-to-framename> s, TNamedT(<dx--scope-to-typename> s))
+
+  dx--assign-linked-frames(|frame) : [s|t] ->
+      TExpPrimOp("struct-write", [frame, TValueSymbol(name), TValueVar(name)], <newname> "unused",
+        <dx--assign-linked-frames(|frame)> t
+      )
+    with name := <dx--scope-to-framename> s
+
+  dx--assign-linked-frames(|frame) : [] -> THole()
+
+  dx--eval-expr(|scope): MExprMetaPrimitive("create-scope", [scope-arg, relation]) -> result
+    with
+      term := <dx--eval-expr(|scope) ; dx--assert-quoted(|"Argument must be a source term")> scope-arg
+    ; rel := <dx--eval-expr(|scope) ; dx--assert-source-string(|"relation must be a string") ; un-double-quote> relation
+    ; a := <stx-get-ast-analysis <+ dx--fail-msg(|"Cannot get constraint-analyzer property on source term without analysis information.")> term
+    ; frame-scope := <stx-get-ast-property(|a, "scope") <+ dx--fail-msg(|"Term passed to create-scope does not have a .scope property set") ; ?[_|_] < dx--fail-msg(|"Multiple scope values assigned to term")+ id> term
+    ; <debug(!"Scope: ")> frame-scope
+    ; rel-scopes := <dx-resolve-path(|a) ; debug(!"Edges: ")> frame-scope
+    ; struct-members1 := <stx-get-scopegraph-data(|a, rel) ; map(\x -> <dx--call-function ; dx--assert-target-struct-member(|"rule compileFrameEntry must return a structmember")> ("main!compileFrameEntry", [<dx--quoted-to-runtime> x])\)> frame-scope
+    ; struct-members2 := <map(dx--scope-to-structmember)> rel-scopes
+    ; struct-members := <conc> (struct-members1, struct-members2)
+    ; labels := <stx-get-scopegraph-edges(|a, "main!P") ; debug(!"labels?")> frame-scope
+    ; type-name := <dx--scope-to-typename> frame-scope
+    ; frame-name := <dx--scope-to-framename> frame-scope
+    ; result := MRuntimePluggable(
+        [MRuntimeValue(TValueVar(frame-name))],
+        TExpTypes(
+          [TTypeDef(type-name, TStructT(struct-members))],
+          TExpTypedPrimOp("struct-new", TNamedT(type-name), [], frame-name,
+            <dx--assign-linked-frames(|TValueVar(frame-name))> rel-scopes
+          )
+        )
+      )
+
+  dx--path-to-frame(|frame-var): PathEmpty(s) -> (frame-var, MRuntimePluggable([], THole()))
+  dx--path-to-frame(|frame-var): PathStep(p, _, s) -> (TValueVar(cur-frame-var), code)
+    with
+      cur-frame-symbol := TValueSymbol(<dx--scope-to-framename> s)
+    ; cur-frame-var := <newname> "frame"
+    ; (prev-frame-var, prev-frame-code) := <dx--path-to-frame(|frame-var)> p
+    ; cur-frame-code := MRuntimePluggable(
+        [],
+        TExpPrimOp("struct-read", [prev-frame-var, cur-frame-symbol], cur-frame-var, THole())
+      )
+    ; code := <dx--compose-cps-values> (prev-frame-code, cur-frame-code)
+
+  dx--eval-expr(|scope): MExprMetaPrimitive("read-var", [frame-arg, var]) ->
+      <dx--compose-cps-values> (frame-code, result)
+    with
+      frame := <dx--eval-expr(|scope) ; dx--assert-runtime-value(|"frame argument must be a target value")> frame-arg
+    ; var' := <dx--eval-expr(|scope) ; dx--assert-quoted(|"Term must be a source term")> var
+    ; a := <stx-get-ast-analysis <+ dx--fail-msg(|"Cannot get constraint-analyzer property on source term without analysis information.")> var'
+    ; path := <stx-get-ast-property(|a, "path") <+ debug(!"Term passed to read-var does not have a .path property set") ; ?[_|_] < dx--fail-msg(|"Multiple scope values assigned to term") + id> var'
+    ; STermString(ref') := var'
+    ; <debug(!"Origin: ")> ref'
+    ; result-var := <newname> "result"
+    ; (frame-var, frame-code) := <debug(!"Path: ") ; dx--path-to-frame(|frame) ; debug(!"Frame: ")> path
+    ; result := MRuntimePluggable(
+        [MRuntimeValue(TValueVar(result-var))],
+        TExpPrimOp("struct-read", [frame-var, TValueSymbol(<un-double-quote> ref')], result-var, THole())
+      )
+
+  dx--eval-expr(|scope): MExprMetaPrimitive("write-var", [frame-arg, var, value]) ->
+      <dx--compose-cps-values> (frame-code, result)
+    with
+      frame := <dx--eval-expr(|scope) ; dx--assert-runtime-value(|"frame argument must be a target value")> frame-arg
+    ; var' := <dx--eval-expr(|scope) ; dx--assert-quoted(|"Term must be a source term")> var
+    ; value' := <dx--eval-expr(|scope) ; dx--assert-runtime-value(|"value must be a target value")> value
+    ; a := <stx-get-ast-analysis <+ dx--fail-msg(|"Cannot get constraint-analyzer property on source term without analysis information.")> var'
+    ; path := <stx-get-ast-property(|a, "path") <+ debug(!"Term passed to write-var does not have a .path property set") ; ?[_|_] < dx--fail-msg(|"Multiple scope values assigned to term") + id> var'
+    ; STermString(ref') := var'
+    ; <debug(!"Origin: ")> ref'
+    ; result-var := <newname> "result"
+    ; (frame-var, frame-code) := <debug(!"Path: ") ; dx--path-to-frame(|frame) ; debug(!"Frame: ")> path
+    ; result := MRuntimePluggable(
+        [MRuntimeValue(TValueVar(result-var))],
+        TExpPrimOp("struct-write", [frame-var, TValueSymbol(<un-double-quote> ref'), value'], result-var, THole())
+      )
 
   // dx--call-function :: (string, List(TRuntimeValue)) -> TRuntimeValue
   dx--call-function: (name, args) -> ret

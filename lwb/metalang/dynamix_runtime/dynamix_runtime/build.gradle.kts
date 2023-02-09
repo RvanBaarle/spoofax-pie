@@ -28,6 +28,7 @@ languageProject {
     withStrategoRuntime().run {
       addNaBL2Primitives(true) // required for attribute lookup
       addStatixPrimitives(true) // required for attribute lookup
+      interopRegisterersByReflection(listOf("mb.dynamix_runtime.strategies.InteropRegisterer"))
     }
   }
 }

@@ -191,6 +191,8 @@ context-free syntax
   MExpr.MExprTTypeFreshNamed = [fresh-typevar([ID])]
   MExpr.MExprTTypeSymbol = [symboltype([MExpr])]
 
+  MExpr.MExprMetaPrimitive = [[PID]!([{MExpr ","}*])]
+
 template options
   LID = keyword {reject}
   UID = keyword {reject}

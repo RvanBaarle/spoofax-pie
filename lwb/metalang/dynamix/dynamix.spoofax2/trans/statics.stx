@@ -351,6 +351,16 @@ rules
     typeCoercibleTo(A, B) | error $[The given parameter type [A] is not compatible with the expected parameter type [B].],
     callTypesCompatible(ar, br).
 
+// Meta-primitives
+// TODO: think of a better name
+rules
+  typeOfExp_(s, MExprMetaPrimitive("create-scope", args)) = MPLUGGABLE1(MTTYPE(TVALUE())) :-
+    typesOfExps(s, args) == [MSTYPE(_), MSTYPE(SSTRING())].
+  typeOfExp_(s, MExprMetaPrimitive("read-var", args)) = MPLUGGABLE1(MTTYPE(TVALUE())) :-
+    typesOfExps(s, args) == [MTTYPE(TVALUE()), MSTYPE(_)].
+  typeOfExp_(s, MExprMetaPrimitive("write-var", args)) = MPLUGGABLE0() :-
+    typesOfExps(s, args) == [MTTYPE(TVALUE()), MSTYPE(_), MTTYPE(TVALUE())].
+
 // quoted expressions
 rules
   typeOfQuote : scope * STerm -> MTYPE
