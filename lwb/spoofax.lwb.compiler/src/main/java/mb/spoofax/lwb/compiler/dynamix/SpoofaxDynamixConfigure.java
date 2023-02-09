@@ -18,8 +18,8 @@ import mb.pie.api.exec.UncheckedInterruptedException;
 import mb.pie.api.stamp.resource.ResourceStampers;
 import mb.resource.hierarchical.HierarchicalResource;
 import mb.resource.hierarchical.ResourcePath;
-import mb.sdf3.task.spec.Sdf3SpecConfig;
 import mb.sdf3_ext_dynamix.task.Sdf3ExtDynamixGenerateDynamix;
+import mb.spoofax.lwb.compiler.sdf3.SpoofaxSdf3Config;
 import mb.spoofax.lwb.compiler.sdf3.SpoofaxSdf3ConfigureException;
 import mb.spoofax.lwb.compiler.sdf3.SpoofaxSdf3GenerationUtil;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -143,7 +143,7 @@ public class SpoofaxDynamixConfigure implements TaskDef<ResourcePath, Result<Opt
                 }
 
                 @Override
-                public void generateFromConfig(ExecContext context, Sdf3SpecConfig sdf3Config) {
+                public void generateFromMainBuildParseTable(ExecContext context, SpoofaxSdf3Config.BuildParseTable buildParseTable) {
                     // Add generated sources directory as an include location for Dynamix imports.
                     includeDirectories.add(generatedSourcesDirectory);
                     // Add this as an origin, as this task provides the Dynamix files
