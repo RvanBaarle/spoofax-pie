@@ -128,6 +128,17 @@ rules
   ; <create-block(|Label(l1))> b1
   ; <create-block(|Label(l2))> b2
 
+  select-exp : TExpConditionalPrimOp("is-null", [a], b1, b2) ->
+    ( [Assign(tmp, ICmp(Equal(), <get-target-type> a, <select-value> a, Literal(Null())))]
+    , BrCond(TypedAtom(Bool(), VarAtom(tmp)), VarAtom(Variable(l1)), VarAtom(Variable(l2)))
+    )
+  with
+    tmp := Variable(<newname> "result")
+  ; l1 := <newname> "If"
+  ; l2 := <newname> "Else"
+  ; <create-block(|Label(l1))> b1
+  ; <create-block(|Label(l2))> b2
+
   select-exp : TExpApp(x, args) ->
     ( [ Expression(Call(MustTail(), TailCConv(), Void(), <select-value> x, <select-call-args> args, [GCLeafFunction()], NoOperandBundles()))]
     , RetVoid()
@@ -485,6 +496,7 @@ rules
   select-value : TValueGlobal(x, _) -> ConstAtom(Constant(x))
   select-value : TValueInt(x) -> Literal(Int(x))
   select-value : TValueString(x) -> Literal(String(x))
+  select-value : TValueNull() -> Literal(Null())
   select-value : TValueCast(x, _) -> <select-value> x
 
   type-is-gc-pointer = not(?INT()) ; not(?FUNCTION(_))

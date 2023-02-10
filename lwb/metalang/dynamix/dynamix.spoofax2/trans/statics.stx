@@ -354,12 +354,15 @@ rules
 // Meta-primitives
 // TODO: think of a better name
 rules
-  typeOfExp_(s, MExprMetaPrimitive("create-scope", args)) = MPLUGGABLE1(MTTYPE(TVALUE())) :-
-    typesOfExps(s, args) == [MSTYPE(_), MSTYPE(SSTRING())].
-  typeOfExp_(s, MExprMetaPrimitive("read-var", args)) = MPLUGGABLE1(MTTYPE(TVALUE())) :-
-    typesOfExps(s, args) == [MTTYPE(TVALUE()), MSTYPE(_)].
-  typeOfExp_(s, MExprMetaPrimitive("write-var", args)) = MPLUGGABLE0() :-
-    typesOfExps(s, args) == [MTTYPE(TVALUE()), MSTYPE(_), MTTYPE(TVALUE())].
+  typeOfExp_(s, MExprMetaPrimitive("create-scope", args)) = MPLUGGABLE1(MTTYPE(TVALUE())) :- {T}
+    typesOfExps(s, args) == [T, MLIST(MSTYPE(SSTRING()))],
+    isMetaOrSourceType(T).
+  typeOfExp_(s, MExprMetaPrimitive("read-var", args)) = MPLUGGABLE1(MTTYPE(TVALUE())) :- {T}
+    typesOfExps(s, args) == [T],
+    isMetaOrSourceType(T).
+  typeOfExp_(s, MExprMetaPrimitive("write-var", args)) = MPLUGGABLE0() :- {T}
+    typesOfExps(s, args) == [T, MTTYPE(TVALUE())],
+    isMetaOrSourceType(T).
 
 // quoted expressions
 rules

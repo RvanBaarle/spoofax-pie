@@ -201,4 +201,4 @@ template options
   MID = keyword {reject}
 
 context-free priorities
-  MExpr.MExprContinueAt > MExpr.MExprTLet
+  MExpr.MExprContinueAt > {MExpr.MExprTLet MExpr.MExprConditionalPrimitive MExpr.MExprTFun}

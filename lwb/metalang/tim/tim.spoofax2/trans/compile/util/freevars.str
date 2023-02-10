@@ -10,6 +10,7 @@ rules
 
   find-free-vars(|usedVars) : TValueInt(_) -> []
   find-free-vars(|usedVars) : TValueString(_) -> []
+  find-free-vars(|usedVars) : TValueNull() -> []
   find-free-vars(|usedVars) : TValueGlobal(_, _) -> []
   find-free-vars(|usedVars) : TValueVar(x, _) -> []
     where <elem> (x, usedVars)

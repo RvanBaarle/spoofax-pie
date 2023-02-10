@@ -29,13 +29,14 @@ rules
   get-source-type : TValueInt(_) -> INT()
   get-source-type : TValueString(_) -> STRING()
   get-source-type : TValueCast(_, t) -> t
-  
+  get-source-type : TValueNull() -> ANY()
+
   get-target-type : INT() -> Int64()
   get-target-type : FUNCTION(_) -> Pointer()
   get-target-type : v -> t
   where t := <get-source-type ; get-target-type> v
   get-target-type : _ -> PointerAddrSpace("1")
-  
+
   get-target-elem-type : CLOSURE(types) -> Struct(<map(get-target-type)> types)
   get-target-elem-type : ANONCLOSURE() -> Array("1", Pointer())
   get-target-elem-type : STRUCT(super, members) -> Struct(<conc> (super', members'))
@@ -49,14 +50,14 @@ rules
   where type := <getfirst(?(field, <id>))> members
   get-member-type : (STRUCT(supers, members), field) -> type
   where type := <getfirst(\super -> <get-member-type> (super, field)\)> supers
-  
+
   get-member-indices : (STRUCT(supers, members), field) -> [idx']
   where
     idx := <get-index0(?(field, _))> members
   ; idx' := <addi> (idx, <length> supers)  // If there's a superstruct, fields begin after it
   get-member-indices : (STRUCT([super], members), field) -> [0|idx]
   where idx := <get-member-indices> (super, field)
-  
+
   flatten-struct : STRUCT([], members) -> members
   flatten-struct : STRUCT(supers, members) -> <conc> (supermembers, members)
   with supermembers := <map(flatten-struct); concat> supers

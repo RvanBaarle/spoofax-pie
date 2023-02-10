@@ -17,6 +17,9 @@ rules
   typeOfTValue(s, t@TValueVar(v)) = T :- resolveVar(s, v) == T, @t.type := T.
   typeOfTValue(_, t@TValueSymbol(x)) = SYMBOL(x) :-
     @t.type := SYMBOL(x).
+  typeOfTValue(_, t@TValueNull()) = T :-
+    T != INT(),
+    T != ANY().
 
 rules
   texpOk : scope * TExp
@@ -140,6 +143,7 @@ rules
   conditionalPrimOpOk("int-geq", [INT(), INT()]).
   conditionalPrimOpOk("int-gt", [INT(), INT()]).
   conditionalPrimOpOk("int-lt", [INT(), INT()]).
+  conditionalPrimOpOk("is-null", [_]).
 
   // TODO: HACK, remove
   conditionalPrimOpOk("term-eq", [_, _]).
