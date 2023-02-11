@@ -35,6 +35,7 @@ rules
   ; inline-lets
   ; box-values
   ; convert-closures
+  ; pack-args
   ; explicate-globals
   ; select-instructions
   ; conclude
@@ -48,6 +49,7 @@ rules
   ; desugar-record-news
   ; box-values
   ; convert-closures
+  ; pack-args
   ; inline-lets
   ; explicate-globals
   ; fix-invalid-ast

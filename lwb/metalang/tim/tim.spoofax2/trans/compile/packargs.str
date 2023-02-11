@@ -1,0 +1,53 @@
+module packargs
+
+imports
+
+  signatures/tim-sig
+  signatures/tim/-
+  compile/util/type
+  compile/util/ast
+
+rules
+
+// The combination of statepoint-gc and stack allocated tail call arguments breaks
+// therefore we put these in a closure
+
+  pack-args =
+    bottomup(try(pack-args-funtypes <+ pack-args-callsite <+ pack-args-fun))
+
+  pack-args-funtypes : FUNCTION([a,b,c,d,e,f|rest]) ->
+      FUNCTION([a,b,c,d,e,CLOSURE([f|rest])])
+    where <not(?[])> rest
+
+  pack-args-callsite : TExpApp(fun, [a,b,c,d,e,f|rest]) ->
+      TExpPrimOp("closure-new", t, closure-args, temp,
+        TExpApp(fun, [a,b,c,d,e,TValueVar(temp, t)])
+      )
+    where <not(?[])> rest
+    with
+      temp := <newname> "closure"
+    ; closure-args := [f|rest]
+    ; FUNCTION([_, _, _, _, _, t]) := <get-source-type> fun
+
+  unpack-args(|i, closure, tail) : [(x, type)|t] ->
+      TExpPrimOp("closure-read", type, [closure, TValueInt(<int-to-string> i)], x,
+        <unpack-args(|<addi>(i, 1), closure, tail)> t
+      )
+  unpack-args(|i, closure, tail) : [] -> tail
+
+  pack-args-fun : TFun(fun, t, [a,b,c,d,e,f|rest], body) ->
+      TFun(fun, t, [a,b,c,d,e,temp], body')
+    where <not(?[])> rest
+    with
+      FUNCTION([_, _, _, _, _, ct@CLOSURE(types)]) := t
+    ; temp := <newname> "closure"
+    ; body' := <zip ; unpack-args(|0, TValueVar(temp, ct), body)> ([f|rest], types)
+
+  pack-args-fun : TFunOffset(fun, offset, t, [a,b,c,d,e,f|rest], body) ->
+      TFunOffset(fun, offset, t, [a,b,c,d,e,temp], body')
+    where <not(?[])> rest
+    with
+      FUNCTION([_, _, _, _, _, ct@CLOSURE(types)]) := t
+    ; temp := <newname> "closure"
+    ; body' := <zip ; unpack-args(|0, TValueVar(temp, ct), body)> ([f|rest], types)
+    
