@@ -214,6 +214,7 @@ rules
     typeOfExp(s, v) == T,
     try { typeCoercibleTo(MSTYPE(SSTRING()), T) } | error $[Can only coerce strings to target symbols.].
   typeOfExp_(s, MExprFreshNamedTargetVar(_)) = MTTYPE(TVALUE()).
+  typeOfExp_(s, MExprTValueNull()) = MTTYPE(TVALUE()).
   typeOfExp_(s, MExprList([])) = MLIST(MAUTO(_)).
   typeOfExp_(s, MExprList(es)) = MLIST(ET) :-
     lub(typesOfExps(s, es)) == ET | error $[List literal does not have a common type.].
@@ -363,6 +364,12 @@ rules
   typeOfExp_(s, MExprMetaPrimitive("write-var", args)) = MPLUGGABLE0() :- {T}
     typesOfExps(s, args) == [T, MTTYPE(TVALUE())],
     isMetaOrSourceType(T).
+  typeOfExp_(s, MExprMetaPrimitive("use-scope", args)) = MPLUGGABLE0() :- {T}
+    typesOfExps(s, args) == [T, MTTYPE(TVALUE())],
+    isMetaOrSourceType(T).
+  typeOfExp_(s, MExprMetaPrimitive("scope-type", args)) = MTTYPE(TTYPE()) :- {T}
+    typesOfExps(s, args) == [T],
+    isMetaOrSourceType(T).
 
 // quoted expressions
 rules
@@ -382,6 +389,9 @@ rules
     resolveConstructor(s, name) == SCONS(AT, ST),
     quoteTypesCompatible(s, args, AT) | error $[Mismatched number of arguments.].
   typeOfQuote_(s, STermTuple(es)) = MTUPLE(typesOfQuotes(s, es)).
+  typeOfQuote_(s, STermVar(x)) = T :-
+    isMetaOrSourceType(T),
+    resolveVar(s, x) == T.
 
   quoteTypeCompatible : scope * STerm * MTYPE
   quoteTypesCompatible maps quoteTypeCompatible(*, list(*), list(*))

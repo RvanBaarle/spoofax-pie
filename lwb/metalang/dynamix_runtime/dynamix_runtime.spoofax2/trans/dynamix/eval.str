@@ -82,7 +82,7 @@ rules
       <dx--declare-mrules> stripped;
       runtimeTerm := <dx--quoted-to-runtime> term;
       ret := <dx--call-function> (ruleName, [runtimeTerm]);
-      frame-types := MRuntimePluggable([], TExpTypes(<bagof-MFrameTypes <+ ![]> (), THole()));
+      frame-types := MRuntimePluggable([], TExpTypes(<bagof-MFrameTypes ; make-set <+ ![]> (), THole()));
       ret' := <dx--compose-cps-values ; dx--finalize> (frame-types, ret)
     |}
 
@@ -134,7 +134,9 @@ rules
   // dx--eval-expr(|MScope) :: MExpr -> MRuntimeValue
 
   // source language operations
-  dx--eval-expr(|scope): MExprQuote(term) -> MRuntimeQuote(term)
+  dx--eval-expr(|scope): MExprQuote(term) -> MRuntimeQuote(term')
+  with
+    term' := <topdown(try(\STermVar(x) -> <dx--scope-get(|x) ; dx--assert-quoted(|"Variable used inside a quoted term must be a quoted term")> scope\))> term
 
   // meta language operations
   dx--eval-expr(|scope): MExprVar(x) -> <dx--scope-get(|x)> scope
@@ -201,6 +203,7 @@ rules
     with r' := <dx--eval-expr(|scope); dx--assert-source-string(|"right-hand of string concatenation must be a string")> r
     with out := $["[<unquote(?'"')> l'][<unquote(?'"')> r']"]
   dx--eval-expr(|scope): MExprFreshNamedTargetVar(p) -> MRuntimeValue(TValueVar(<newname> p))
+  dx--eval-expr(|scope): MExprTValueNull() -> MRuntimeValue(TValueNull())
 
   dx--eval-expr(|scope): MExprList(args) -> MRuntimeMetaList(args')
     with args' := <map(dx--eval-expr(|scope))> args
@@ -390,11 +393,11 @@ rules
       term := <dx--eval-expr(|scope) ; dx--assert-quoted(|"Argument must be a source term")> scope-arg
     ; rels := <dx--eval-expr(|scope) ; dx--assert-metalist ; map(dx--assert-source-string(|"relation must be a string") ; un-double-quote)> relations
     ; a := <stx-get-ast-analysis <+ dx--fail-msg(|"Cannot get constraint-analyzer property on source term without analysis information.")> term
-    ; frame-scope := <stx-get-ast-property(|a, "scope") <+ dx--fail-msg(|"Term passed to create-scope does not have a .scope property set") ; ?Scope(_, _) <+ dx--fail-msg(|"Non-scope value assigned to .scope property")> term
+    ; frame-scope := <stx-get-ast-property(|a, "scope") <+ dx--fail-msg(|"Term passed to create-scope does not have a .scope property set") ; (?Scope(_, _) <+ dx--fail-msg(|"Non-scope value assigned to .scope property"))> term
     ; <debug(!"Scope: ")> frame-scope
     ; rel-scopes := <dx-resolve-path(|a) ; debug(!"Edges: ")> frame-scope
     ; parent-frames := <map(dx--scope-to-structmember)> rel-scopes
-    ; let get-vars = \rel -> <stx-get-scopegraph-data(|a, rel) ; map(\x -> <dx--call-function ; dx--assert-target-struct-member(|"rule compileFrameEntry must return a structmember")> ("main!compileFrameEntry", [<dx--quoted-to-runtime> x])\)> frame-scope\ in
+    ; let get-vars = \rel -> <stx-get-scopegraph-data(|a, rel) ; map(\x -> <debug(!"Invoking compileFrameEntry") ; dx--call-function ; dx--assert-target-struct-member(|"rule compileFrameEntry must return a structmember")> ("main!compileFrameEntry", [<dx--quoted-to-runtime> x])\)> frame-scope\ in
         frame-variables := <map(get-vars) ; flatten-list> rels
       end
     ; struct-members := <conc> (parent-frames, frame-variables)
@@ -402,7 +405,6 @@ rules
     ; frame-name := <dx--scope-to-framename> frame-scope
     ; obj-name := <newname> "frame"
     ; rules(MFrame : frame-name -> TValueVar(obj-name))
-    ; <dx--scope-set(|frame-name, MRuntimeValue(TValueVar(obj-name)))> scope
     ; rules(MFrameTypes :+ _ -> TTypeDef(type-name, TStructT(struct-members)))
     ; result := MRuntimePluggable(
         [MRuntimeValue(TValueVar(obj-name))],
@@ -432,7 +434,7 @@ rules
     with
       var' := <dx--eval-expr(|scope) ; dx--assert-quoted(|"Term must be a source term")> var
     ; a := <stx-get-ast-analysis <+ dx--fail-msg(|"Cannot get constraint-analyzer property on source term without analysis information.")> var'
-    ; path := <stx-get-ast-property(|a, "path") <+ debug(!"Term passed to read-var does not have a .path property set") ; ?[_|_] < dx--fail-msg(|"Multiple path values assigned to term") + id> var'
+    ; path := <stx-get-ast-property(|a, "path") <+ dx--fail-msg(|"Term passed to read-var does not have a .path property set") ; (?[_|_] < dx--fail-msg(|"Multiple path values assigned to term") + id)> var'
     ; STermString(ref') := var'
     ; <debug(!"Origin: ")> ref'
     ; result-var := <newname> "result"
@@ -448,7 +450,7 @@ rules
       var' := <dx--eval-expr(|scope) ; dx--assert-quoted(|"Term must be a source term")> var
     ; value' := <dx--eval-expr(|scope) ; dx--assert-runtime-value(|"value must be a target value")> value
     ; a := <stx-get-ast-analysis <+ dx--fail-msg(|"Cannot get constraint-analyzer property on source term without analysis information.")> var'
-    ; path := <stx-get-ast-property(|a, "path") <+ debug(!"Term passed to write-var does not have a .path property set") ; ?[_|_] < dx--fail-msg(|"Multiple path values assigned to term") + id> var'
+    ; path := <stx-get-ast-property(|a, "path") <+ dx--fail-msg(|"Term passed to write-var does not have a .path property set") ; (?[_|_] < dx--fail-msg(|"Multiple path values assigned to term") + id)> var'
     ; STermString(ref') := var'
     ; <debug(!"Origin: ")> ref'
     ; result-var := <newname> "result"
@@ -458,8 +460,21 @@ rules
         TExpPrimOp("struct-write", [frame-var, TValueSymbol(<un-double-quote> ref'), value'], result-var, THole())
       )
 
-  // dx--eval-expr(|scope): MExprMetaPrimitive("use-scope", [var]) ->
-  //     <dx--compose-cps-values> (frame-code, result)
+  dx--eval-expr(|scope): MExprMetaPrimitive("use-scope", [var, value]) ->
+      MRuntimePluggable([], THole())
+    with
+      term := <dx--eval-expr(|scope) ; dx--assert-quoted(|"Argument must be a source term")> var
+    ; a := <stx-get-ast-analysis <+ dx--fail-msg(|"Cannot get constraint-analyzer property on source term without analysis information.")> term
+    ; frame-scope := <stx-get-ast-property(|a, "scope") <+ dx--fail-msg(|"Term passed to use-scope does not have a .scope property set") ; (?Scope(_, _) <+ dx--fail-msg(|"Non-scope value assigned to .scope property"))> term
+    ; frame-obj := <dx--eval-expr(|scope) ; dx--assert-runtime-value(|"Frame argument should be a runtime value")> value
+    ; <debug(!"Scope: ")> frame-scope
+    ; frame-name := <dx--scope-to-framename> frame-scope
+    ; rules(MFrame : frame-name -> frame-obj)
+
+  dx--eval-expr(|scope): MExprMetaPrimitive("scope-type", [var]) ->
+      MRuntimeTType(TNamedT(<dx--scope-to-typename> term))
+    with
+      term := <dx--eval-expr(|scope) ; (dx--runtime-to-quoted <+ dx--fail-msg(|"Argument must be a source term")) ; (?Scope(_, _) <+ dx--fail-msg(|"Non-scope value passed to scope-type"))> var
 
   // dx--call-function :: (string, List(TRuntimeValue)) -> TRuntimeValue
   dx--call-function: (name, args) -> ret
@@ -481,6 +496,14 @@ rules
   dx--quoted-term-to-runtime: x{a*} -> STermList(x){a*} where <is-list> x
   dx--quoted-term-to-runtime: ""#(a){an*} -> STermTuple(a){an*}
   dx--quoted-term-to-runtime: c#(a){an*} -> STermApp(c, a){an*}
+
+  // dx--runtime-to-quoted :: TRuntimeValue -> ?
+  dx--runtime-to-quoted = ?MRuntimeQuote(<id>) ; topdown(preserve-annos(dx--runtime-to-quoted-term))
+  dx--runtime-to-quoted-term: STermInt(x) -> <string-to-int> x
+  dx--runtime-to-quoted-term: STermString(x) -> <un-double-quote> x
+  dx--runtime-to-quoted-term: STermList(x) -> x
+  dx--runtime-to-quoted-term: STermTuple(a) -> ""#(a)
+  dx--runtime-to-quoted-term: STermApp(c, a) -> c#(a)
 
 // Evaluation helpers
 rules

@@ -123,6 +123,7 @@ context-free syntax
   MExpr.MExprSourceSymbolToTargetSymbol = <symbol(<MExpr>)>
   MExpr.MExprConcatenateStr = <<MExpr> + <MExpr>>
   MExpr.MExprFreshNamedTargetVar = <fresh-var(<ID>)>
+  MExpr.MExprTValueNull = <null>
   MExpr.MExprNameOfFun = <nameof(<MExpr>)>
   MExpr.MExprContinueAt = <<MExpr>@(<MExpr>)>
   MExpr.MExprScopedGlobals = <

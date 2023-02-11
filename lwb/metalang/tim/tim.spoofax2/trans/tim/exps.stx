@@ -54,9 +54,9 @@ rules
   texpOk(s, TExpPrimOp(op@"struct-new", args, x, rest)) :-
     false | error $[struct-new must be explicitly typed]@op.
   texpOk(s, TExpPrimOp(op@"array-new", args, x, rest)) :-
-    texpOk(s, TExpTypedPrimOp(op, TArrayT(TAnyT()), args, x, rest)).
+    texpOk(s, TExpTypedPrimOp(op, TArrayT(TInferredT()), args, x, rest)).
   texpOk(s, TExpPrimOp(op@"record-new", args, x, rest)) :-
-    texpOk(s, TExpTypedPrimOp(op, TRecordT(TAnyT()), args, x, rest)).
+    texpOk(s, TExpTypedPrimOp(op, TRecordT(TInferredT()), args, x, rest)).
   texpOk(s, TExpPrimOp(op@"ref-new", [arg], x, rest)) :- {T argTy s'}
     new s', s' -P-> s,
     typeOfTValue(s, arg) == argTy,
