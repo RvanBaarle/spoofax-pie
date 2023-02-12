@@ -33,6 +33,7 @@ rules
   ; merge-equals
   ; desugar-record-news
   ; inline-lets
+  ; inline-structs
   ; box-values
   ; convert-closures
   ; pack-args
@@ -47,10 +48,11 @@ rules
   ; uniquify
   ; merge-equals
   ; desugar-record-news
+  ; inline-lets
+  ; inline-structs
   ; box-values
   ; convert-closures
   ; pack-args
-  ; inline-lets
   ; explicate-globals
   ; fix-invalid-ast
   ; pp-debug

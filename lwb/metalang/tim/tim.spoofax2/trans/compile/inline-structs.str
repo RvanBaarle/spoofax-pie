@@ -1,0 +1,99 @@
+module compile/inline-structs
+
+imports
+
+  signatures/tim-sig
+  signatures/tim/-
+  compile/util/ast
+  compile/util/type
+
+rules
+
+  inline-structs = bottomup(try(destroy-non-escaping-struct ; bottomup(try(destroy-non-escaping-ref)))) ; bottomup(try(destroy-non-escaping-ref))
+
+  destroy-non-escaping-struct : TExpPrimOp("struct-new", STRUCT([], members), [], v, tail) -> tail'
+  where <not(struct-is-escaping(|v))> tail
+  with
+    tail' := <structmembers-to-refs(|v, tail)> members
+
+  struct-is-escaping(|name) : body -> body
+  where
+    switch !body
+      case ?TExpPrimOp("struct-read", _, [TValueVar(name, _), a2], _, tail) : <one(struct-is-escaping(|name))> (a2, tail)
+      case ?TExpPrimOp("struct-write", _, [TValueVar(name, _), a2, a3], _, tail) : <one(struct-is-escaping(|name))> (a2, a3, tail)
+      case ?TValueVar(name, _) : debug(!$[Escapee struct [name]! ])
+      otherwise : <one(struct-is-escaping(|name)) ; debug(!$[[name] escaped: ])> body
+    end
+
+  structmembers-to-refs(|struct, tail) : [(x, t)|rest] -> TExpPrimOp("ref-new", REF(t), [default], x', <structmembers-to-refs(|struct, tail')> rest)
+  with
+    x' := <newname> x
+  ; if <equal> (t, INT()) then !TValueInt(0) else !TValueNull() end => default
+  ; tail' := <topdown(try(structmember-to-ref(|struct, x, x')))> tail
+  structmembers-to-refs(|struct, tail) : [] -> tail
+
+  structmember-to-ref(|struct, symb, x) : TExpPrimOp("struct-write", t, [TValueVar(struct, _), TValueSymbol(symb), value], target, tail) ->
+    TExpPrimOp("ref-store", t, [TValueVar(x, REF(t)), value], target, tail)
+
+  structmember-to-ref(|struct, symb, x) : TExpPrimOp("struct-read", t, [TValueVar(struct, _), TValueSymbol(symb)], target, tail) ->
+    TExpPrimOp("ref-fetch", t, [TValueVar(x, REF(t))], target, tail)
+
+  destroy-non-escaping-ref : TExpPrimOp("ref-new", REF(t), [init-value], v, tail) -> body
+  where
+    <debug(!"Checking ref: ")> v
+  ; <not(ref-is-escaping(|v))> tail
+  with
+    {| HasDynamicWrites, HasGlobalDynamicWrites :
+      <debug(!"Candidate: ")> v
+    ; tail' := <inline-ref-writes(!init-value|v)> tail
+    ; if <HasGlobalDynamicWrites> () then
+        <debug> "has dynamic writes"
+      ; body := TExpPrimOp("ref-new", REF(t), [init-value], v, tail')
+      else
+        <debug> "no dynamic writes"
+      ; body := tail'
+      end
+    |}
+
+  ref-is-escaping(|name) : body -> ()
+  where
+    switch !body
+      case ?TExpPrimOp("ref-fetch", _, [TValueVar(name, _)], _, tail) : <ref-is-escaping(|name)> tail
+      case ?TExpPrimOp("ref-store", _, [TValueVar(name, _), a2], _, tail) : <one(ref-is-escaping(|name))> (a2, tail)
+      case ?TValueVar(name, _) : debug(!"Escapee ref! ")
+      otherwise : <one(ref-is-escaping(|name))> body
+    end
+
+  inline-ref-writes(value|name) : TExpPrimOp("ref-store", t, [TValueVar(name, rt), v], res, tail) -> body
+  with
+    {| HasDynamicWrites :
+      tail' := <inline-ref-writes(!v|name)> tail
+    ; if <HasDynamicWrites> () then
+        body := TExpPrimOp("ref-store", t, [TValueVar(name, rt), v], res, tail')
+      else
+        body := tail'
+      end
+    |}
+  inline-ref-writes(value|name) : TExpPrimOp("ref-fetch", t, [TValueVar(name, rt)], result, tail) -> body
+  with
+    tail' := <inline-ref-writes(value|name)> tail
+  ; if v := <value> then
+      body := <topdown(try(?TValueVar(result, _) ; !v))> tail'
+    else
+      rules(HasDynamicWrites : _ -> ())
+    ; rules(HasGlobalDynamicWrites : _ -> ())
+    ; body := TExpPrimOp("ref-fetch", t, [TValueVar(name, rt)], result, tail')
+    end
+  inline-ref-writes(value|name) : TExpPrimOp(op, t, args, result, tail) -> TExpPrimOp(op, t, args, result, <inline-ref-writes(value|name)> tail)
+  inline-ref-writes(value|name) : TExpFix(funs, tail) -> TExpFix(funs', tail')
+  with
+    if <oncetd(?TExpPrimOp("ref-store", _, [TValueVar(name, _), _], _, _))> (funs, tail) then
+      funs' := <map(\TFun(x, t, args, body) -> TFun(x, t, args, <inline-ref-writes(fail|name)> body)\)> funs
+    else
+      funs' := <map(\TFun(x, t, args, body) -> TFun(x, t, args, <inline-ref-writes(value|name)> body)\)> funs
+    end
+  ; tail' := <inline-ref-writes(value|name)> tail
+  inline-ref-writes(value|name) : TExpConditionalPrimOp(cond, args, e1, e2) ->
+    TExpConditionalPrimOp(cond, args, <inline-ref-writes(value|name)> e1, <inline-ref-writes(value|name)> e2)
+  inline-ref-writes(value|name) : e@TExpApp(_, _) -> e
+  inline-ref-writes(value|name) : e@TExpTerminatingPrimOp(_, _) -> e
