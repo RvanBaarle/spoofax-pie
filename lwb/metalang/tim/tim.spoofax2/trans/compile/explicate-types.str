@@ -10,7 +10,7 @@ imports
 
 rules
 
-  reveal-structs(|analysis) : STRUCT(supers, memberScope) -> STRUCT(<map(reveal-structs(|analysis))> supers, members)
+  reveal-structs(|analysis) : STRUCT(supers, memberScope) -> STRUCT(<map(reveal-structs(|analysis))> supers, members, memberScope)
   with
     [members] := <stx-get-scopegraph-data(|analysis, "tim/names!withMembers"); debug> memberScope
   reveal-structs(|analysis) = id

@@ -20,7 +20,9 @@ signature
     CLOSURE : list(TYPE) -> TYPE
     ANONCLOSURE : TYPE
     ANY : TYPE
-    STRUCT : list(TYPE) * list((TID, TYPE)) -> TYPE
+    STRUCT : list(TYPE) * SCOPE -> TYPE
+    STRUCT : list(TYPE) * list((TID, TYPE)) * SCOPE -> TYPE
+    Scope : string * string -> SCOPE
 
 rules
 
@@ -39,25 +41,25 @@ rules
 
   get-target-elem-type : CLOSURE(types) -> Struct(<map(get-target-type)> types)
   get-target-elem-type : ANONCLOSURE() -> Array("1", Pointer())
-  get-target-elem-type : STRUCT(super, members) -> Struct(<conc> (super', members'))
+  get-target-elem-type : STRUCT(super, members, _) -> Struct(<conc> (super', members'))
   with
     super' := <map(get-target-elem-type)> super
   ; members' := <map(?(_, <id>) ; get-target-type)> members
   get-target-elem-type : v -> t
   where t := <get-source-type ; get-target-elem-type> v
 
-  get-member-type : (STRUCT(_, members), field) -> type
+  get-member-type : (STRUCT(_, members, _), field) -> type
   where type := <getfirst(?(field, <id>))> members
-  get-member-type : (STRUCT(supers, members), field) -> type
+  get-member-type : (STRUCT(supers, members, _), field) -> type
   where type := <getfirst(\super -> <get-member-type> (super, field)\)> supers
 
-  get-member-indices : (STRUCT(supers, members), field) -> [idx']
+  get-member-indices : (STRUCT(supers, members, _), field) -> [idx']
   where
     idx := <get-index0(?(field, _))> members
   ; idx' := <addi> (idx, <length> supers)  // If there's a superstruct, fields begin after it
-  get-member-indices : (STRUCT([super], members), field) -> [0|idx]
+  get-member-indices : (STRUCT([super], members, _), field) -> [0|idx]
   where idx := <get-member-indices> (super, field)
 
-  flatten-struct : STRUCT([], members) -> members
-  flatten-struct : STRUCT(supers, members) -> <conc> (supermembers, members)
+  flatten-struct : STRUCT([], members, _) -> members
+  flatten-struct : STRUCT(supers, members, _) -> <conc> (supermembers, members)
   with supermembers := <map(flatten-struct); concat> supers

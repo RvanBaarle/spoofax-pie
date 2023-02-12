@@ -9,7 +9,12 @@ imports
 
 rules
 
-  fix-invalid-ast = bottomup(try(fix-invalid-elem))
+  fix-invalid-ast : TProgram(ast) -> TProgram(TExpTypes(types, ast'))
+  with
+  {| StructTypeDefs :
+    ast' := <bottomup(try(fix-invalid-elem))> ast
+  ; types := <bagof-StructTypeDefs < make-set + ![]> ()
+  |}
 
   fix-invalid-elem : TValueGlobal(x, t) -> TValueVar($[glb_[x]])
   
@@ -41,7 +46,16 @@ rules
   type-to-ast : RECORD(t) -> TRecordT(<type-to-ast> t)
   type-to-ast : ANONCLOSURE() -> TAnonClosureT()
   type-to-ast : CLOSURE(ts) -> TClosureT(<map(type-to-ast)> ts)
-  type-to-ast : STRUCT([], mems) -> TStructT(<map(\(name, t) -> TStructMember(name, <type-to-ast> t)\)> mems)
-  type-to-ast : STRUCT([super], mems) -> TStructSuperT(<type-to-ast> super, <map(\(name, t) -> TStructMember(name, <type-to-ast> t)\)> mems)
+  type-to-ast : STRUCT(supers, members, Scope(_, name)) -> TNamedT(name)
+  with
+    supers' := <map(type-to-ast)> supers
+  ; structmembers := <map(\(x, t) -> TStructMember(x, <type-to-ast> t)\)> members
+  ; if <?[]> supers' then
+      rules(StructTypeDefs :+ _ -> TTypeDef(name, TStructT(structmembers)))
+    else
+      [super] := supers'
+    ; rules(StructTypeDefs :+ _ -> TTypeDef(name, TStructSuperT(super, structmembers)))
+    end
+  type-to-ast : STRUCT(supers, Scope(_, name)) -> TNamedT(name)
   type-to-ast : ANY() -> TAnyT()
-  type-to-ast = !TInferredT()
+  type-to-ast = debug(!"No matching type for: ") ; !TInferredT()

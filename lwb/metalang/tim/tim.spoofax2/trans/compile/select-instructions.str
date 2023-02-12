@@ -338,7 +338,7 @@ rules
   select-primop(|result) : ("closure-offset", _, [arr, TValueInt(index)]) ->
     [Assign(result, GetElementPtr(<get-target-elem-type> arr, [<select-typed-value> arr, TypedAtom(Int32(), Literal(Int("0"))), TypedAtom(Int32(), Literal(Int(index)))]))]
 
-  select-primop(|result) : ("struct-new", type@STRUCT(super, members), []) ->
+  select-primop(|result) : ("struct-new", type@STRUCT(super, members, _), []) ->
     [ Assign(sizepvar, GetElementPtr(structType, [TypedAtom(Pointer(), Literal(Null())), TypedAtom(Int64(), Literal(Int("1")))]))
     , Assign(sizevar, PtrToInt(TypedAtom(Pointer(), VarAtom(sizepvar)), Int64()))
     , Assign(result, Call(

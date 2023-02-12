@@ -11,7 +11,7 @@ rules
 
   inline-structs = bottomup(try(destroy-non-escaping-struct ; bottomup(try(destroy-non-escaping-ref)))) ; bottomup(try(destroy-non-escaping-ref))
 
-  destroy-non-escaping-struct : TExpPrimOp("struct-new", STRUCT([], members), [], v, tail) -> tail'
+  destroy-non-escaping-struct : TExpPrimOp("struct-new", STRUCT([], members, _), [], v, tail) -> tail'
   where <not(struct-is-escaping(|v))> tail
   with
     tail' := <structmembers-to-refs(|v, tail)> members
