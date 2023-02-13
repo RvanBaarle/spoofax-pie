@@ -3,10 +3,10 @@
 #include <cstdint>
 #include <utility>
 #include <llvm/Object/StackMapParser.h>
+#include "debug.h"
 
 using StackMapParser = llvm::StackMapParser<llvm::support::native>;
 using StackRecord = StackMapParser::RecordAccessor;
-using llvm::Optional;
 
 static inline void *get_frame_pointer() {
     void *frame_pointer;
@@ -14,6 +14,9 @@ static inline void *get_frame_pointer() {
     asm ("movq %%rbp, %0" : "=r"(frame_pointer));
 #elif defined(__i386__)
     asm ("movl %%ebp, %0" : "=r"(frame_pointer));
+#warning x86 32-bit is not expected to work yet
+#elif defined(__aarch64__)
+    asm ("mov %0, x29" : "=r"(frame_pointer));
 #else
 #error Support for this architecture is not yet implemented
 #endif
@@ -139,7 +142,7 @@ private:
 
     void swap_spaces();
 
-    Optional<const StackRecord> find_record(uint64_t ret_addr);
+    std::optional<const StackRecord> find_record(uint64_t ret_addr);
 
     void scan_stack(void *fp);
 
@@ -169,13 +172,21 @@ public:
 
     template<typename... Ts>
     void *allocate_fp(size_t size, ObjectTag tag, void *fp, Ts &... roots) {
-        collect_fp(fp, roots...);
+        size_t total_size = size + sizeof(ObjectMetadata);  // Type tag and size
+        if (active_space.free_ptr + total_size > active_space.end) {
+            collect_fp(fp, roots...);
+        }
         return allocate_no_collect(size, tag);
     }
 
     template<typename... Ts>
     void *allocate_bitfield_fp(size_t size, uint64_t bitfield, void *fp, Ts &... roots) {
-        collect_fp(fp, roots...);
+        assert(size <= 56 * sizeof(uint64_t));
+        size_t total_size = size + sizeof(ObjectMetadata);  // Type tag and size
+        total_size = (total_size + 7) & ~7;  // Ensure we are 8 byte aligned
+        if (active_space.free_ptr + total_size > active_space.end) {
+            collect_fp(fp, roots...);
+        }
         void *result = allocate_bitfield_no_collect(size, bitfield);
         return result;
     }
@@ -183,6 +194,7 @@ public:
     template<typename... Ts>
     void collect_fp(void *fp, Ts &... roots) {
         swap_spaces();
+        DEBUG_LOG("  Locals:");
         scan_roots(roots...);
         if (fp != nullptr) {
             scan_stack(fp);

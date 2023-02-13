@@ -1,5 +1,5 @@
-#include <iostream>
 #include "gc.h"
+#include "debug.h"
 #include "GarbageCollector.h"
 
 [[maybe_unused]]
@@ -9,13 +9,13 @@ void gc_init() {
 
 [[maybe_unused]]
 void *gc_alloc(uint64_t size) {
-    std::cerr << "GC_ALLOC" << std::endl;
+    DEBUG_LOG("GC_ALLOC");
     return garbageCollector.allocate(size, NOT_FORWARDED_FLAG);
 }
 
 [[maybe_unused]]
 void *gc_alloc_bitfield(uint64_t size, uint64_t bitfield) {
-    std::cerr << "GC_ALLOC_BITFIELD" << std::endl;
+    DEBUG_LOG("GC_ALLOC_BITFIELD");
     return garbageCollector.allocate_bitfield(size, bitfield);
 }
 

@@ -1,6 +1,6 @@
 #include <map>
 #include <string>
-#include <iostream>
+#include <cstdarg>
 #include "gc.h"
 #include "record.h"
 #include "GarbageCollector.h"
@@ -9,7 +9,7 @@ using Record = std::map<std::string, int64_t>;
 
 [[maybe_unused]]
 void *record_new(uint64_t pair_count, ...) {
-    std::cerr << "RECORD_NEW" << std::endl;
+    DEBUG_LOG("RECORD_NEW");
     auto **record = static_cast<Record **>(garbageCollector.allocate(sizeof(Record *), RECORD));
     *record = new Record();
     garbageCollector.register_finalizer(record, record_delete);

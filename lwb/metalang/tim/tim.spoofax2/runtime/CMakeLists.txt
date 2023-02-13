@@ -9,7 +9,8 @@ set(CMAKE_CXX_LINK_EXECUTABLE ld)
 set(CMAKE_AR llvm-ar)
 set(CMAKE_RANLIB llvm-ranlib)
 
-add_library(tim_runtime STATIC src/record.cpp include/record.h src/gc.cpp include/gc.h src/array.cpp include/array.h src/string.cpp include/string.h src/GarbageCollector.cpp src/GarbageCollector.h)
+add_library(tim_runtime STATIC src/record.cpp include/record.h src/gc.cpp include/gc.h src/array.cpp include/array.h
+        src/string.cpp include/string.h src/GarbageCollector.cpp src/GarbageCollector.h src/debug.h)
 
 if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
     target_compile_options(tim_runtime PUBLIC -gdwarf-4)
