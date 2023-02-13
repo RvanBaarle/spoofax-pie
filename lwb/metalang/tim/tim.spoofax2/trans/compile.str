@@ -36,7 +36,6 @@ rules
   ; inline-structs
   ; box-values
   ; convert-closures
-  ; pack-args
   ; explicate-globals
   ; select-instructions
   ; conclude
@@ -52,7 +51,6 @@ rules
   ; inline-structs
   ; box-values
   ; convert-closures
-  ; pack-args
   ; explicate-globals
   ; fix-invalid-ast
   ; pp-debug
