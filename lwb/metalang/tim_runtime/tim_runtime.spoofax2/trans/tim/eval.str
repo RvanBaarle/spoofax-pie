@@ -24,7 +24,10 @@ signature
     TRuntimeArray : TBox -> TRuntimeValue // box of List(TRuntimeValue)
     TRuntimeClosure : List(TRuntimeValue) * int -> TRuntimeValue
     TRuntimeRecord : Hashtable -> TRuntimeValue
+    TRuntimeStruct : Hashtable -> TRuntimeValue
+    TRuntimeSymbol : string -> TRuntimeValue
     TRuntimeVoid : TRuntimeValue
+    TRuntimeNull : TRuntimeValue
 
 // Sort used to represent the next step to be taken in the evaluation
 // of some expression. Evaluation is done in a while loop by passing
@@ -54,7 +57,7 @@ rules
   // Evaluate the given term to completion, using the given print strategy
   // for any I/O actions taken by the program.
   // tim-eval-to-completion(TIOAction -> ?) :: TExp -> ()
-  tim-eval-to-completion(io) = tim-eval-to-completion(io|<tim-scope-new>)
+  tim-eval-to-completion(io) = tim-strip-types ; tim-eval-to-completion(io|<tim-scope-new>)
 
   // tim-eval-to-completion(TIOAction -> ?|TScope) :: TExp -> ()
   tim-eval-to-completion(io|s) = tim-eval-texp(io|s); while(?TContinuation(_, _), tim-eval-continuation(io))
@@ -140,8 +143,10 @@ rules
 
   // tim-eval-tvalue-(|TScope) :: TValue -> TRuntimeValue
   tim-eval-tvalue-(io|scope): TValueInt(v) -> TRuntimeInt(<string-to-int> v)
-  tim-eval-tvalue-(io|scope): TValueString(v) -> TRuntimeString(<strip-annos; unquote(?'"')> v)
+  tim-eval-tvalue-(io|scope): TValueString(v) -> TRuntimeString(<strip-annos; unquote(?'"'); tim-unescape-string> v)
   tim-eval-tvalue-(io|scope): TValueVar(v) -> <tim-scope-get(|v) <+ tim-fail-msg(|$[Undeclared variable [v]])> scope
+  tim-eval-tvalue-(io|scope): TValueSymbol(v) -> TRuntimeSymbol(<strip-annos> v)
+  tim-eval-tvalue-(io|scope): TValueNull() -> TRuntimeNull()
 
 rules // primops
   // tim-eval-primop-stmt(TIOAction -> ?) :: TPRIM * List(TRuntimeValue) -> TContinuation
@@ -149,7 +154,7 @@ rules // primops
   tim-eval-primop-stmt(io): a -> <tim-fail-msg(|"Unsupported statement primitive: ")> a
 
   // tim-eval-primop-exp(TIOAction -> ?) :: TPRIM * List(TRuntimeValue) -> TRuntimeValue
-  tim-eval-primop-exp(io): ("print", [v]) -> <tim-runtime-value-to-string; ![<id>, "\n"]; concat-strings; !TIOPrint(<id>); io> v
+  tim-eval-primop-exp(io): ("print", [v]) -> <tim-runtime-value-to-string; !TIOPrint(<id>); io> v
 
   tim-eval-primop-exp(io): ("int-neg", [TRuntimeInt(v)]) -> TRuntimeInt(<subti> (0, v))
   tim-eval-primop-exp(io): ("int-add", [TRuntimeInt(a), TRuntimeInt(b)]) -> TRuntimeInt(<addi> (a, b))
@@ -161,6 +166,7 @@ rules // primops
   tim-eval-primop-exp(io): ("str-add", [TRuntimeString(a), TRuntimeString(b)]) -> TRuntimeString($[[a][b]])
   tim-eval-primop-exp(io): ("str-length", [TRuntimeString(a)]) -> TRuntimeInt(<string-length> a)
   tim-eval-primop-exp(io): ("str-index", [TRuntimeString(a), TRuntimeInt(b)]) -> TRuntimeString(<explode-string; index(|<addi> (b, 1)); ![<id>]; implode-string> a)
+  tim-eval-primop-exp(io): ("str-cmp", [TRuntimeString(a), TRuntimeString(b)]) -> TRuntimeInt(<(explode-string, explode-string) ; strcmp> (a, b))
 
   tim-eval-primop-exp(io): ("ref-new", [v]) -> TRuntimeReference(<tim-box-new(|v)>)
   tim-eval-primop-exp(io): ("ref-fetch", [TRuntimeReference(box)]) -> <tim-box-get> box
@@ -190,6 +196,14 @@ rules // primops
     with
       <hashtable-put(|x, v)> h
 
+  tim-eval-primop-exp(io): ("struct-new", args) -> TRuntimeStruct(<tim-build-record(|<new-hashtable>)> args)
+  tim-eval-primop-exp(io): ("struct-read", [TRuntimeStruct(h), TRuntimeSymbol(x)]) -> ret
+    with
+      ret := <hashtable-get(|x) <+ tim-fail-msg(|$[No field [x] in structure])> h
+  tim-eval-primop-exp(io): ("struct-write", [TRuntimeStruct(h), TRuntimeSymbol(x), v]) -> v
+    with
+      <hashtable-put(|x, v)> h
+
   tim-eval-primop-exp(io): ("closure-new", vs) -> TRuntimeClosure(vs, 1)
   tim-eval-primop-exp(io): ("closure-read", [TRuntimeClosure(vs, offset), TRuntimeInt(idx)]) -> <index(|<addi> (idx, offset))> vs
   tim-eval-primop-exp(io): ("closure-offset", [TRuntimeClosure(vs, offset), TRuntimeInt(idx)]) -> TRuntimeClosure(vs, <addi> (idx, offset))
@@ -203,6 +217,7 @@ rules // primops
   tim-eval-primop-condition(io): ("int-geq", [TRuntimeInt(a), TRuntimeInt(b)]) -> <geq < !1 + !0> (a, b)
   tim-eval-primop-condition(io): ("int-gt", [TRuntimeInt(a), TRuntimeInt(b)]) -> <gt < !1 + !0> (a, b)
   tim-eval-primop-condition(io): ("int-lt", [TRuntimeInt(a), TRuntimeInt(b)]) -> <lt < !1 + !0> (a, b)
+  tim-eval-primop-condition(io): ("is-null", [v]) -> <?TRuntimeNull() < !1 + !0> v
 
   // checks underlying term representation is equal
   // TODO: remove
@@ -228,7 +243,12 @@ rules // primops
     with els := <tim-box-get; tim-join-to-string(tim-runtime-value-to-string|", ")> v
   tim-runtime-value-to-string: TRuntimeRecord(v) -> $[record with [<hashtable-getlist; length; int-to-string> v] fields: { [els] }]
     with els := <hashtable-getlist; tim-join-to-string({ k, v: ?(k, v); !$[[k]: [<tim-runtime-value-to-string> v]] }|", ")> v
+  tim-runtime-value-to-string: TRuntimeStruct(v) -> $[structure with [<hashtable-getlist; length; int-to-string> v] fields: { [els] }]
+    with els := <hashtable-getlist; tim-join-to-string({ k, v: ?(k, v); !$[[k]: [<tim-runtime-value-to-string> v]] }|", ")> v
+  tim-runtime-value-to-string: TRuntimeClosure(v, offset) -> $[closure of length [<tim-box-get; length; int-to-string> v] with offset [<int-to-string> offset]: { [els] }]
+    with els := <tim-box-get; tim-join-to-string(tim-runtime-value-to-string|", ")> v
   tim-runtime-value-to-string: TRuntimeVoid() -> $[void]
+  tim-runtime-value-to-string: TRuntimeNull() -> $[null]
 
 rules
   // Pretty print the input term and write out the given message, then exit.
@@ -249,3 +269,21 @@ rules
   // tim-conc(|string) :: Tuple(string, string) -> string
   tim-conc(|sep): (a, "") -> a
   tim-conc(|sep): (a, b) -> $[[b][sep][a]]
+
+  tim-strip-types = bottomup(try(tim-strip-type))
+  tim-strip-type : TTypedFun(x, _, args, body) -> TFun(x, args, body)
+  tim-strip-type : TExpTypedPrimOp(x, _, args, target, cont) -> TExpPrimOp(x, args, target, cont)
+  tim-strip-type : TExpTypes(_, body) -> body
+
+  tim-unescape-string = explode-string ; tim-unescape-chars ; implode-string
+
+  tim-unescape-chars : ['\', '"'|rest] -> ['"'|<tim-unescape-chars> rest]
+  tim-unescape-chars : ['\', 'n'|rest] -> ['\n'|<tim-unescape-chars> rest]
+  tim-unescape-chars : ['\', '\'|rest] -> ['\'|<tim-unescape-chars> rest]
+  tim-unescape-chars : ['\', 'x', a, b|rest] -> [c|<tim-unescape-chars> rest]
+  where
+    <is-hexnum> a
+  ; <is-hexnum> b
+  ; c := <hex-chars-to-int> [a, b]
+  tim-unescape-chars : [c|rest] -> [c|<tim-unescape-chars> rest]
+  tim-unescape-chars : [] -> []
