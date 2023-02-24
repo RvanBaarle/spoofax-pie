@@ -8,18 +8,12 @@
 using Record = std::map<std::string, int64_t>;
 
 [[maybe_unused]]
-void *record_new(uint64_t pair_count, ...) {
+void *record_new(uint64_t pair_count, bool has_pointers) {
     DEBUG_LOG("RECORD_NEW");
-    auto **record = static_cast<Record **>(garbageCollector.allocate(sizeof(Record *), RECORD));
+    auto **record = static_cast<Record **>(garbageCollector.allocate(sizeof(Record *),
+                                                                     has_pointers ? RECORD : INT_RECORD));
     *record = new Record();
     garbageCollector.register_finalizer(record, record_delete);
-    va_list args;
-    va_start(args, pair_count);
-    for (uint64_t i = 0; i < pair_count; i++) {
-        const char *key = va_arg(args, const char*);
-        int64_t value = va_arg(args, int64_t);
-        (**record)[key] = value;
-    }
     return record;
 }
 

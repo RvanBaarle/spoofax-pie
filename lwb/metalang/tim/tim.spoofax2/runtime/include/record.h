@@ -6,7 +6,7 @@ extern "C" {
 
 #include <stdint.h>
 
-void* record_new(uint64_t, ...);
+void* record_new(uint64_t, bool);
 void record_write(void *record, const char *str, int64_t value);
 int64_t record_read(void *record_ptr, const char *text);
 void record_write_ptr(void *record, const char *str, void* value);

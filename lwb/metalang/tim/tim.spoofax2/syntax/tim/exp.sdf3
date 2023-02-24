@@ -9,7 +9,7 @@ context-free syntax
   TValue.TValueInt = <<TINT>>
   TValue.TValueString = <<TSTRING>>
   TValue.TValueVar = <<TID>>
-  TValue.TValueSymbol = <!<TID>>
+  TValue.TValueSymbol = <!<TSID>>
   TValue.TValueNull = <null>
 
 context-free sorts TExp TFun

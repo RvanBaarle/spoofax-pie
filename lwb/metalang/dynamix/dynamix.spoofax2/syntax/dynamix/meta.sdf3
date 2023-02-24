@@ -193,6 +193,9 @@ context-free syntax
   MExpr.MExprTTypeSymbol = [symboltype([MExpr])]
 
   MExpr.MExprMetaPrimitive = [[PID]!([{MExpr ","}*])]
+  MExpr.MExprContextPrimitive = [using [PID]!([{MExpr ","}*])
+    [MExpr]
+  ]
 
 template options
   LID = keyword {reject}

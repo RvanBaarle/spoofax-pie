@@ -14,15 +14,15 @@ rules
       Constant(".int_fmt")
     , Private()
     , [UnnamedAddr(), Constant()]
-    , Array("5", Int8())
-    , String("\"%ld\\0A\\00\"")
+    , Array("4", Int8())
+    , String("\"%ld\\00\"")
     )
   , GlobalDef(
       Constant(".str_fmt")
     , Private()
     , [UnnamedAddr(), Constant()]
-    , Array("4", Int8())
-    , String("\"%s\\0A\\00\"")
+    , Array("3", Int8())
+    , String("\"%s\\00\"")
     )
   , TypeDef(
       Variable(".array_type")
@@ -70,7 +70,7 @@ rules
     , DefaultCConv()
     , PointerAddrSpace("1")
     , Constant("record_new")
-    , [ParamUnnamed(Int64(), []), Vararg()]
+    , [ParamUnnamed(Int64(), []), ParamUnnamed(Bool(), [])]
     , [NoUnwind()]
     )
   , FunDecl(
@@ -167,7 +167,7 @@ rules
     , DefaultCConv()
     , PointerAddrSpace("1")
     , Constant("gc_alloc")
-    , [ParamUnnamed(Int64(), [])]
+    , [ParamUnnamed(Int64(), []), ParamUnnamed(Bool(), [])]
     , [NoUnwind(), InaccessibleMemOnly(), AllocKind("\"alloc,uninitialized\""), AllocSize("0"), AllocFamily("\"malloc\"")]
     )
   , FunDecl(

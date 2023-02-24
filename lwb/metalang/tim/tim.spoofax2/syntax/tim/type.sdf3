@@ -19,10 +19,10 @@ context-free syntax
   TType.TStructT = [{[{TStructMember ", "}*]}]
   TType.TStructSuperT = [{extends [TType], [{TStructMember ", "}*]}]
   TType.TNamedT = <<TID>>
-  TType.TSymbolT = <symbol(<TID>)>
+  TType.TSymbolT = <symbol(<TSID>)>
   TType.TInferredT = <*>
-  
-  TStructMember.TStructMember = <<TID>: <TType>>
+
+  TStructMember.TStructMember = <<TSID>: <TType>>
 
 template options
   TID = keyword {reject}

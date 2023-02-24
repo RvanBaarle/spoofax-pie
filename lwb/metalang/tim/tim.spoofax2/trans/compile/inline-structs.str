@@ -9,7 +9,7 @@ imports
 
 rules
 
-  inline-structs = bottomup(try(destroy-non-escaping-struct ; bottomup(try(destroy-non-escaping-ref)))) ; bottomup(try(destroy-non-escaping-ref))
+  inline-structs = innermost(destroy-non-escaping-struct <+ destroy-non-escaping-ref)
 
   destroy-non-escaping-struct : TExpPrimOp("struct-new", STRUCT([], members, _), [], v, tail) -> tail'
   where <not(struct-is-escaping(|v))> tail
@@ -28,7 +28,7 @@ rules
   structmembers-to-refs(|struct, tail) : [(x, t)|rest] -> TExpPrimOp("ref-new", REF(t), [default], x', <structmembers-to-refs(|struct, tail')> rest)
   with
     x' := <newname> x
-  ; if <equal> (t, INT()) then !TValueInt(0) else !TValueNull() end => default
+  ; if <equal> (t, INT()) then !TValueInt("0") else !TValueNull() end => default
   ; tail' := <topdown(try(structmember-to-ref(|struct, x, x')))> tail
   structmembers-to-refs(|struct, tail) : [] -> tail
 
@@ -38,7 +38,7 @@ rules
   structmember-to-ref(|struct, symb, x) : TExpPrimOp("struct-read", t, [TValueVar(struct, _), TValueSymbol(symb)], target, tail) ->
     TExpPrimOp("ref-fetch", t, [TValueVar(x, REF(t))], target, tail)
 
-  destroy-non-escaping-ref : TExpPrimOp("ref-new", REF(t), [init-value], v, tail) -> body
+  destroy-non-escaping-ref : body@TExpPrimOp("ref-new", REF(t), [init-value], v, tail) -> body'
   where
     <debug(!"Checking ref: ")> v
   ; <not(ref-is-escaping(|v))> tail
@@ -48,12 +48,13 @@ rules
     ; tail' := <inline-ref-writes(!init-value|v)> tail
     ; if <HasGlobalDynamicWrites> () then
         <debug> "has dynamic writes"
-      ; body := TExpPrimOp("ref-new", REF(t), [init-value], v, tail')
+      ; body' := TExpPrimOp("ref-new", REF(t), [init-value], v, tail')
       else
         <debug> "no dynamic writes"
-      ; body := tail'
+      ; body' := tail'
       end
     |}
+  where not(!body ; ?body')
 
   ref-is-escaping(|name) : body -> ()
   where

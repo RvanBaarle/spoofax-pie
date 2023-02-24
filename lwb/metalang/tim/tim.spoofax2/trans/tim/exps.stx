@@ -164,6 +164,7 @@ rules
   typeOfPrimOp("str-add", [STRING(), STRING()]) = STRING().
   typeOfPrimOp("str-length", [STRING()]) = INT().
   typeOfPrimOp("str-index", [STRING(), INT()]) = STRING().
+  typeOfPrimOp("str-cmp", [STRING(), STRING()]) = INT().
 
   typeOfPrimOp("array-new", Ts) = ARRAY(T) :-
     typesCoercibleToOne(Ts, T) | error $[Types [Ts] do not match with array type [T]].

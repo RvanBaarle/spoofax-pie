@@ -1,13 +1,14 @@
 module tim/common
 
 lexical sorts
-  TID TINT TSTRING TPRIM
+  TID TSID TINT TSTRING TPRIM
   TSTRING_CHAR TBACKSLASH_CHAR
   TCOMMENT_CHAR TINSIDE_COMMENT
   TNEWLINE_EOF TEOF
 
 lexical syntax
   TID               = [\$a-zA-Z\_] [\$a-zA-Z0-9\_\-]*
+  TSID               = [\$a-zA-Z\_] [\$a-zA-Z0-9\_\-]*
   TPRIM             = [\+\-\*\/A-Za-z0-9\_]+ // primitive id
   TINT              = "-"? [0-9]+
   TSTRING           = "\"" TSTRING_CHAR* "\""

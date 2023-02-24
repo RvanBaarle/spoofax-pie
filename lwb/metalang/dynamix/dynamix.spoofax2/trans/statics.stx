@@ -364,7 +364,10 @@ rules
   typeOfExp_(s, MExprMetaPrimitive("write-var", args)) = MPLUGGABLE0() :- {T}
     typesOfExps(s, args) == [T, MTTYPE(TVALUE())],
     isMetaOrSourceType(T).
-  typeOfExp_(s, MExprMetaPrimitive("use-scope", args)) = MPLUGGABLE0() :- {T}
+  typeOfExp_(s, MExprMetaPrimitive("read-scope", args)) = MPLUGGABLE1(MTTYPE(TVALUE())) :- {T}
+    typesOfExps(s, args) == [T],
+    isMetaOrSourceType(T).
+  typeOfExp_(s, MExprContextPrimitive("scope", args, body)) = typeOfExp(s, body) :- {T}
     typesOfExps(s, args) == [T, MTTYPE(TVALUE())],
     isMetaOrSourceType(T).
   typeOfExp_(s, MExprMetaPrimitive("scope-type", args)) = MTTYPE(TTYPE()) :- {T}

@@ -8,9 +8,9 @@ void gc_init() {
 }
 
 [[maybe_unused]]
-void *gc_alloc(uint64_t size) {
+void *gc_alloc(uint64_t size, bool has_pointers) {
     DEBUG_LOG("GC_ALLOC");
-    return garbageCollector.allocate(size, NOT_FORWARDED_FLAG);
+    return garbageCollector.allocate(size, has_pointers ? ARRAY : INT_ARRAY);
 }
 
 [[maybe_unused]]
